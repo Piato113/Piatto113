@@ -4,41 +4,11 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { llegirCsv } from './csv.mjs';
 
 const arrel = fileURLToPath(new URL('..', import.meta.url));
 const csv = readFileSync(`${arrel}dades/mercadona/productes-17003.csv`, 'utf8');
 const correspondencies = JSON.parse(readFileSync(`${arrel}dades/mercadona/correspondencies.json`, 'utf8'));
-
-/** CSV amb cometes (els noms poden portar comes). */
-function llegirCsv(text) {
-  const files = [];
-  let fila = [];
-  let camp = '';
-  let entreCometes = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (entreCometes) {
-      if (c === '"' && text[i + 1] === '"') {
-        camp += '"';
-        i++;
-      } else if (c === '"') entreCometes = false;
-      else camp += c;
-    } else if (c === '"') entreCometes = true;
-    else if (c === ',') {
-      fila.push(camp);
-      camp = '';
-    } else if (c === '\n' || c === '\r') {
-      if (c === '\r' && text[i + 1] === '\n') i++;
-      fila.push(camp);
-      if (fila.some((x) => x !== '')) files.push(fila);
-      fila = [];
-      camp = '';
-    } else camp += c;
-  }
-  if (camp !== '' || fila.length > 0) files.push([...fila, camp]);
-  const [capcalera, ...dades] = files;
-  return dades.map((f) => Object.fromEntries(capcalera.map((c, i) => [c, f[i] ?? ''])));
-}
 
 const productes = new Map(llegirCsv(csv).map((p) => [p.id, p]));
 const errors = [];

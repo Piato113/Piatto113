@@ -14,7 +14,8 @@
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "preus": "node scripts/preus-mercadona.mjs"
+    "preus": "node scripts/preus-mercadona.mjs",
+    "productes-sql": "node scripts/productes-sql.mjs"
   },
   "devDependencies": {
     "typescript": "7.0.2",
