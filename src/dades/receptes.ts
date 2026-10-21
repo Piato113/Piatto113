@@ -7,6 +7,10 @@ import { receptesCullera } from './receptes-cullera';
 import { receptesForn } from './receptes-forn';
 import { receptesItalianes } from './receptes-italianes';
 import { receptesRapides } from './receptes-rapides';
+import { receptesAltresRegions } from './receptes-regio-altres';
+import { receptesAndaluses } from './receptes-regio-andalusa';
+import { receptesCatalanes2 } from './receptes-regio-catalana';
+import { receptesNord } from './receptes-regio-nord';
 
 // Catàleg inicial de receptes. Quantitats orientatives per a 4 racions normals:
 // la gana de cada persona ja s'aplica amb el factor de la família.
@@ -342,6 +346,10 @@ const totes: Recepta[] = [
   ...receptesForn,
   ...receptesItalianes,
   ...receptesRapides,
+  ...receptesCatalanes2,
+  ...receptesNord,
+  ...receptesAndaluses,
+  ...receptesAltresRegions,
   ...receptesAcompanyaments,
 ];
 

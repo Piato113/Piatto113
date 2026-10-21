@@ -31,6 +31,19 @@ export const aparellsReceptes: Record<string, (Aparell | Aparell[])[]> = {
   'patates-microones': ['microones'],
   'crema-carbasso': ['batedora'],
   'arros-negre': ['batedora'], // allioli
+  // Receptes regionals (octubre de 2026)
+  'coca-recapte': FORN,
+  'empanada-tonyina': FORN,
+  'bacalla-llauna': FORN,
+  'pebrots-farcits': FORN,
+  'arros-forn': FORN,
+  'costelles-xai-allioli': ['forn', 'batedora'], // patates al forn i allioli
+  salmorejo: ['batedora'],
+  gaspatxo: ['batedora'],
+  gazpachuelo: ['batedora'], // maionesa
+  'ensaladilla-russa': ['batedora'], // maionesa
+  'calamars-tinta': ['batedora'],
+  'bacalla-biscaina': ['batedora'],
 };
 
 /** Afegeix a cada recepta els aparells que necessita. */
