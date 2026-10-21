@@ -6,6 +6,7 @@ dist/
 .env
 .env.*
 !.env.example
+!.env.production
 
 # Sistema i editors
 .DS_Store
