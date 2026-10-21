@@ -2,7 +2,8 @@ import { generadorAleatori } from './aleatori';
 import { acompanyamentsAdmesos, potSerAcompanyament, potSerPrincipal, type Cataleg } from './cataleg';
 import { costRecepta } from './cost';
 import { racionsApat, racionsEfectives } from './escalat';
-import { apatsMarcats, esCapDeSetmana } from './graella';
+import type { DiaCalendari } from './calendari';
+import { apatsMarcats, DIES, esCapDeSetmana } from './graella';
 import { generarLlista, type LlistaCompra } from './llista';
 import type { Aparell, Apat, ApatPlanificat, Avis, ConfiguracioFamilia, Dia, Graella, Recepta } from './tipus';
 
@@ -12,6 +13,11 @@ export interface EntradaPlanificador {
   graella: Graella;
   /** Mateixa llavor + mateixes dades = mateix menú. */
   llavor: number;
+  /**
+   * Menú d'un període llarg (p. ex. un mes): els dies del calendari. Cada dia té els àpats que la graella
+   * marca per a aquell dia de la setmana. Sense dies, es planifica una setmana (de dilluns a diumenge).
+   */
+  dies?: readonly DiaCalendari[];
 }
 
 export interface PlaSetmanal {
@@ -30,6 +36,9 @@ const PES_EVITADA = 0.25;
 /** Límits del multiplicador del mode econòmic (cost mitjà ÷ cost del plat). */
 const ECONOMIC_MIN = 0.5;
 const ECONOMIC_MAX = 3;
+
+/** Un plat no es repeteix si fa aquests dies o menys que ha sortit (0 = el mateix dia). */
+export const DIES_SENSE_REPETIR = 2;
 
 /** Grups que es reparteixen al llarg de la setmana en el mode equilibrat. */
 export const GRUPS_EQUILIBRI: readonly string[] = ['carn', 'peix', 'ou', 'llegums', 'pasta', 'arros'];
@@ -107,6 +116,10 @@ interface Forat {
   dia: Dia;
   apat: Apat;
   limit: number | null;
+  /** Número del dia dins del període (per saber quants dies separen dos àpats). */
+  ordre: number;
+  /** Data del calendari, només en els menús d'un període llarg. */
+  data?: string;
 }
 
 interface Triada {
@@ -123,6 +136,8 @@ class SorteigPrincipals {
   private pendents: Recepta[] = [];
   private anterior: Recepta | undefined;
   private readonly usosGrup = new Map<string, number>();
+  /** Últim dia (ordre) en què ha sortit cada recepta. */
+  private readonly ultimDia = new Map<string, number>();
 
   constructor(
     private readonly candidates: Recepta[],
@@ -138,7 +153,7 @@ class SorteigPrincipals {
     return base / (1 + usos);
   }
 
-  treure(admet: (r: Recepta) => boolean): Recepta {
+  treure(admet: (r: Recepta) => boolean, ordre: number): Recepta {
     let possibles = this.pendents.filter(admet);
     if (possibles.length === 0) {
       this.pendents = [...this.candidates];
@@ -149,6 +164,11 @@ class SorteigPrincipals {
       const restants = possibles.filter(filtre);
       if (restants.length > 0) possibles = restants;
     };
+    // Si es pot, cap plat que hagi sortit fa pocs dies.
+    restringir((r) => {
+      const ultim = this.ultimDia.get(r.id);
+      return ultim === undefined || ordre - ultim > DIES_SENSE_REPETIR;
+    });
     if (anterior) {
       restringir((r) => r.id !== anterior.id);
       if (this.equilibrat) {
@@ -165,6 +185,7 @@ class SorteigPrincipals {
     if (index >= 0) this.pendents.splice(index, 1);
     for (const g of grups(triada)) this.usosGrup.set(g, (this.usosGrup.get(g) ?? 0) + 1);
     this.anterior = triada;
+    this.ultimDia.set(triada.id, ordre);
     return triada;
   }
 }
@@ -212,13 +233,16 @@ const idsDe = (triades: Triada[]): string[] =>
  * 3. si el cost del que es menja supera el pressupost, substitueix l'àpat més car
  *    per l'opció més barata disponible, fins que hi càpiga o ja no es pugui abaratir.
  */
-export function planificar({ cataleg, configuracio, graella, llavor }: EntradaPlanificador): PlaSetmanal {
+export function planificar({ cataleg, configuracio, graella, llavor, dies }: EntradaPlanificador): PlaSetmanal {
   const racionsCentesimes = racionsEfectives(configuracio.persones);
-  const forats: Forat[] = apatsMarcats(graella).map(({ dia, apat }) => ({
-    dia,
-    apat,
-    limit: esCapDeSetmana(dia) ? configuracio.tempsMaximMinuts.capDeSetmana : configuracio.tempsMaximMinuts.feiners,
-  }));
+  const limitDia = (dia: Dia): number | null =>
+    esCapDeSetmana(dia) ? configuracio.tempsMaximMinuts.capDeSetmana : configuracio.tempsMaximMinuts.feiners;
+  const marcats = apatsMarcats(graella);
+  const forats: Forat[] = dies
+    ? dies.flatMap(({ data, dia }, ordre) =>
+        marcats.filter((m) => m.dia === dia).map(({ apat }) => ({ dia, apat, limit: limitDia(dia), ordre, data })),
+      )
+    : marcats.map(({ dia, apat }) => ({ dia, apat, limit: limitDia(dia), ordre: DIES.indexOf(dia) }));
   const avisos: Avis[] = [];
   const buit = (): PlaSetmanal => ({
     apats: [],
@@ -275,7 +299,7 @@ export function planificar({ cataleg, configuracio, graella, llavor }: EntradaPl
 
   const aleatori = generadorAleatori(llavor);
   const sorteig = new SorteigPrincipals(candidates, pesBase, configuracio.equilibrat, aleatori);
-  const principals = forats.map((f) => sorteig.treure((r) => apta(r, acompanyaments, f.limit)));
+  const principals = forats.map((f) => sorteig.treure((r) => apta(r, acompanyaments, f.limit), f.ordre));
   const triaAcompanyaments = new TriaAcompanyaments(acompanyaments, aleatori);
   for (const principal of principals) triaAcompanyaments.anotar(principal.id);
   const triades: Triada[] = principals.map((principal, i) => {
@@ -284,7 +308,16 @@ export function planificar({ cataleg, configuracio, graella, llavor }: EntradaPl
   });
 
   const ambRepeticions = new Set(principals.map((r) => r.id)).size < forats.length;
-  if (ambRepeticions) {
+  /** El plat `r` a l'àpat `i` no surt en cap altre àpat a pocs dies. */
+  const separat = (r: Recepta, i: number, triadesActuals: readonly Triada[]): boolean =>
+    triadesActuals.every(
+      (t, j) => j === i || t.principal.id !== r.id || Math.abs(forats[j]!.ordre - forats[i]!.ordre) > DIES_SENSE_REPETIR,
+    );
+  // En una setmana, qualsevol repetició s'avisa; en un període llarg, només si surten a pocs dies.
+  const avisarRepeticions = dies
+    ? principals.some((r, i) => !separat(r, i, principals.map((p) => ({ principal: p }))))
+    : ambRepeticions;
+  if (avisarRepeticions) {
     avisos.push({ codi: 'receptes-repetides', disponibles: candidates.length, necessaries: forats.length });
   }
 
@@ -299,9 +332,10 @@ export function planificar({ cataleg, configuracio, graella, llavor }: EntradaPl
 
       // Per a cada àpat, la millor alternativa dins del seu temps: una altra principal més barata
       // (sense repetir-ne cap, si abans no calia) o la mateixa amb l'acompanyament més barat.
-      const alternativa = (t: Triada, forat: Forat): Triada | undefined => {
+      const alternativa = (t: Triada, forat: Forat, i: number): Triada | undefined => {
         const opcions = aptesPer(forat)
           .filter((r) => ambRepeticions || !usades.has(r.id))
+          .filter((r) => !dies || r.id === t.principal.id || separat(r, i, triades))
           .map((r) => opcio(r, forat.limit));
         if (t.acompanyament) opcions.push(opcio(t.principal, forat.limit));
         const millor = opcions.reduce<Triada | undefined>(
@@ -316,7 +350,7 @@ export function planificar({ cataleg, configuracio, graella, llavor }: EntradaPl
       let substituta: Triada | undefined;
       for (let i = 0; i < triades.length; i++) {
         const t = triades[i]!;
-        const alt = alternativa(t, forats[i]!);
+        const alt = alternativa(t, forats[i]!, i);
         if (alt && (index === -1 || costTriada(t) > costTriada(triades[index]!))) {
           index = i;
           substituta = alt;
@@ -337,11 +371,10 @@ export function planificar({ cataleg, configuracio, graella, llavor }: EntradaPl
   const llista = generarLlista(cataleg, idsDe(triades), racionsCentesimes);
   if (llista.senseCost.length > 0) avisos.push({ codi: 'sense-preu', ingredientIds: llista.senseCost });
 
-  const apats = forats.map(({ dia, apat }, i): ApatPlanificat => {
+  const apats = forats.map(({ dia, apat, data }, i): ApatPlanificat => {
     const t = triades[i]!;
-    return t.acompanyament
-      ? { dia, apat, receptaId: t.principal.id, acompanyamentId: t.acompanyament.id }
-      : { dia, apat, receptaId: t.principal.id };
+    const base: ApatPlanificat = data ? { dia, apat, data, receptaId: t.principal.id } : { dia, apat, receptaId: t.principal.id };
+    return t.acompanyament ? { ...base, acompanyamentId: t.acompanyament.id } : base;
   });
   return { apats, llista, racionsCentesimes, costConsumitCentims: costTotal(), avisos };
 }
@@ -420,6 +453,7 @@ export function canviarPlat(
   const nou: ApatPlanificat = acompanyament
     ? { dia: actual.dia, apat: actual.apat, receptaId: principal.id, acompanyamentId: acompanyament.id }
     : { dia: actual.dia, apat: actual.apat, receptaId: principal.id };
+  if (actual.data) nou.data = actual.data;
   if (actual.assistencia) nou.assistencia = actual.assistencia;
   return apats.map((a, i) => (i === index ? nou : a));
 }
@@ -524,6 +558,7 @@ export function triarPlat(
   const nou: ApatPlanificat = acompanyament
     ? { dia: actual.dia, apat: actual.apat, receptaId, acompanyamentId: acompanyament }
     : { dia: actual.dia, apat: actual.apat, receptaId };
+  if (actual.data) nou.data = actual.data;
   if (actual.assistencia) nou.assistencia = actual.assistencia;
   return apats.map((a, i) => (i === index ? nou : a));
 }

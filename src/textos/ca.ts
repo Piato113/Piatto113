@@ -4,6 +4,30 @@ import { formatEuros } from '../domini/format';
 
 // Tots els textos de la interfície en català.
 // Afegir aquí qualsevol text nou en lloc d'escriure'l directament a les pantalles.
+const MESOS = ['gener', 'febrer', 'març', 'abril', 'maig', 'juny', 'juliol', 'agost', 'setembre', 'octubre', 'novembre', 'desembre'];
+
+const majusculaInicial = (t: string): string => t.charAt(0).toUpperCase() + t.slice(1);
+
+/** «novembre» a partir de «2026-11». */
+const nomMes = (mes: string): string => MESOS[Number(mes.slice(5, 7)) - 1] ?? mes;
+
+/** «de novembre», «d’octubre». */
+const deMes = (mes: string): string => {
+  const nom = nomMes(mes);
+  return /^[aeiou]/.test(nom) ? `d’${nom}` : `de ${nom}`;
+};
+
+/** «3 de novembre» a partir de «2026-11-03». */
+const dataLlarga = (data: string): string => `${Number(data.slice(8, 10))} ${deMes(data.slice(0, 7))}`;
+
+/** «2–8 de novembre» o «26 d’octubre – 1 de novembre». */
+const rangDates = (inici: string, fi: string): string =>
+  inici.slice(0, 7) === fi.slice(0, 7)
+    ? inici === fi
+      ? dataLlarga(inici)
+      : `${Number(inici.slice(8, 10))}–${dataLlarga(fi)}`
+    : `${dataLlarga(inici)} – ${dataLlarga(fi)}`;
+
 export const textos = {
   app: {
     nom: 'Piatto113',
@@ -20,6 +44,7 @@ export const textos = {
     ds: 'Dissabte',
     dg: 'Diumenge',
   } satisfies Record<Dia, string>,
+  diesCurts: { dl: 'Dl', dt: 'Dt', dc: 'Dc', dj: 'Dj', dv: 'Dv', ds: 'Ds', dg: 'Dg' } satisfies Record<Dia, string>,
   apats: { dinar: 'Dinar', sopar: 'Sopar' },
   accions: {
     comencar: 'Comença',
@@ -39,6 +64,28 @@ export const textos = {
   },
   menu: {
     titol: 'Menú de la setmana',
+    titolMes: (mes: string) => `Menú ${deMes(mes)}`,
+    periode: {
+      titol: 'Per a quant de temps?',
+      setmana: 'Una setmana',
+      mes: 'Un mes sencer',
+      ajuda: 'Amb el mes sencer, la compra es fa d’un cop i s’aprofiten els paquets oberts d’una setmana a l’altra.',
+      restaDe: (mes: string) => `Resta ${deMes(mes)}`,
+      mesSencer: (mes: string) => majusculaInicial(nomMes(mes)),
+    },
+    setmana: (n: number, total: number) => `Setmana ${n} de ${total}`,
+    rang: (inici: string, fi: string) => rangDates(inici, fi),
+    setmanaAnterior: 'Setmana anterior',
+    setmanaSeguent: 'Setmana següent',
+    calendari: 'Calendari del mes',
+    llegenda: 'Cada punt és un àpat. Toca un dia per veure’n la setmana.',
+    diaCalendari: (data: string, plats: string) => `${dataLlarga(data)}: ${plats}`,
+    senseApats: 'sense àpats',
+    diaAmbData: (dia: string, data: string) => `${dia} ${Number(data.slice(8))}`,
+    compraMes: (total: string) => `Compra de tot el mes: ${total}.`,
+    estalviMes: (estalvi: string) =>
+      `Comprant-ho tot d’un cop estalvieu uns ${estalvi} respecte de fer la compra setmana a setmana.`,
+    descongelar: (noms: string) => `❄ Si ho teniu congelat, traieu-ho la nit abans: ${noms}.`,
     veureMenu: 'Veure el menú de la setmana',
     apats: (n: number) => (n === 1 ? '1 àpat' : `${n} àpats`),
     costSetmana: (total: string, perApat: string) => `${total} del que es menja (${perApat} per àpat)`,
@@ -95,6 +142,9 @@ export const textos = {
   },
   compra: {
     titol: 'Llista de la compra',
+    titolMes: (mes: string) => `Compra ${deMes(mes)}`,
+    congelar: '❄ Al congelador',
+    ajudaCongelar: 'Els productes amb ❄ convé congelar-los en arribar a casa.',
     resum: (productes: number, total: string) =>
       `${productes === 1 ? '1 producte' : `${productes} productes`} · ${total} aproximadament`,
     preus: (data: string) => `Preus del Mercadona de Girona del ${data}.`,

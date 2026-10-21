@@ -45,7 +45,7 @@ export function conservarAssistencia(
   anteriors: readonly ApatPlanificat[],
 ): ApatPlanificat[] {
   return nous.map((a) => {
-    const vell = anteriors.find((x) => x.dia === a.dia && x.apat === a.apat);
+    const vell = anteriors.find((x) => x.dia === a.dia && x.apat === a.apat && x.data === a.data);
     const assistencia = normalitzarAssistencia(persones, vell?.assistencia);
     const { assistencia: _treta, ...sense } = a;
     return assistencia ? { ...sense, assistencia } : sense;

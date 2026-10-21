@@ -13,3 +13,5 @@ export * from './preparacio';
 export * from './questionari';
 export * from './cronometres';
 export * from './sincronitzacio';
+export * from './calendari';
+export * from './periode';

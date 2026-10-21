@@ -2,7 +2,9 @@ import {
   ALERGENS,
   APATS,
   DIES,
+  esData,
   graellaPerDefecte,
+  llegirMes,
   llegirRespostes,
   type ApatPlanificat,
   type Avis,
@@ -98,7 +100,13 @@ export interface MenuDesat {
   graella: Graella;
   apats: ApatPlanificat[];
   avisos: Avis[];
+  /** Menú d'una setmana (per defecte) o d'un mes sencer. */
+  periode?: PeriodeMenu;
+  /** Mes del menú mensual, «AAAA-MM». */
+  mes?: string;
 }
+
+export type PeriodeMenu = 'setmana' | 'mes';
 
 function llegirGraella(valor: unknown): Graella | null {
   if (typeof valor !== 'object' || valor === null) return null;
@@ -141,7 +149,8 @@ export function carregarMenu(cataleg: Cataleg): MenuDesat | null {
         DIES.includes(a.dia) &&
         APATS.includes(a.apat) &&
         cataleg.receptes.has(a.receptaId) &&
-        (a.acompanyamentId === undefined || cataleg.receptes.has(a.acompanyamentId)),
+        (a.acompanyamentId === undefined || cataleg.receptes.has(a.acompanyamentId)) &&
+        (a.data === undefined || esData(a.data)),
     );
     if (!valids) return null;
     // Convidats i absències: si no tenen la forma esperada, es descarten (hi és tota la família).
@@ -155,7 +164,13 @@ export function carregarMenu(cataleg: Cataleg): MenuDesat | null {
         Number.isInteger(assistencia.convidats);
       return valida ? { ...sense, assistencia: { absents: [...assistencia.absents], convidats: assistencia.convidats } } : sense;
     });
-    return { signatura: v.signatura, llavor: v.llavor, graella, apats, avisos: Array.isArray(v.avisos) ? v.avisos : [] };
+    const menu: MenuDesat = { signatura: v.signatura, llavor: v.llavor, graella, apats, avisos: Array.isArray(v.avisos) ? v.avisos : [] };
+    // Menú mensual: cal el mes i que tots els àpats tinguin data; si no, es tracta com un de setmanal nou.
+    if (v.periode === 'mes') {
+      if (typeof v.mes !== 'string' || !llegirMes(v.mes) || !apats.every((a) => a.data !== undefined)) return null;
+      return { ...menu, periode: 'mes', mes: v.mes };
+    }
+    return menu;
   } catch {
     return null;
   }

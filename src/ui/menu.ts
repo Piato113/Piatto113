@@ -1,7 +1,11 @@
-import { catalegInicial } from '../dades';
+import { carnIPeixPerCongelar, catalegInicial } from '../dades';
 import {
   APATS,
   avaluarMenu,
+  categoriaPlat,
+  diesDelMes,
+  estalviCompraPeriode,
+  setmanesDelMenu,
   comensals,
   costRecepta,
   DIES,
@@ -14,6 +18,7 @@ import {
   type ConfiguracioFamilia,
   type Graella,
 } from '../domini';
+import type { PeriodeMenu } from './emmagatzematge';
 import { textAvis, textos } from '../textos/ca';
 import { h } from './dom';
 import { euros as formatEuros } from './format';
@@ -30,6 +35,13 @@ export interface DadesMenu {
   graellaOberta?: boolean;
   /** Àpat amb el quadre «Qui hi ha a taula?» obert. */
   assistenciaOberta?: number | null;
+  periode: PeriodeMenu;
+  /** Mes del menú mensual («AAAA-MM»). */
+  mes?: string;
+  /** Mesos que es poden triar: el que corre (la resta) i el següent. */
+  mesos: { mes: string; resta: boolean }[];
+  /** Setmana del menú mensual que es mostra (índex). */
+  setmanaVisible: number;
 }
 
 export interface AccionsMenu {
@@ -41,6 +53,9 @@ export interface AccionsMenu {
   obrirAssistencia: (index: number) => void;
   /** `enfocar`: selector de l'element que ha de tenir el focus després de tornar a pintar. */
   canviarAssistencia: (index: number, assistencia: Assistencia, enfocar: string) => void;
+  /** Canvia entre menú setmanal i mensual (i de quin mes). */
+  canviarPeriode: (periode: PeriodeMenu, mes?: string) => void;
+  veureSetmana: (index: number) => void;
 }
 
 const tt = tm.taula;
@@ -175,6 +190,102 @@ function graellaEditable(graella: Graella, oberta: boolean, canviar: (g: Graella
   );
 }
 
+/** En un menú mensual, recorda treure del congelador la carn i el peix del plat. */
+function notaDescongelar(receptes: (ReturnType<typeof recepta> | undefined)[]): HTMLElement | null {
+  const noms = [
+    ...new Set(
+      receptes.flatMap((r) =>
+        (r?.ingredients ?? []).filter((l) => carnIPeixPerCongelar.has(l.ingredientId)).map((l) => nomIngredient(l.ingredientId).toLowerCase()),
+      ),
+    ),
+  ];
+  return noms.length > 0 ? h('p', { class: 'apat__descongelar' }, tm.descongelar(noms.join(', '))) : null;
+}
+
+/** Selector «Una setmana / Un mes sencer» i, si és mensual, de quin mes. */
+function selectorPeriode(dades: DadesMenu, accions: AccionsMenu): HTMLElement {
+  const tp = tm.periode;
+  const xip = (actiu: boolean, text: string, clau: string, accio: () => void): HTMLElement =>
+    h(
+      'button',
+      { type: 'button', class: `xip${actiu ? ' xip--actiu' : ''}`, 'aria-pressed': actiu ? 'true' : 'false', 'data-periode': clau, onclick: accio },
+      text,
+    );
+  const mensual = dades.periode === 'mes';
+  return h(
+    'section',
+    { class: 'periode', 'aria-labelledby': 'periode-titol' },
+    h('h2', { class: 'periode__titol', id: 'periode-titol' }, tp.titol),
+    h(
+      'div',
+      { class: 'xips' },
+      xip(!mensual, tp.setmana, 'setmana', () => accions.canviarPeriode('setmana')),
+      xip(mensual, tp.mes, 'mes', () => accions.canviarPeriode('mes')),
+    ),
+    mensual
+      ? h(
+          'div',
+          { class: 'xips' },
+          ...dades.mesos.map(({ mes, resta }) =>
+            xip(dades.mes === mes, resta ? tp.restaDe(mes) : tp.mesSencer(mes), mes, () => accions.canviarPeriode('mes', mes)),
+          ),
+        )
+      : null,
+    h('p', { class: 'grup__ajuda' }, tp.ajuda),
+  );
+}
+
+/** Calendari del mes amb un punt de color per àpat (segons la categoria del plat). */
+function calendariMes(mes: string, apats: readonly ApatPlanificat[], setmanes: { dilluns: string; indexs: number[] }[], visible: number, accions: AccionsMenu): HTMLElement {
+  const dies = diesDelMes(mes);
+  const buits = DIES.indexOf(dies[0]!.dia);
+  const setmanaDe = (data: string): number => setmanes.findIndex((s) => s.indexs.some((i) => apats[i]!.data === data));
+  return h(
+    'section',
+    { class: 'calendari', 'aria-label': tm.calendari },
+    h('div', { class: 'calendari__graella' },
+      ...DIES.map((d) => h('span', { class: 'calendari__capcalera', 'aria-hidden': 'true' }, textos.diesCurts[d])),
+      ...Array.from({ length: buits }, () => h('span', { class: 'calendari__buit' })),
+      ...dies.map(({ data }) => {
+        const delDia = apats.filter((a) => a.data === data);
+        const setmana = setmanaDe(data);
+        const plats = delDia.map((a) => recepta(a.receptaId)?.nom ?? a.receptaId).join(', ') || tm.senseApats;
+        return h(
+          'button',
+          {
+            type: 'button',
+            class: `calendari__dia${setmana === visible ? ' calendari__dia--visible' : ''}`,
+            disabled: setmana < 0,
+            'aria-label': tm.diaCalendari(data, plats),
+            onclick: () => accions.veureSetmana(setmana),
+          },
+          h('span', { class: 'calendari__numero' }, String(Number(data.slice(8)))),
+          h(
+            'span',
+            { class: 'calendari__punts', 'aria-hidden': 'true' },
+            ...delDia.map((a) => {
+              const r = recepta(a.receptaId);
+              return h('span', { class: `calendari__punt calendari__punt--${r ? categoriaPlat(r) : 'verdura'}` });
+            }),
+          ),
+        );
+      }),
+    ),
+    h(
+      'p',
+      { class: 'calendari__llegenda' },
+      ...CATEGORIES_LLEGENDA.map((c) =>
+        h('span', { class: 'calendari__clau' }, h('span', { class: `calendari__punt calendari__punt--${c}`, 'aria-hidden': 'true' }), textos.triar.categories[c]),
+      ),
+    ),
+    h('p', { class: 'grup__ajuda' }, tm.llegenda),
+  );
+}
+
+const CATEGORIES_LLEGENDA = ['carn', 'peix', 'ou', 'llegums', 'pasta', 'arros', 'verdura'] as const;
+
+let mensual = false;
+
 function targetaApat(a: ApatPlanificat, index: number, configuracio: ConfiguracioFamilia, oberta: boolean, accions: AccionsMenu): HTMLElement {
   const racions = racionsApat(configuracio.persones, a);
   const resum = resumTaula(configuracio, a);
@@ -203,6 +314,7 @@ function targetaApat(a: ApatPlanificat, index: number, configuracio: Configuraci
       ),
       acompanyament ? h('p', { class: 'apat__acompanyament' }, tm.amb(acompanyament.nom)) : null,
       h('p', { class: 'apat__meta' }, [temps, formatEuros(cost)].filter(Boolean).join(' · ')),
+      mensual ? notaDescongelar([principal, acompanyament]) : null,
       h(
         'button',
         {
@@ -255,15 +367,41 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
     .map((x) => textAvis(x, nomIngredient) as string | undefined)
     .filter((x): x is string => Boolean(x));
 
-  const dies = DIES.map((dia) => ({
-    dia,
-    apats: apats.map((a, index) => ({ a, index })).filter(({ a }) => a.dia === dia),
-  })).filter((d) => d.apats.length > 0);
+  mensual = dades.periode === 'mes' && dades.mes !== undefined;
+  const setmanes = setmanesDelMenu(apats);
+  const visible = Math.min(Math.max(0, dades.setmanaVisible), Math.max(0, setmanes.length - 1));
+  const indexsVisibles = mensual ? (setmanes[visible]?.indexs ?? []) : apats.map((_, i) => i);
+  // Dies a mostrar: en el menú mensual, cada data de la setmana visible; en el setmanal, cada dia de la setmana.
+  const claus = mensual
+    ? [...new Set(indexsVisibles.map((i) => apats[i]!.data!))]
+    : DIES.filter((dia) => apats.some((a) => a.dia === dia));
+  const dies = claus.map((clau) => {
+    const delDia = indexsVisibles.map((index) => ({ a: apats[index]!, index })).filter(({ a }) => (mensual ? a.data === clau : a.dia === clau));
+    const dia = delDia[0]!.a.dia;
+    return { clau, nom: mensual ? tm.diaAmbData(textos.dies[dia], clau) : textos.dies[dia], apats: delDia };
+  });
+  const estalvi = mensual && apats.length > 0 ? estalviCompraPeriode(catalegInicial, configuracio, apats).estalviCentims : 0;
+  const setmanaActual = setmanes[visible];
+  const navegacioSetmanes =
+    mensual && setmanaActual
+      ? h(
+          'div',
+          { class: 'setmanes' },
+          h('button', { type: 'button', class: 'boto boto--petit boto--secundari', 'aria-label': tm.setmanaAnterior, 'data-setmana': 'anterior', disabled: visible === 0, onclick: () => accions.veureSetmana(visible - 1) }, '‹'),
+          h(
+            'p',
+            { class: 'setmanes__text', 'aria-live': 'polite' },
+            h('strong', {}, tm.setmana(visible + 1, setmanes.length)),
+            h('span', { class: 'setmanes__rang' }, tm.rang(apats[setmanaActual.indexs[0]!]!.data!, apats[setmanaActual.indexs.at(-1)!]!.data!)),
+          ),
+          h('button', { type: 'button', class: 'boto boto--petit boto--secundari', 'aria-label': tm.setmanaSeguent, 'data-setmana': 'seguent', disabled: visible >= setmanes.length - 1, onclick: () => accions.veureSetmana(visible + 1) }, '›'),
+        )
+      : null;
 
   return h(
     'main',
     { class: 'menu' },
-    h('h1', { class: 'menu__titol', tabindex: -1 }, tm.titol),
+    h('h1', { class: 'menu__titol', tabindex: -1 }, mensual ? tm.titolMes(dades.mes!) : tm.titol),
     apats.length > 0
       ? h(
           'section',
@@ -274,19 +412,28 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
             `${tm.apats(apats.length)} · ${tm.costSetmana(formatEuros(costConsumitCentims), formatEuros(perApat))}`,
           ),
           pressupostApat !== null ? h('p', { class: 'menu__nota' }, tm.pressupost(formatEuros(pressupostApat))) : null,
-          h('p', { class: 'menu__nota' }, `${tm.compra(formatEuros(llista.totalCompraCentims))} ${tm.explicacioCompra}`),
+          mensual
+            ? h(
+                'p',
+                { class: 'menu__nota' },
+                [tm.compraMes(formatEuros(llista.totalCompraCentims)), estalvi > 0 ? tm.estalviMes(formatEuros(estalvi)) : ''].filter(Boolean).join(' '),
+              )
+            : h('p', { class: 'menu__nota' }, `${tm.compra(formatEuros(llista.totalCompraCentims))} ${tm.explicacioCompra}`),
         )
       : null,
     dades.missatge ? h('p', { class: 'avis', role: 'status' }, dades.missatge) : null,
     sobrePressupost ? h('p', { class: 'avis', role: 'status' }, tm.sobrePressupost) : null,
     ...textosAvisos.map((text) => h('p', { class: 'avis', role: 'status' }, text)),
+    selectorPeriode(dades, accions),
     graellaEditable(graella, dades.graellaOberta === true, accions.canviarGraella),
     apats.length === 0 ? h('p', { class: 'avis' }, tm.capApat) : null,
-    ...dies.map(({ dia, apats: delDia }) =>
+    mensual && apats.length > 0 ? calendariMes(dades.mes!, apats, setmanes, visible, accions) : null,
+    navegacioSetmanes,
+    ...dies.map(({ clau, nom, apats: delDia }) =>
       h(
         'section',
-        { class: 'dia', 'aria-labelledby': `dia-${dia}` },
-        h('h2', { class: 'dia__nom', id: `dia-${dia}` }, textos.dies[dia]),
+        { class: 'dia', 'aria-labelledby': `dia-${clau}` },
+        h('h2', { class: 'dia__nom', id: `dia-${clau}` }, nom),
         ...delDia.map(({ a, index }) => targetaApat(a, index, configuracio, dades.assistenciaOberta === index, accions)),
       ),
     ),

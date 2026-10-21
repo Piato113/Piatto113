@@ -192,6 +192,8 @@ export interface Assistencia {
 export interface ApatPlanificat {
   dia: Dia;
   apat: Apat;
+  /** Data «AAAA-MM-DD», només en els menús d'un període llarg (mensual). */
+  data?: string;
   receptaId: string;
   /** Només si la recepta principal demana acompanyament. */
   acompanyamentId?: string;

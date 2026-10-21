@@ -1529,3 +1529,172 @@ h1:focus-visible {
 .aparell__o {
   color: var(--text-suau);
 }
+
+/* ——— Menú mensual ——— */
+
+.periode {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem;
+  border: 1px solid var(--vora);
+  border-radius: var(--radi);
+  background: var(--superficie);
+}
+
+.periode__titol {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.periode .grup__ajuda {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.periode .xip:not(.xip--actiu) {
+  color: var(--text-suau);
+  background: var(--fons);
+}
+
+.calendari {
+  padding: 0.75rem;
+  border: 1px solid var(--vora);
+  border-radius: var(--radi);
+  background: var(--superficie);
+}
+
+.calendari__graella {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.25rem;
+}
+
+.calendari__capcalera {
+  color: var(--text-suau);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.calendari__dia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.2rem;
+  min-height: 2.9rem;
+  padding: 0.25rem 0.1rem;
+  border: 1px solid transparent;
+  border-radius: 0.6rem;
+  background: var(--fons);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.calendari__dia:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.calendari__dia--visible {
+  border-color: var(--taronja);
+  background: rgb(244 115 24 / 0.12);
+}
+
+.calendari__dia:focus-visible {
+  outline: 3px solid var(--taronja);
+  outline-offset: 1px;
+}
+
+.calendari__numero {
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.calendari__punts {
+  display: flex;
+  gap: 0.2rem;
+}
+
+.calendari__punt {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  flex: none;
+}
+
+.calendari__punt--carn { background: #e0574f; }
+.calendari__punt--peix { background: #4fa3e0; }
+.calendari__punt--ou { background: #e8c547; }
+.calendari__punt--llegums { background: #b07a4a; }
+.calendari__punt--pasta { background: #f8942c; }
+.calendari__punt--arros { background: #d9c8a0; }
+.calendari__punt--verdura { background: #6cbf5a; }
+
+.calendari__llegenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin: 0.75rem 0 0.25rem;
+  color: var(--text-suau);
+  font-size: 0.8rem;
+}
+
+.calendari__clau {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.calendari .grup__ajuda {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.setmanes {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  background: var(--fons);
+  scroll-margin-top: 0.5rem;
+}
+
+.setmanes .boto {
+  min-width: 3rem;
+  font-size: 1.3rem;
+}
+
+.setmanes__text {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.setmanes__rang {
+  color: var(--text-suau);
+  font-size: 0.85rem;
+}
+
+.apat__descongelar {
+  margin: 0.2rem 0 0;
+  color: #9fd0f0;
+  font-size: 0.85rem;
+}
+
+.producte__congelar {
+  color: #9fd0f0;
+  font-size: 0.8rem;
+  font-weight: 600;
+}

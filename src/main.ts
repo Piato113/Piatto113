@@ -2,7 +2,13 @@ import './estils.css';
 import { catalegInicial } from './dades';
 import {
   avaluarMenu,
+  avui,
   canviarPlat,
+  dillunsDe,
+  diesDelMes,
+  estalviCompraPeriode,
+  mesSeguent,
+  setmanesDelMenu,
   comensals,
   configuracioDesDeRespostes,
   conservarAssistencia,
@@ -29,6 +35,7 @@ import {
   desarMenu,
   desarRespostes,
   type MenuDesat,
+  type PeriodeMenu,
 } from './ui/emmagatzematge';
 import { pantallaMenu } from './ui/menu';
 import { pantallaPas, pantallaResum, PASSOS, type Pas } from './ui/questionari';
@@ -77,6 +84,8 @@ let enfocarEnTornar: string | null = null;
 let assistenciaOberta: number | null = null;
 /** Manté oberta la graella després de tocar-la. */
 let graellaOberta = false;
+/** Setmana del menú mensual que es mostra; `null`: la d'avui (o la primera). */
+let setmanaVisible: number | null = null;
 /** Neteja de la pantalla actual (p. ex. el mode cuinar deixa d'escoltar els cronòmetres). */
 let desmuntar: (() => void) | null = null;
 /** Usuari amb sessió iniciada (només si hi ha Supabase configurat). */
@@ -144,15 +153,46 @@ let pantalla: Pantalla = desades ? (seccioDe(location.hash) ?? { tipus: 'menu' }
 
 // ——— Menú ———
 
-/** Fa un menú nou amb la llavor i la graella indicades i el desa. */
-function ferMenu(respostes: RespostesQuestionari, graella: Graella, llavor: number): MenuDesat {
+/** Mesos que es poden triar per al menú mensual: la resta del que corre i el següent. */
+function mesosTriables(): { mes: string; resta: boolean }[] {
+  const actual = avui().slice(0, 7);
+  return [
+    { mes: actual, resta: !avui().endsWith('-01') },
+    { mes: mesSeguent(actual), resta: false },
+  ];
+}
+
+/** Mes per defecte en passar a menú mensual: el que corre fins a mig mes; després, el següent. */
+const mesPerDefecte = (): string => (Number(avui().slice(8)) <= 15 ? avui().slice(0, 7) : mesSeguent(avui().slice(0, 7)));
+
+/** Fa un menú nou amb la llavor i la graella indicades (i el període del menú actual) i el desa. */
+function ferMenu(
+  respostes: RespostesQuestionari,
+  graella: Graella,
+  llavor: number,
+  periode: PeriodeMenu = menu?.periode ?? 'setmana',
+  mes: string | undefined = menu?.mes,
+): MenuDesat {
   const configuracio = configuracioDesDeRespostes(respostes);
-  const pla = planificar({ cataleg: catalegInicial, configuracio, graella, llavor });
+  // Un mes que ja ha passat (o sense dies que quedin) passa al mes per defecte.
+  let mesTriat = periode === 'mes' ? (mes ?? mesPerDefecte()) : undefined;
+  if (mesTriat && diesDelMes(mesTriat, avui()).filter((d) => d.data >= avui()).length === 0) mesTriat = mesPerDefecte();
+  const dies = mesTriat ? diesDelMes(mesTriat, avui()) : undefined;
+  const pla = planificar({ cataleg: catalegInicial, configuracio, graella, llavor, ...(dies ? { dies } : {}) });
   // Els convidats i absències d'un dia no canvien perquè es torni a fer el menú.
   const apats = conservarAssistencia(configuracio.persones, pla.apats, menu?.apats ?? []);
   const nou: MenuDesat = { signatura: JSON.stringify(respostes), llavor, graella, apats, avisos: pla.avisos };
+  if (mesTriat) Object.assign(nou, { periode: 'mes', mes: mesTriat });
   desarMenu(nou);
   return nou;
+}
+
+/** Setmana a mostrar del menú mensual: la triada o, si no, la que conté avui. */
+function setmanaAMostrar(m: MenuDesat): number {
+  if (setmanaVisible !== null) return setmanaVisible;
+  const dilluns = dillunsDe(avui());
+  const index = setmanesDelMenu(m.apats).findIndex((s) => s.dilluns === dilluns);
+  return Math.max(0, index);
 }
 
 /** El menú actual; si les respostes han canviat des que es va fer, se'n fa un de nou. */
@@ -165,7 +205,7 @@ function menuActual(respostes: RespostesQuestionari): MenuDesat {
 
 /** Identifica la llista de la compra: si canvien els àpats o la família, els productes marcats es reinicien. */
 const signaturaCompra = (m: MenuDesat): string =>
-  JSON.stringify([m.signatura, m.apats.map((a) => [a.dia, a.apat, a.receptaId, a.acompanyamentId ?? null])]);
+  JSON.stringify([m.signatura, m.apats.map((a) => [a.data ?? a.dia, a.apat, a.receptaId, a.acompanyamentId ?? null])]);
 
 /** Racions d'un plat obert des del menú (amb els convidats i absències d'aquell àpat), o de tota la família. */
 function racionsDePlat(configuracio: ConfiguracioFamilia, receptaId: string, index: number | undefined): { racions: number; persones: number } {
@@ -306,6 +346,23 @@ const accionsMenu = {
     menu = ferMenu(desades, menu.graella, llavorNova());
     pintar();
     enfocarTitol();
+  },
+  canviarPeriode: (periode: PeriodeMenu, mes?: string): void => {
+    if (!desades || !menu) return;
+    const mesNou = periode === 'mes' ? (mes ?? menu.mes ?? mesPerDefecte()) : undefined;
+    if ((menu.periode ?? 'setmana') === periode && menu.mes === mesNou) return;
+    menu = ferMenu(desades, menu.graella, llavorNova(), periode, mesNou);
+    setmanaVisible = null;
+    pintar();
+    arrel!.querySelector<HTMLElement>(`[data-periode="${mesNou ?? periode}"]`)?.focus();
+  },
+  veureSetmana: (index: number): void => {
+    if (!menu || index < 0 || index >= setmanesDelMenu(menu.apats).length) return;
+    const boto = (document.activeElement as HTMLElement | null)?.dataset['setmana'];
+    setmanaVisible = index;
+    pintar();
+    if (boto) arrel!.querySelector<HTMLElement>(`[data-setmana="${boto}"]`)?.focus();
+    else arrel!.querySelector<HTMLElement>('.setmanes')?.scrollIntoView({ block: 'start' });
   },
   obrirRecepta: (index: number): void => {
     const apat = menu?.apats[index];
@@ -511,7 +568,9 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
       const signatura = signaturaCompra(actual);
       const marcats = carregarMarcats(signatura);
       const { llista } = avaluarMenu(catalegInicial, configuracio, actual.apats);
-      return pantallaCompra(llista, marcats, accionsCompra(signatura, marcats));
+      const mensual = actual.periode === 'mes' && actual.mes ? actual.mes : undefined;
+      const estalviCentims = mensual ? estalviCompraPeriode(catalegInicial, configuracio, actual.apats).estalviCentims : 0;
+      return pantallaCompra(llista, marcats, accionsCompra(signatura, marcats), mensual ? { mes: mensual, estalviCentims } : undefined);
     }
     case 'recepta': {
       const { racions, persones } = racionsDePlat(configuracio, seccio.receptaId, seccio.apat);
@@ -564,7 +623,19 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
       const avisPuntual = missatge;
       missatge = null;
       return pantallaMenu(
-        { configuracio, graella: actual.graella, apats: actual.apats, avisos: actual.avisos, missatge: avisPuntual, graellaOberta, assistenciaOberta },
+        {
+          configuracio,
+          graella: actual.graella,
+          apats: actual.apats,
+          avisos: actual.avisos,
+          missatge: avisPuntual,
+          graellaOberta,
+          assistenciaOberta,
+          periode: actual.periode ?? 'setmana',
+          ...(actual.mes ? { mes: actual.mes } : {}),
+          mesos: mesosTriables(),
+          setmanaVisible: setmanaAMostrar(actual),
+        },
         accionsMenu,
       );
     }

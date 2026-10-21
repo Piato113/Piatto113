@@ -3,6 +3,7 @@ import { ingredients, ingredientsAmbAlergens } from './ingredients';
 import { DATA_PREUS, ingredientsAmbPreuEstimat, preus } from './preus';
 import { preusMercadona } from './preus-mercadona';
 import { receptes } from './receptes';
+export { carnIPeixPerCongelar, esPerCongelar } from './conservacio';
 
 export { ingredients, ingredientsAmbAlergens, ingredientsAmbPreuEstimat, preus, preusMercadona, receptes, DATA_PREUS };
 

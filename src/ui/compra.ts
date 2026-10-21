@@ -1,4 +1,4 @@
-import { catalegInicial, DATA_PREUS } from '../dades';
+import { catalegInicial, DATA_PREUS, esPerCongelar } from '../dades';
 import {
   agruparPerSeccio,
   formatQuantitat,
@@ -32,7 +32,7 @@ function quantitat(e: ElementLlista): string {
   return base;
 }
 
-function element(e: ElementLlista, marcat: boolean, accions: AccionsCompra): HTMLElement {
+function element(e: ElementLlista, marcat: boolean, accions: AccionsCompra, mensual: boolean): HTMLElement {
   const plats = e.receptes.map((id) => catalegInicial.receptes.get(id)?.nom ?? id).join(', ');
   const producte = catalegInicial.preus.get(e.ingredientId)?.producte;
   const detall =
@@ -58,6 +58,7 @@ function element(e: ElementLlista, marcat: boolean, accions: AccionsCompra): HTM
         'span',
         { class: 'producte__text' },
         h('span', { class: 'producte__nom' }, e.nom),
+        mensual && esPerCongelar(e.ingredientId) ? h('span', { class: 'producte__congelar' }, tc.congelar) : null,
         h('span', { class: 'producte__quantitat' }, [quantitat(e), detall].filter(Boolean).join(' · ')),
         h('span', { class: 'producte__plats' }, tc.perA(plats)),
       ),
@@ -68,7 +69,18 @@ function element(e: ElementLlista, marcat: boolean, accions: AccionsCompra): HTM
   );
 }
 
-export function pantallaCompra(llista: LlistaCompra, marcats: ReadonlySet<string>, accions: AccionsCompra): HTMLElement {
+/** Compra d'un menú mensual: el mes i quant s'estalvia comprant-ho tot d'un cop. */
+export interface CompraMensual {
+  mes: string;
+  estalviCentims: number;
+}
+
+export function pantallaCompra(
+  llista: LlistaCompra,
+  marcats: ReadonlySet<string>,
+  accions: AccionsCompra,
+  mensual?: CompraMensual,
+): HTMLElement {
   const seccions = agruparPerSeccio(llista.elements);
   const aComprar = llista.elements.filter((e) => !e.rebost);
   const fets = aComprar.filter((e) => marcats.has(e.ingredientId)).length;
@@ -76,7 +88,7 @@ export function pantallaCompra(llista: LlistaCompra, marcats: ReadonlySet<string
   return h(
     'main',
     { class: 'pagina compra' },
-    h('h1', { class: 'pagina__titol', tabindex: -1 }, tc.titol),
+    h('h1', { class: 'pagina__titol', tabindex: -1 }, mensual ? tc.titolMes(mensual.mes) : tc.titol),
     llista.elements.length === 0
       ? h('p', { class: 'avis' }, tc.buida)
       : h(
@@ -84,6 +96,8 @@ export function pantallaCompra(llista: LlistaCompra, marcats: ReadonlySet<string
           { class: 'menu__resum' },
           h('p', { class: 'menu__cost' }, tc.resum(aComprar.length, euros(llista.totalCompraCentims))),
           h('p', { class: 'menu__nota', role: 'status' }, tc.fet(fets, aComprar.length)),
+          mensual && mensual.estalviCentims > 0 ? h('p', { class: 'menu__nota' }, textos.menu.estalviMes(euros(mensual.estalviCentims))) : null,
+          mensual && aComprar.some((e) => esPerCongelar(e.ingredientId)) ? h('p', { class: 'menu__nota' }, tc.ajudaCongelar) : null,
           h('p', { class: 'menu__nota' }, tc.preus(dataCurta(DATA_PREUS))),
         ),
     ...seccions.map((s) =>
@@ -92,7 +106,7 @@ export function pantallaCompra(llista: LlistaCompra, marcats: ReadonlySet<string
         { class: 'seccio-compra' },
         h('h2', { class: 'dia__nom' }, s.rebost ? tc.rebost : majuscula(s.seccio)),
         s.rebost ? h('p', { class: 'menu__nota' }, tc.ajudaRebost) : null,
-        h('ul', { class: 'productes' }, ...s.elements.map((e) => element(e, marcats.has(e.ingredientId), accions))),
+        h('ul', { class: 'productes' }, ...s.elements.map((e) => element(e, marcats.has(e.ingredientId), accions, mensual !== undefined))),
       ),
     ),
     marcats.size > 0
