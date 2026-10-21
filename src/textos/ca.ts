@@ -1,5 +1,5 @@
 import type { OpcioDieta, OpcioPressupost, OpcioQuantitat, OpcioReceptari, OpcioTemps } from '../domini/questionari';
-import type { Alergen, Avis, Dia } from '../domini/tipus';
+import type { Alergen, Aparell, Avis, Dia } from '../domini/tipus';
 import { formatEuros } from '../domini/format';
 
 // Tots els textos de la interfície en català.
@@ -111,6 +111,7 @@ export const textos = {
   },
   recepta: {
     tornar: 'Torna',
+    aparells: 'Cal tenir',
     ingredients: 'Ingredients',
     preparacio: 'Preparació',
     perA: (persones: number, racions: string) =>
@@ -151,7 +152,7 @@ export const textos = {
     pantallaEncesa: 'La pantalla es mantindrà encesa mentre cuines.',
   },
   benvinguda: {
-    explicacio: 'Respon cinc preguntes i et proposarem el menú de la setmana, amb la llista de la compra.',
+    explicacio: 'Respon sis preguntes i et proposarem el menú de la setmana, amb la llista de la compra.',
     desatLocal: 'De moment, les respostes es guarden en aquest dispositiu.',
     desatCompte: 'Les respostes es desen al teu compte.',
   },
@@ -237,6 +238,11 @@ export const textos = {
         flexible: 'Flexible: prioritzar els plats, no el preu',
       } satisfies Record<OpcioPressupost, string>,
     },
+    cuina: {
+      pregunta: 'Què teniu a la cuina?',
+      ajuda: 'Marca els aparells que teniu. Les receptes que en necessiten un que no teniu no sortiran.',
+      cap: 'Només fogons',
+    },
     temps: {
       pregunta: 'Temps habitual per cuinar',
       opcions: {
@@ -291,6 +297,13 @@ export const textos = {
         'poden contenir al·lèrgens o traces segons la marca: llegeix sempre l’etiqueta.',
     },
   },
+  aparells: {
+    forn: 'Forn',
+    microones: 'Microones',
+    'fregidora-aire': 'Fregidora d’aire (Airfryer)',
+    thermomix: 'Thermomix o robot de cuina',
+    batedora: 'Batedora',
+  } satisfies Record<Aparell, string>,
   alergens: {
     gluten: 'Gluten',
     crustacis: 'Crustacis',

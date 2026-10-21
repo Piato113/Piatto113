@@ -1484,3 +1484,48 @@ h1:focus-visible {
 .apat > .apat__text {
   flex: 1 1 0;
 }
+
+/* ——— Aparells de cuina ——— */
+
+.opcio--aparell .opcio__text {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.opcio--aparell .icona-aparell {
+  flex: none;
+  color: var(--text-suau);
+}
+
+.opcio--aparell:has(input:checked) .icona-aparell {
+  color: var(--taronja);
+}
+
+.recepta__aparells {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-suau);
+  font-size: 0.9rem;
+}
+
+.aparell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.7rem 0.25rem 0.5rem;
+  border: 1px solid var(--vora);
+  border-radius: 999px;
+  color: var(--text);
+}
+
+.aparell .icona-aparell {
+  color: var(--taronja);
+}
+
+.aparell__o {
+  color: var(--text-suau);
+}

@@ -2,6 +2,7 @@ import { catalegInicial } from '../dades';
 import { costRecepta, formatNombre, prepararRecepta, textQuantitat } from '../domini';
 import { textos } from '../textos/ca';
 import { h } from './dom';
+import { iconaAparell } from './icones';
 import { durada, euros } from './format';
 
 const tr = textos.recepta;
@@ -39,6 +40,21 @@ export function pantallaRecepta(dades: DadesRecepta, accions: AccionsRecepta): H
     h('h1', { class: 'pagina__titol', tabindex: -1 }, recepta.nom),
     h('p', { class: 'recepta__meta' }, `${tr.temps(recepta.tempsMinuts)} · ${euros(cost)}`),
     h('p', { class: 'menu__nota' }, tr.perA(dades.persones, formatNombre(dades.racionsCentesimes / 100))),
+    recepta.aparells && recepta.aparells.length > 0
+      ? h(
+          'p',
+          { class: 'recepta__aparells' },
+          h('span', { class: 'recepta__aparells-titol' }, `${tr.aparells}:`),
+          ...recepta.aparells.map((cal) => {
+            const opcions = Array.isArray(cal) ? cal : [cal];
+            return h(
+              'span',
+              { class: 'aparell' },
+              ...opcions.flatMap((ap, i) => [i > 0 ? h('span', { class: 'aparell__o' }, ' o ') : null, iconaAparell(ap, 20), ` ${textos.aparells[ap]} `]),
+            );
+          }),
+        )
+      : null,
     h('button', { type: 'button', class: 'boto boto--principal boto--gran recepta__cuinar', onclick: accions.cuinar }, `👩‍🍳 ${textos.cuinar.comencar}`),
     acompanyament
       ? h(

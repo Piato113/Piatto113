@@ -1,6 +1,7 @@
 import { catalegInicial } from '../dades';
 import {
   ALERGENS,
+  APARELLS,
   configuracioDesDeRespostes,
   filtrarReceptes,
   MAX_PERSONES,
@@ -19,11 +20,12 @@ import {
 } from '../domini';
 import { textos } from '../textos/ca';
 import { h, substituir } from './dom';
+import { iconaAparell } from './icones';
 
 const t = textos.questionari;
 const a = textos.accions;
 
-export const PASSOS = ['familia', 'receptari', 'pressupost', 'temps', 'restriccions'] as const;
+export const PASSOS = ['familia', 'receptari', 'pressupost', 'temps', 'cuina', 'restriccions'] as const;
 export type Pas = (typeof PASSOS)[number];
 
 export interface AccionsQuestionari {
@@ -193,7 +195,37 @@ const pasPressupost = (r: RespostesQuestionari): HTMLElement =>
 const pasTemps = (r: RespostesQuestionari): HTMLElement =>
   grup(t.temps.pregunta, undefined, radios<OpcioTemps>('temps', t.temps.opcions, r.temps, (v) => (r.temps = v)));
 
-// ——— Pas 5: restriccions ———
+// ——— Pas 5: aparells de la cuina ———
+
+function pasCuina(r: RespostesQuestionari): HTMLElement {
+  return grup(
+    t.cuina.pregunta,
+    t.cuina.ajuda,
+    h(
+      'div',
+      { class: 'opcions opcions--aparells' },
+      ...APARELLS.map((ap) =>
+        h(
+          'label',
+          { class: 'opcio opcio--aparell' },
+          h('input', {
+            type: 'checkbox',
+            name: 'aparells',
+            value: ap,
+            checked: r.aparells.includes(ap),
+            onchange: (e: Event) => {
+              const marcat = (e.target as HTMLInputElement).checked;
+              r.aparells = APARELLS.filter((x) => (x === ap ? marcat : r.aparells.includes(x)));
+            },
+          }),
+          h('span', { class: 'opcio__text' }, iconaAparell(ap, 28), h('span', {}, textos.aparells[ap])),
+        ),
+      ),
+    ),
+  );
+}
+
+// ——— Pas 6: restriccions ———
 
 const normalitzar = (s: string): string =>
   s
@@ -340,6 +372,7 @@ const TITOLS: Record<Pas, string> = {
   receptari: t.receptari.pregunta,
   pressupost: t.pressupost.pregunta,
   temps: t.temps.pregunta,
+  cuina: t.cuina.pregunta,
   restriccions: t.restriccions.titol,
 };
 
@@ -362,7 +395,9 @@ export function pantallaPas(
             ? pasPressupost(r)
             : pas === 'temps'
               ? pasTemps(r)
-              : pasRestriccions(r, refer);
+              : pas === 'cuina'
+                ? pasCuina(r)
+                : pasRestriccions(r, refer);
     substituir(cos, contingut);
   };
   refer();
@@ -447,6 +482,11 @@ function resumDe(r: RespostesQuestionari): { pas: Pas; titol: string; valor: str
     },
     { pas: 'pressupost', titol: t.pressupost.pregunta, valor: t.pressupost.opcions[r.pressupost] },
     { pas: 'temps', titol: t.temps.pregunta, valor: t.temps.opcions[r.temps] },
+    {
+      pas: 'cuina',
+      titol: t.cuina.pregunta,
+      valor: r.aparells.length > 0 ? r.aparells.map((x) => textos.aparells[x]).join(' · ') : t.cuina.cap,
+    },
     { pas: 'restriccions', titol: t.restriccions.titol, valor: restriccions.join(' · ') },
   ];
 }

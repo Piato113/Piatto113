@@ -264,6 +264,8 @@ describe('respostes desades', () => {
       peix: 'normal',
       exclosos: ['col'],
       alergens: ['gluten'],
+      // Respostes d'abans de la pregunta dels aparells: forn, microones i batedora.
+      aparells: ['forn', 'microones', 'batedora'],
     });
   });
 });

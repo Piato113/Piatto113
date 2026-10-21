@@ -1,4 +1,4 @@
-import type { Alergen, ConfiguracioFamilia, OrigenAnimal, Persona } from './tipus';
+import { APARELLS, type Alergen, type Aparell, type ConfiguracioFamilia, type OrigenAnimal, type Persona } from './tipus';
 
 // Qüestionari de configuració: respostes tancades que es tradueixen a la configuració del planificador.
 // Els textos de les preguntes i les opcions són a `src/textos/ca.ts`.
@@ -28,7 +28,12 @@ export interface RespostesQuestionari {
   exclosos: string[];
   /** Al·lèrgies i intoleràncies de la família. */
   alergens: Alergen[];
+  /** Aparells que hi ha a la cuina: les receptes que en necessiten un que no hi és no surten. */
+  aparells: Aparell[];
 }
+
+/** Aparells que es donen per suposats si no es diu res (també per a respostes d'abans d'aquesta pregunta). */
+export const APARELLS_PER_DEFECTE: readonly Aparell[] = ['forn', 'microones', 'batedora'];
 
 /**
  * Pressupost de cada opció per ració normal, en cèntims: per a 4 persones,
@@ -61,6 +66,7 @@ export function respostesPerDefecte(): RespostesQuestionari {
     peix: 'normal',
     exclosos: [],
     alergens: [],
+    aparells: [...APARELLS_PER_DEFECTE],
   };
 }
 
@@ -94,6 +100,7 @@ export function configuracioDesDeRespostes(r: RespostesQuestionari): Configuraci
     economic: r.receptari.includes('economic'),
     tempsMaximMinuts: { ...TEMPS[r.temps] },
     pressupostRacioCentims: PRESSUPOST_RACIO[r.pressupost],
+    aparells: [...r.aparells],
   };
 }
 
@@ -139,5 +146,8 @@ export function llegirRespostes(valor: unknown, alergensValids: readonly string[
     peix: unDe(valor.peix, QUANTITATS, perDefecte.peix),
     exclosos: [...new Set(textos(valor.exclosos))],
     alergens: [...new Set(textos(valor.alergens))].filter((a): a is Alergen => alergensValids.includes(a)),
+    aparells: Array.isArray(valor.aparells)
+      ? APARELLS.filter((a) => (valor.aparells as unknown[]).includes(a))
+      : [...APARELLS_PER_DEFECTE],
   };
 }

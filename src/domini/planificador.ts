@@ -4,7 +4,7 @@ import { costRecepta } from './cost';
 import { racionsApat, racionsEfectives } from './escalat';
 import { apatsMarcats, esCapDeSetmana } from './graella';
 import { generarLlista, type LlistaCompra } from './llista';
-import type { Apat, ApatPlanificat, Avis, ConfiguracioFamilia, Dia, Graella, Recepta } from './tipus';
+import type { Aparell, Apat, ApatPlanificat, Avis, ConfiguracioFamilia, Dia, Graella, Recepta } from './tipus';
 
 export interface EntradaPlanificador {
   cataleg: Cataleg;
@@ -44,8 +44,15 @@ function tempsMaximGlobal(configuracio: ConfiguracioFamilia): number | null {
 
 const dinsTemps = (r: Recepta, limit: number | null): boolean => limit === null || r.tempsMinuts <= limit;
 
-/** Restriccions que no depenen del dia: ingredients exclosos, dieta, al·lèrgens i etiquetes excloses. */
+/** La família té els aparells que la recepta necessita (de cada llista d'alternatives, almenys un). */
+export function teAparells(r: Recepta, disponibles: readonly Aparell[] | undefined): boolean {
+  if (!disponibles || !r.aparells) return true;
+  return r.aparells.every((cal) => (Array.isArray(cal) ? cal.some((a) => disponibles.includes(a)) : disponibles.includes(cal)));
+}
+
+/** Restriccions que no depenen del dia: ingredients exclosos, dieta, al·lèrgens, etiquetes excloses i aparells. */
 function permesa(cataleg: Cataleg, r: Recepta, configuracio: ConfiguracioFamilia): boolean {
+  if (!teAparells(r, configuracio.aparells)) return false;
   const exclosos = configuracio.exclosos;
   const alergens = configuracio.alergens;
   return (

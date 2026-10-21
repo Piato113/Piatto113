@@ -9,6 +9,10 @@
  * Els 14 al·lèrgens de declaració obligatòria a la UE (Reglament 1169/2011).
  * 'llet' inclou la lactosa; 'fruits-secs' són els de closca (ametlles, avellanes, pinyons…).
  */
+/** Aparells de cuina que una recepta pot necessitar (els fogons es donen per suposats). */
+export const APARELLS = ['forn', 'microones', 'fregidora-aire', 'thermomix', 'batedora'] as const;
+export type Aparell = (typeof APARELLS)[number];
+
 export const ALERGENS = [
   'gluten',
   'crustacis',
@@ -110,6 +114,11 @@ export interface Recepta {
   acompanyaments?: string[];
   /** Preparació pas a pas. */
   passos?: Pas[];
+  /**
+   * Aparells imprescindibles. Cada element és un aparell necessari, o una llista d'alternatives
+   * (n'hi ha prou amb un): `['batedora', ['forn', 'fregidora-aire']]`.
+   */
+  aparells?: (Aparell | Aparell[])[];
 }
 
 /** Preu orientatiu i editable d'un paquet de compra. */
@@ -162,6 +171,8 @@ export interface ConfiguracioFamilia {
    * Es compara amb el cost del que es menja (no amb el de compra, que inclou paquets sencers).
    */
   pressupostRacioCentims: number | null;
+  /** Aparells que té la família. Sense indicar-ho, es consideren tots. */
+  aparells?: Aparell[];
 }
 
 export type Dia = 'dl' | 'dt' | 'dc' | 'dj' | 'dv' | 'ds' | 'dg';
