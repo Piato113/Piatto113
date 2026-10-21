@@ -1,37 +1,123 @@
+/* Identitat visual de Piatto113: fons negre, blanc trencat i taronja. */
 :root {
-  --fons: #fbfaf7;
-  --text: #1f2a24;
-  --accent: #2f6b4f;
-  color-scheme: light dark;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  line-height: 1.5;
-}
+  /* Colors extrets de la icona i la pantalla de benvinguda */
+  --fons: #070606;
+  --superficie: #141416;
+  --vora: #2a2a2d;
+  --text: #edebe4;
+  --text-suau: #a9a7a1;
+  --taronja: #f47318;
+  --taronja-clar: #f8942c;
+  --taronja-fosc: #ef5f10;
+  --degradat-taronja: linear-gradient(180deg, var(--taronja-clar), var(--taronja-fosc));
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --fons: #141a17;
-    --text: #e8ece9;
-    --accent: #7cc4a0;
-  }
+  --radi-icona: 22%;
+  --radi: 1rem;
+
+  color-scheme: dark;
+  font-family:
+    ui-rounded, 'SF Pro Rounded', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
 }
 
 * {
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
+  min-height: 100%;
   background: var(--fons);
   color: var(--text);
 }
 
-.pagina {
-  max-width: 40rem;
-  margin: 0 auto;
-  padding: 1.5rem 1rem;
+/* Marca: "Piatto" en blanc trencat i "113" en taronja */
+.marca {
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
 }
 
-h1 {
-  color: var(--accent);
-  margin-top: 0;
+.marca__paraula {
+  color: var(--text);
+}
+
+.marca__numero {
+  background: var(--degradat-taronja);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: var(--taronja);
+  -webkit-text-fill-color: transparent;
+}
+
+/* Pantalla de benvinguda */
+.benvinguda {
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem 1rem calc(2rem + env(safe-area-inset-bottom));
+  text-align: center;
+  isolation: isolate;
+}
+
+/* Arcs taronja a les cantonades */
+.benvinguda::before,
+.benvinguda::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: min(90vw, 34rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid var(--taronja);
+  background: radial-gradient(circle, rgb(244 115 24 / 0) 55%, rgb(244 115 24 / 0.22) 100%);
+  box-shadow:
+    0 0 24px rgb(244 115 24 / 0.55),
+    inset 0 0 24px rgb(244 115 24 / 0.35);
+  pointer-events: none;
+}
+
+.benvinguda::before {
+  top: 0;
+  left: 0;
+  transform: translate(-58%, -62%);
+}
+
+.benvinguda::after {
+  bottom: 0;
+  right: 0;
+  transform: translate(48%, 58%);
+}
+
+.benvinguda__icona {
+  width: clamp(7rem, 38vw, 11rem);
+  height: auto;
+  border-radius: var(--radi-icona);
+  border: 1px solid var(--vora);
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.6);
+  margin-bottom: 1rem;
+}
+
+.benvinguda .marca {
+  font-size: clamp(3rem, 15vw, 4.5rem);
+}
+
+.benvinguda__lema {
+  margin: 0;
+  font-size: clamp(1.1rem, 4.6vw, 1.4rem);
+  color: var(--text);
+}
+
+.benvinguda__estat {
+  margin: 1.5rem 0 0;
+  font-size: 0.95rem;
+  color: var(--text-suau);
 }

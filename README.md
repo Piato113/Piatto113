@@ -1,4 +1,6 @@
-# Piatto
+# Piatto113
+
+*Menjar, quan tu vulguis.*
 
 Planificador setmanal d'àpats per a la família. És una aplicació web instal·lable (PWA) en català.
 
