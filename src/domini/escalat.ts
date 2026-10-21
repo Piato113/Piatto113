@@ -1,10 +1,55 @@
 import { ingredient, type Cataleg } from './cataleg';
-import type { Persona, Recepta, Unitat } from './tipus';
+import type { ApatPlanificat, Assistencia, Persona, Recepta, Unitat } from './tipus';
 import { factorConversio, liniaAMilesimes, milesimesAMostrar } from './unitats';
 
 /** Racions efectives de la família en centèsimes: suma dels factors de gana. */
 export function racionsEfectives(persones: Persona[]): number {
   return persones.reduce((suma, p) => suma + p.ganaCentesimes, 0);
+}
+
+/** Màxim de convidats en un àpat. */
+export const MAX_CONVIDATS = 20;
+
+/**
+ * Assistència vàlida per a aquesta família, o `undefined` si hi és tothom i no hi ha convidats.
+ * Treu índexs que ja no existeixen i repetits; si no quedaria ningú a taula, ignora les absències.
+ */
+export function normalitzarAssistencia(persones: readonly Persona[], assistencia: Assistencia | undefined): Assistencia | undefined {
+  if (!assistencia) return undefined;
+  const convidats = Math.min(MAX_CONVIDATS, Math.max(0, Math.trunc(assistencia.convidats) || 0));
+  let absents = [...new Set(assistencia.absents)].filter((i) => Number.isInteger(i) && i >= 0 && i < persones.length).sort((a, b) => a - b);
+  if (absents.length === persones.length && convidats === 0) absents = [];
+  return absents.length === 0 && convidats === 0 ? undefined : { absents, convidats };
+}
+
+/** Persones que seuen a taula en un àpat (família present + convidats). */
+export function comensals(persones: readonly Persona[], assistencia: Assistencia | undefined): number {
+  const a = normalitzarAssistencia(persones, assistencia);
+  return a ? persones.length - a.absents.length + a.convidats : persones.length;
+}
+
+/** Racions d'un àpat en centèsimes: la gana de qui hi és, més una ració normal per convidat. */
+export function racionsApat(persones: Persona[], apat: Pick<ApatPlanificat, 'assistencia'>): number {
+  const a = normalitzarAssistencia(persones, apat.assistencia);
+  if (!a) return racionsEfectives(persones);
+  return racionsEfectives(persones.filter((_, i) => !a.absents.includes(i))) + a.convidats * 100;
+}
+
+/**
+ * Copia l'assistència d'un menú anterior als àpats nous del mateix dia i àpat
+ * (quan es torna a fer el menú, la gent que ve a sopar no canvia).
+ */
+export function conservarAssistencia(
+  persones: readonly Persona[],
+  nous: readonly ApatPlanificat[],
+  anteriors: readonly ApatPlanificat[],
+): ApatPlanificat[] {
+  return nous.map((a) => {
+    const vell = anteriors.find((x) => x.dia === a.dia && x.apat === a.apat);
+    const assistencia = normalitzarAssistencia(persones, vell?.assistencia);
+    const { assistencia: _treta, ...sense } = a;
+    return assistencia ? { ...sense, assistencia } : sense;
+  });
 }
 
 export interface LiniaEscalada {

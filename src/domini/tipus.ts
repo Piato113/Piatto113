@@ -170,12 +170,22 @@ export type Apat = 'dinar' | 'sopar';
 /** Quins àpats es planifiquen cada dia. */
 export type Graella = Record<Dia, Record<Apat, boolean>>;
 
+/** Qui menja en un àpat concret, si no és la família sencera. */
+export interface Assistencia {
+  /** Índexs (a `persones`) de qui no hi és. */
+  absents: number[];
+  /** Persones de fora de casa; mengen una ració normal. */
+  convidats: number;
+}
+
 export interface ApatPlanificat {
   dia: Dia;
   apat: Apat;
   receptaId: string;
   /** Només si la recepta principal demana acompanyament. */
   acompanyamentId?: string;
+  /** Sense assistència, hi és tota la família. */
+  assistencia?: Assistencia;
 }
 
 /** Avisos amb codi; el text en català és a `src/textos/ca.ts`. */

@@ -1,7 +1,7 @@
 import { generadorAleatori } from './aleatori';
 import { acompanyamentsAdmesos, potSerAcompanyament, potSerPrincipal, type Cataleg } from './cataleg';
 import { costRecepta } from './cost';
-import { racionsEfectives } from './escalat';
+import { racionsApat, racionsEfectives } from './escalat';
 import { apatsMarcats, esCapDeSetmana } from './graella';
 import { generarLlista, type LlistaCompra } from './llista';
 import type { Apat, ApatPlanificat, Avis, ConfiguracioFamilia, Dia, Graella, Recepta } from './tipus';
@@ -344,14 +344,26 @@ export function avaluarMenu(
   cataleg: Cataleg,
   configuracio: ConfiguracioFamilia,
   apats: readonly ApatPlanificat[],
-): { llista: LlistaCompra; costConsumitCentims: number; racionsCentesimes: number } {
+): {
+  llista: LlistaCompra;
+  costConsumitCentims: number;
+  /** Racions de la família sencera. */
+  racionsCentesimes: number;
+  /** Suma de les racions de tots els àpats (amb convidats i absències). */
+  racionsMenuCentesimes: number;
+} {
   const racionsCentesimes = racionsEfectives(configuracio.persones);
-  const ids = apats.flatMap((a) => (a.acompanyamentId ? [a.receptaId, a.acompanyamentId] : [a.receptaId]));
-  const costConsumitCentims = ids.reduce((s, id) => {
-    const r = cataleg.receptes.get(id);
-    return s + (r ? costRecepta(cataleg, r, racionsCentesimes) : 0);
+  const receptes = apats.flatMap((a) => {
+    const racions = racionsApat(configuracio.persones, a);
+    const ids = a.acompanyamentId ? [a.receptaId, a.acompanyamentId] : [a.receptaId];
+    return ids.map((receptaId) => ({ receptaId, racionsCentesimes: racions }));
+  });
+  const costConsumitCentims = receptes.reduce((s, { receptaId, racionsCentesimes: racions }) => {
+    const r = cataleg.receptes.get(receptaId);
+    return s + (r ? costRecepta(cataleg, r, racions) : 0);
   }, 0);
-  return { llista: generarLlista(cataleg, ids, racionsCentesimes), costConsumitCentims, racionsCentesimes };
+  const racionsMenuCentesimes = apats.reduce((s, a) => s + racionsApat(configuracio.persones, a), 0);
+  return { llista: generarLlista(cataleg, receptes, racionsCentesimes), costConsumitCentims, racionsCentesimes, racionsMenuCentesimes };
 }
 
 /**
@@ -401,6 +413,7 @@ export function canviarPlat(
   const nou: ApatPlanificat = acompanyament
     ? { dia: actual.dia, apat: actual.apat, receptaId: principal.id, acompanyamentId: acompanyament.id }
     : { dia: actual.dia, apat: actual.apat, receptaId: principal.id };
+  if (actual.assistencia) nou.assistencia = actual.assistencia;
   return apats.map((a, i) => (i === index ? nou : a));
 }
 
@@ -504,5 +517,6 @@ export function triarPlat(
   const nou: ApatPlanificat = acompanyament
     ? { dia: actual.dia, apat: actual.apat, receptaId, acompanyamentId: acompanyament }
     : { dia: actual.dia, apat: actual.apat, receptaId };
+  if (actual.assistencia) nou.assistencia = actual.assistencia;
   return apats.map((a, i) => (i === index ? nou : a));
 }

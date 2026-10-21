@@ -30,19 +30,28 @@ export interface LlistaCompra {
 
 const SENSE_SECCIO = 'altres';
 
+/** Recepta de la llista amb les seves racions, quan no són les de tota la família (convidats, algú que no hi és). */
+export interface ReceptaAmbRacions {
+  receptaId: string;
+  racionsCentesimes: number;
+}
+
 /**
  * Llista de compra unificada: suma cada ingredient de tots els àpats
  * (en mil·lèsimes exactes) i només arrodoneix al final.
+ * Cada recepta s'escala a `racionsCentesimes`, o a les seves pròpies si se n'indiquen.
  */
 export function generarLlista(
   cataleg: Cataleg,
-  receptaIds: readonly string[],
+  receptes: readonly (string | ReceptaAmbRacions)[],
   racionsCentesimes: number,
 ): LlistaCompra {
   const acumulat = new Map<string, { milesimes: number; receptes: Set<string> }>();
 
-  for (const id of receptaIds) {
-    for (const linia of escalarRecepta(cataleg, recepta(cataleg, id), racionsCentesimes)) {
+  for (const r of receptes) {
+    const id = typeof r === 'string' ? r : r.receptaId;
+    const racions = typeof r === 'string' ? racionsCentesimes : r.racionsCentesimes;
+    for (const linia of escalarRecepta(cataleg, recepta(cataleg, id), racions)) {
       const actual = acumulat.get(linia.ingredientId) ?? { milesimes: 0, receptes: new Set<string>() };
       actual.milesimes += linia.milesimes;
       actual.receptes.add(id);

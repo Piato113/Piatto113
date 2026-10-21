@@ -3,10 +3,16 @@ import { catalegInicial } from './dades';
 import {
   avaluarMenu,
   canviarPlat,
+  comensals,
   configuracioDesDeRespostes,
+  conservarAssistencia,
+  normalitzarAssistencia,
+  racionsApat,
   triarPlat,
   planificar,
   respostesPerDefecte,
+  type Assistencia,
+  type ConfiguracioFamilia,
   type Graella,
   type RespostesQuestionari,
 } from './domini';
@@ -50,8 +56,8 @@ type Seccio =
   | { tipus: 'compra' }
   | { tipus: 'resum' }
   | { tipus: 'triar'; index: number; receptaId?: string }
-  | { tipus: 'recepta'; receptaId: string; acompanyamentId?: string }
-  | { tipus: 'cuinar'; receptaId: string; acompanyamentId?: string; pas: number };
+  | { tipus: 'recepta'; receptaId: string; acompanyamentId?: string; apat?: number }
+  | { tipus: 'cuinar'; receptaId: string; acompanyamentId?: string; pas: number; apat?: number };
 
 type Pantalla = { tipus: 'benvinguda' } | { tipus: 'pas'; pas: Pas; desDelResum: boolean } | Seccio;
 
@@ -67,6 +73,8 @@ let menu: MenuDesat | null = carregarMenu(catalegInicial);
 let missatge: string | null = null;
 /** Element a enfocar en tornar enrere (p. ex. el botó «Canvia» de l'àpat que s'acaba de canviar). */
 let enfocarEnTornar: string | null = null;
+/** Àpat del menú amb el quadre «Qui hi ha a taula?» obert. */
+let assistenciaOberta: number | null = null;
 /** Manté oberta la graella després de tocar-la. */
 let graellaOberta = false;
 /** Neteja de la pantalla actual (p. ex. el mode cuinar deixa d'escoltar els cronòmetres). */
@@ -89,9 +97,14 @@ function adrecaDe(p: Pantalla): string | null {
     case 'triar':
       return `#/triar/${p.index}${p.receptaId ? `/${encodeURIComponent(p.receptaId)}` : ''}`;
     case 'recepta':
-      return `#/recepta/${encodeURIComponent(p.receptaId)}${p.acompanyamentId ? `?amb=${encodeURIComponent(p.acompanyamentId)}` : ''}`;
-    case 'cuinar':
-      return `#/cuinar/${encodeURIComponent(p.receptaId)}?pas=${p.pas}${p.acompanyamentId ? `&amb=${encodeURIComponent(p.acompanyamentId)}` : ''}`;
+    case 'cuinar': {
+      const params = new URLSearchParams();
+      if (p.tipus === 'cuinar') params.set('pas', String(p.pas));
+      if (p.acompanyamentId) params.set('amb', p.acompanyamentId);
+      if (p.apat !== undefined) params.set('apat', String(p.apat));
+      const consulta = params.toString();
+      return `#/${p.tipus}/${encodeURIComponent(p.receptaId)}${consulta ? `?${consulta}` : ''}`;
+    }
     default:
       return null;
   }
@@ -109,23 +122,20 @@ function seccioDe(adreca: string): Seccio | null {
     if (receptaId !== undefined && !catalegInicial.receptes.has(receptaId)) return { tipus: 'triar', index };
     return receptaId ? { tipus: 'triar', index, receptaId } : { tipus: 'triar', index };
   }
-  const cuinar = /^\/cuinar\/([^/]+)$/.exec(cami);
-  if (cuinar) {
-    const receptaId = decodeURIComponent(cuinar[1]!);
+  const plat = /^\/(recepta|cuinar)\/([^/]+)$/.exec(cami);
+  if (plat) {
+    const receptaId = decodeURIComponent(plat[2]!);
     if (!catalegInicial.receptes.has(receptaId)) return null;
     const params = new URLSearchParams(consulta);
-    const pas = Math.max(0, Number.parseInt(params.get('pas') ?? '0', 10) || 0);
     const amb = params.get('amb');
-    return amb && catalegInicial.receptes.has(amb)
-      ? { tipus: 'cuinar', receptaId, acompanyamentId: amb, pas }
-      : { tipus: 'cuinar', receptaId, pas };
-  }
-  const recepta = /^\/recepta\/([^/]+)$/.exec(cami);
-  if (recepta) {
-    const receptaId = decodeURIComponent(recepta[1]!);
-    if (!catalegInicial.receptes.has(receptaId)) return null;
-    const amb = new URLSearchParams(consulta).get('amb');
-    return amb && catalegInicial.receptes.has(amb) ? { tipus: 'recepta', receptaId, acompanyamentId: amb } : { tipus: 'recepta', receptaId };
+    const apat = Number.parseInt(params.get('apat') ?? '', 10);
+    const extra = {
+      ...(amb && catalegInicial.receptes.has(amb) ? { acompanyamentId: amb } : {}),
+      ...(Number.isInteger(apat) && apat >= 0 ? { apat } : {}),
+    };
+    if (plat[1] === 'recepta') return { tipus: 'recepta', receptaId, ...extra };
+    const pas = Math.max(0, Number.parseInt(params.get('pas') ?? '0', 10) || 0);
+    return { tipus: 'cuinar', receptaId, pas, ...extra };
   }
   return null;
 }
@@ -136,8 +146,11 @@ let pantalla: Pantalla = desades ? (seccioDe(location.hash) ?? { tipus: 'menu' }
 
 /** Fa un menú nou amb la llavor i la graella indicades i el desa. */
 function ferMenu(respostes: RespostesQuestionari, graella: Graella, llavor: number): MenuDesat {
-  const pla = planificar({ cataleg: catalegInicial, configuracio: configuracioDesDeRespostes(respostes), graella, llavor });
-  const nou: MenuDesat = { signatura: JSON.stringify(respostes), llavor, graella, apats: pla.apats, avisos: pla.avisos };
+  const configuracio = configuracioDesDeRespostes(respostes);
+  const pla = planificar({ cataleg: catalegInicial, configuracio, graella, llavor });
+  // Els convidats i absències d'un dia no canvien perquè es torni a fer el menú.
+  const apats = conservarAssistencia(configuracio.persones, pla.apats, menu?.apats ?? []);
+  const nou: MenuDesat = { signatura: JSON.stringify(respostes), llavor, graella, apats, avisos: pla.avisos };
   desarMenu(nou);
   return nou;
 }
@@ -151,7 +164,17 @@ function menuActual(respostes: RespostesQuestionari): MenuDesat {
 }
 
 /** Identifica la llista de la compra: si canvien els àpats o la família, els productes marcats es reinicien. */
-const signaturaCompra = (m: MenuDesat): string => JSON.stringify([m.signatura, m.apats]);
+const signaturaCompra = (m: MenuDesat): string =>
+  JSON.stringify([m.signatura, m.apats.map((a) => [a.dia, a.apat, a.receptaId, a.acompanyamentId ?? null])]);
+
+/** Racions d'un plat obert des del menú (amb els convidats i absències d'aquell àpat), o de tota la família. */
+function racionsDePlat(configuracio: ConfiguracioFamilia, receptaId: string, index: number | undefined): { racions: number; persones: number } {
+  const apat = index === undefined ? undefined : menu?.apats[index];
+  if (apat && (apat.receptaId === receptaId || apat.acompanyamentId === receptaId)) {
+    return { racions: racionsApat(configuracio.persones, apat), persones: comensals(configuracio.persones, apat.assistencia) };
+  }
+  return { racions: racionsApat(configuracio.persones, {}), persones: configuracio.persones.length };
+}
 
 // ——— Navegació ———
 
@@ -164,6 +187,7 @@ function anar(nova: Pantalla, { substituirHistoria = false } = {}): void {
   if (pantalla.tipus === 'cuinar' && nova.tipus !== 'cuinar') sortirDelModeCuinar();
   pantalla = nova;
   graellaOberta = false;
+  assistenciaOberta = null;
   const adreca = adrecaDe(nova);
   if (adreca && adreca !== location.hash) {
     if (substituirHistoria) history.replaceState({ piatto: true }, '', adreca);
@@ -179,6 +203,7 @@ window.addEventListener('popstate', () => {
   if (pantalla.tipus === 'cuinar' && nova.tipus !== 'cuinar') sortirDelModeCuinar();
   pantalla = nova;
   graellaOberta = false;
+  assistenciaOberta = null;
   pintar();
   const enfocar = enfocarEnTornar ? arrel!.querySelector<HTMLElement>(enfocarEnTornar) : null;
   enfocarEnTornar = null;
@@ -287,9 +312,36 @@ const accionsMenu = {
     if (!apat) return;
     anar(
       apat.acompanyamentId
-        ? { tipus: 'recepta', receptaId: apat.receptaId, acompanyamentId: apat.acompanyamentId }
-        : { tipus: 'recepta', receptaId: apat.receptaId },
+        ? { tipus: 'recepta', receptaId: apat.receptaId, acompanyamentId: apat.acompanyamentId, apat: index }
+        : { tipus: 'recepta', receptaId: apat.receptaId, apat: index },
     );
+  },
+  /** Obre o tanca el quadre «Qui hi ha a taula?» d'un àpat. */
+  obrirAssistencia: (index: number): void => {
+    assistenciaOberta = assistenciaOberta === index ? null : index;
+    const y = window.scrollY;
+    pintar();
+    window.scrollTo(0, y);
+    arrel!.querySelector<HTMLElement>(`[data-assistencia="${index}"]`)?.focus({ preventScroll: true });
+  },
+  canviarAssistencia: (index: number, assistencia: Assistencia, enfocar: string): void => {
+    if (!desades || !menu?.apats[index]) return;
+    const persones = configuracioDesDeRespostes(desades).persones;
+    const normal = normalitzarAssistencia(persones, assistencia);
+    menu = {
+      ...menu,
+      apats: menu.apats.map((a, i) => {
+        if (i !== index) return a;
+        const { assistencia: _treta, ...sense } = a;
+        return normal ? { ...sense, assistencia: normal } : sense;
+      }),
+    };
+    desarMenu(menu);
+    assistenciaOberta = index;
+    const y = window.scrollY;
+    pintar();
+    window.scrollTo(0, y);
+    arrel!.querySelector<HTMLElement>(enfocar)?.focus({ preventScroll: true });
   },
 };
 
@@ -462,25 +514,32 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
       return pantallaCompra(llista, marcats, accionsCompra(signatura, marcats));
     }
     case 'recepta': {
-      const { racionsCentesimes } = avaluarMenu(catalegInicial, configuracio, []);
+      const { racions, persones } = racionsDePlat(configuracio, seccio.receptaId, seccio.apat);
       return pantallaRecepta(
-        { ...seccio, racionsCentesimes, persones: configuracio.persones.length },
+        { ...seccio, racionsCentesimes: racions, persones },
         {
           tornar,
-          obrir: (receptaId) => anar({ tipus: 'recepta', receptaId }),
+          obrir: (receptaId) => anar(seccio.apat === undefined ? { tipus: 'recepta', receptaId } : { tipus: 'recepta', receptaId, apat: seccio.apat }),
           cuinar: () => anar({ ...seccio, tipus: 'cuinar', pas: 0 }),
         },
       );
     }
     case 'cuinar': {
-      const { racionsCentesimes } = avaluarMenu(catalegInicial, configuracio, []);
+      const { racions } = racionsDePlat(configuracio, seccio.receptaId, seccio.apat);
       const anarAlPas = (pas: number): void => anar({ ...seccio, pas }, { substituirHistoria: true });
       const pantallaC = pantallaCuinar(
-        { ...seccio, racionsCentesimes },
+        { ...seccio, racionsCentesimes: racions },
         {
           anarAlPas,
           cuinar: (receptaId, pas) =>
-            anar(receptaId === seccio.receptaId ? { ...seccio, pas } : { tipus: 'cuinar', receptaId, pas }, { substituirHistoria: true }),
+            anar(
+              receptaId === seccio.receptaId
+                ? { ...seccio, pas }
+                : seccio.apat === undefined
+                  ? { tipus: 'cuinar', receptaId, pas }
+                  : { tipus: 'cuinar', receptaId, pas, apat: seccio.apat },
+              { substituirHistoria: true },
+            ),
           // Torna on era (normalment la recepta); si s'hi ha arribat per un enllaç directe, al menú.
           sortir: tornar,
           menu: () => anar({ tipus: 'menu' }, { substituirHistoria: true }),
@@ -495,7 +554,7 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
         history.replaceState({ piatto: false }, '', '#/menu');
         return contingutSeccio(respostes, pantalla);
       }
-      const { racionsCentesimes } = avaluarMenu(catalegInicial, configuracio, []);
+      const racionsCentesimes = racionsApat(configuracio.persones, actual.apats[seccio.index]!);
       return pantallaTriar(
         { configuracio, apats: actual.apats, index: seccio.index, racionsCentesimes, ...(seccio.receptaId ? { receptaId: seccio.receptaId } : {}) },
         accionsTriar(seccio.index),
@@ -505,7 +564,7 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
       const avisPuntual = missatge;
       missatge = null;
       return pantallaMenu(
-        { configuracio, graella: actual.graella, apats: actual.apats, avisos: actual.avisos, missatge: avisPuntual, graellaOberta },
+        { configuracio, graella: actual.graella, apats: actual.apats, avisos: actual.avisos, missatge: avisPuntual, graellaOberta, assistenciaOberta },
         accionsMenu,
       );
     }

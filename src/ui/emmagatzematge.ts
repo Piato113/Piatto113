@@ -144,7 +144,18 @@ export function carregarMenu(cataleg: Cataleg): MenuDesat | null {
         (a.acompanyamentId === undefined || cataleg.receptes.has(a.acompanyamentId)),
     );
     if (!valids) return null;
-    return { signatura: v.signatura, llavor: v.llavor, graella, apats: v.apats, avisos: Array.isArray(v.avisos) ? v.avisos : [] };
+    // Convidats i absències: si no tenen la forma esperada, es descarten (hi és tota la família).
+    const apats = v.apats.map((a) => {
+      const { assistencia, ...sense } = a;
+      const valida =
+        typeof assistencia === 'object' &&
+        assistencia !== null &&
+        Array.isArray(assistencia.absents) &&
+        assistencia.absents.every((i) => Number.isInteger(i)) &&
+        Number.isInteger(assistencia.convidats);
+      return valida ? { ...sense, assistencia: { absents: [...assistencia.absents], convidats: assistencia.convidats } } : sense;
+    });
+    return { signatura: v.signatura, llavor: v.llavor, graella, apats, avisos: Array.isArray(v.avisos) ? v.avisos : [] };
   } catch {
     return null;
   }
