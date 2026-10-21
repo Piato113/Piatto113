@@ -1,4 +1,5 @@
 import type { Ingredient, Preu, Recepta } from './tipus';
+import { validarPassos } from './preparacio';
 import { factorConversio } from './unitats';
 
 /** Catàleg indexat per identificador, per a consultes ràpides. */
@@ -67,6 +68,7 @@ export function validarCataleg(ingredients: Ingredient[], receptes: Recepta[], p
         errors.push(`Recepta «${r.id}»: «${linia.ingredientId}» en ${unitat} sense conversió a ${ing.unitat}`);
       }
     }
+    errors.push(...validarPassos(r));
   }
 
   for (const r of receptes) {

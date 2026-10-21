@@ -22,7 +22,7 @@ export const ingredients: Ingredient[] = [
   { id: 'pebrot-vermell', nom: 'Pebrot vermell', unitat: 'g', seccio: FRUITA, conversions: { u: 200 } },
   { id: 'porro', nom: 'Porros', unitat: 'g', seccio: FRUITA, conversions: { u: 150 } },
   { id: 'col', nom: 'Col', unitat: 'g', seccio: FRUITA, conversions: { u: 1200 } },
-  { id: 'all', nom: 'All (grans)', unitat: 'u', seccio: FRUITA },
+  { id: 'all', nom: 'All (grans)', unitat: 'u', seccio: FRUITA, indivisible: true },
   { id: 'bolets', nom: 'Bolets de temporada', unitat: 'g', seccio: FRUITA },
   { id: 'platan', nom: 'Plàtans', unitat: 'g', seccio: FRUITA, conversions: { u: 150 } },
 
@@ -44,7 +44,7 @@ export const ingredients: Ingredient[] = [
   { id: 'gamba', nom: 'Gambes', unitat: 'g', seccio: PEIX },
 
   // Ous i làctics
-  { id: 'ou', nom: 'Ous', unitat: 'u', seccio: FRESCOS },
+  { id: 'ou', nom: 'Ous', unitat: 'u', seccio: FRESCOS, indivisible: true },
   { id: 'llet', nom: 'Llet', unitat: 'ml', seccio: FRESCOS },
   { id: 'nata', nom: 'Nata per cuinar', unitat: 'ml', seccio: FRESCOS },
   { id: 'mantega', nom: 'Mantega', unitat: 'g', seccio: FRESCOS },
@@ -53,7 +53,7 @@ export const ingredients: Ingredient[] = [
   // Pasta, arròs i llegums
   { id: 'macarrons', nom: 'Macarrons', unitat: 'g', seccio: SECS },
   { id: 'tallarins', nom: 'Tallarins', unitat: 'g', seccio: SECS },
-  { id: 'plaques-canelons', nom: 'Plaques de canelons', unitat: 'u', seccio: SECS },
+  { id: 'plaques-canelons', nom: 'Plaques de canelons', unitat: 'u', seccio: SECS, indivisible: true },
   { id: 'fideus-fins', nom: 'Fideus fins (per a sopa)', unitat: 'g', seccio: SECS },
   { id: 'fideus-gruixuts', nom: 'Fideus gruixuts (per a cassola)', unitat: 'g', seccio: SECS },
   { id: 'fideus-fideua', nom: 'Fideus per a fideuà', unitat: 'g', seccio: SECS },

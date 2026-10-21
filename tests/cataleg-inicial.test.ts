@@ -21,6 +21,15 @@ describe('catàleg inicial', () => {
     expect(errorsCatalegInicial()).toEqual([]);
   });
 
+  it('totes les receptes tenen preparació, i cap cronòmetre supera el temps total', () => {
+    for (const r of receptes) {
+      expect(r.passos?.length, r.id).toBeGreaterThan(1);
+      for (const pas of r.passos ?? []) {
+        if (pas.cronometre) expect(pas.cronometre.segons, r.id).toBeLessThan(r.tempsMinuts * 60);
+      }
+    }
+  });
+
   it('tots els ingredients que no són de rebost tenen preu', () => {
     const ambPreu = new Set(preus.map((p) => p.ingredientId));
     expect(ingredients.filter((i) => !i.rebost && !ambPreu.has(i.id)).map((i) => i.id)).toEqual([]);

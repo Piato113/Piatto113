@@ -15,6 +15,8 @@ export interface Ingredient {
   unitat: Unitat;
   /** Oli, sal, espècies…: surt a la llista però no suma al cost de compra. */
   rebost?: boolean;
+  /** Peces que no es parteixen (ous, grans d'all…): a la recepta s'arrodoneixen cap amunt a l'enter. */
+  indivisible?: boolean;
   /** Secció del supermercat, per ordenar la llista de compra. */
   seccio?: string;
   /**
@@ -33,6 +35,23 @@ export interface LiniaRecepta {
   unitat?: Unitat;
 }
 
+export interface Cronometre {
+  /** Durada en segons. */
+  segons: number;
+  /** Nom curt que es mostra al cronòmetre (p. ex. «Bullir macarrons»). */
+  nom: string;
+}
+
+/**
+ * Un pas de la preparació.
+ * Dins del text, `{ingredientId}` es substitueix per la quantitat escalada de l'ingredient
+ * i `{ingredientId:1/2}` per una fracció d'aquesta quantitat.
+ */
+export interface Pas {
+  text: string;
+  cronometre?: Cronometre;
+}
+
 export interface Recepta {
   id: string;
   nom: string;
@@ -49,6 +68,8 @@ export interface Recepta {
   tipus?: 'principal' | 'acompanyament';
   /** La principal es planifica amb un acompanyament (p. ex. carn arrebossada). */
   ambAcompanyament?: boolean;
+  /** Preparació pas a pas. */
+  passos?: Pas[];
 }
 
 /** Preu orientatiu i editable d'un paquet de compra. */

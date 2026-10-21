@@ -1,8 +1,9 @@
 import type { LiniaRecepta, Recepta, Unitat } from '../domini';
+import { preparacio } from './preparacio';
 
 // Catàleg inicial de receptes. Quantitats orientatives per a 4 racions normals:
 // la gana de cada persona ja s'aplica amb el factor de la família.
-// Només hi ha ingredients i temps; el text de cada recepta l'escriurà la família.
+// Els passos de preparació són a `preparacio.ts`.
 //
 // Etiquetes provisionals: carn, peix, vegetaria, pasta, arros, llegums, verdura, sopa, aprofitament.
 
@@ -27,13 +28,13 @@ const arrebossat = (id: string, nom: string, carn: string): Recepta => ({
   ],
 });
 
-export const receptes: Recepta[] = [
+const receptesBase: Recepta[] = [
   // Pasta
   {
     id: 'macarrons-bolonyesa',
     nom: 'Macarrons a la bolonyesa',
     racions: 4,
-    tempsMinuts: 40,
+    tempsMinuts: 50,
     etiquetes: ['pasta', 'carn'],
     ingredients: [
       l('macarrons', 400),
@@ -44,7 +45,7 @@ export const receptes: Recepta[] = [
       l('tomaquet-triturat', 400),
       l('formatge-ratllat', 80),
       l('oli-oliva', 30),
-      l('sal', 4),
+      l('sal', 30),
       l('orenga', 1),
     ],
   },
@@ -61,7 +62,7 @@ export const receptes: Recepta[] = [
       l('nata', 200),
       l('formatge-ratllat', 80),
       l('pebre-negre', 2),
-      l('sal', 4),
+      l('sal', 30),
     ],
   },
   {
@@ -81,7 +82,7 @@ export const receptes: Recepta[] = [
       l('formatge-ratllat', 100),
       l('nou-moscada', 1),
       l('oli-oliva', 30),
-      l('sal', 4),
+      l('sal', 20),
     ],
   },
   {
@@ -127,7 +128,7 @@ export const receptes: Recepta[] = [
     id: 'arros-cubana',
     nom: 'Arròs a la cubana',
     racions: 4,
-    tempsMinuts: 30,
+    tempsMinuts: 40,
     etiquetes: ['arros', 'vegetaria'],
     ingredients: [
       l('arros', 320),
@@ -160,7 +161,7 @@ export const receptes: Recepta[] = [
     id: 'paella',
     nom: 'Paella',
     racions: 4,
-    tempsMinuts: 60,
+    tempsMinuts: 75,
     etiquetes: ['arros', 'carn', 'peix'],
     ingredients: [
       l('arros', 400),
@@ -182,7 +183,7 @@ export const receptes: Recepta[] = [
     id: 'llenties-estofades',
     nom: 'Llenties estofades',
     racions: 4,
-    tempsMinuts: 60,
+    tempsMinuts: 75,
     etiquetes: ['llegums', 'carn'],
     ingredients: [
       l('llenties', 400),
@@ -205,13 +206,13 @@ export const receptes: Recepta[] = [
     racions: 4,
     tempsMinuts: 35,
     etiquetes: ['verdura', 'vegetaria'],
-    ingredients: [l('mongeta-tendra', 600), l('patata', 4, 'u'), l('oli-oliva', 40), l('sal', 5)],
+    ingredients: [l('mongeta-tendra', 600), l('patata', 4, 'u'), l('oli-oliva', 40), l('sal', 15)],
   },
   {
     id: 'verdura-forn',
     nom: 'Verdura al forn',
     racions: 4,
-    tempsMinuts: 60,
+    tempsMinuts: 65,
     etiquetes: ['verdura', 'vegetaria'],
     ingredients: [
       l('carbasso', 1, 'u'),
@@ -227,15 +228,15 @@ export const receptes: Recepta[] = [
     id: 'trinxat',
     nom: 'Trinxat',
     racions: 4,
-    tempsMinuts: 50,
+    tempsMinuts: 60,
     etiquetes: ['verdura', 'carn'],
-    ingredients: [l('col', 1, 'u'), l('patata', 5, 'u'), l('cansalada', 200), l('all', 3), l('oli-oliva', 50), l('sal', 5)],
+    ingredients: [l('col', 1, 'u'), l('patata', 5, 'u'), l('cansalada', 200), l('all', 3), l('oli-oliva', 50), l('sal', 15)],
   },
   {
     id: 'sopa-verdures',
     nom: 'Sopa de verdures',
     racions: 4,
-    tempsMinuts: 40,
+    tempsMinuts: 30,
     etiquetes: ['sopa', 'vegetaria', 'aprofitament'],
     ingredients: [
       l('brou-verdures', 1500),
@@ -255,7 +256,7 @@ export const receptes: Recepta[] = [
     id: 'entrecot',
     nom: 'Entrecot a la planxa',
     racions: 4,
-    tempsMinuts: 15,
+    tempsMinuts: 30,
     etiquetes: ['carn'],
     ambAcompanyament: true,
     ingredients: [l('entrecot', 800), l('oli-oliva', 20), l('sal', 4)],
@@ -266,7 +267,7 @@ export const receptes: Recepta[] = [
     id: 'arros-blanc',
     nom: 'Arròs blanc',
     racions: 4,
-    tempsMinuts: 20,
+    tempsMinuts: 30,
     etiquetes: [],
     tipus: 'acompanyament',
     ingredients: [l('arros', 280), l('all', 1), l('oli-oliva', 20), l('sal', 3)],
@@ -275,7 +276,7 @@ export const receptes: Recepta[] = [
     id: 'patates-fregides',
     nom: 'Patates fregides',
     racions: 4,
-    tempsMinuts: 30,
+    tempsMinuts: 40,
     etiquetes: [],
     tipus: 'acompanyament',
     ingredients: [l('patata', 1000), l('oli-girasol', 150), l('sal', 4)],
@@ -322,3 +323,9 @@ export const receptes: Recepta[] = [
     ],
   },
 ];
+
+/** Receptes amb la preparació pas a pas (vegeu `preparacio.ts`). */
+export const receptes: Recepta[] = receptesBase.map((r) => {
+  const passos = preparacio[r.id];
+  return passos ? { ...r, passos } : r;
+});

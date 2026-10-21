@@ -9,3 +9,4 @@ export * from './llista';
 export * from './graella';
 export * from './aleatori';
 export * from './planificador';
+export * from './preparacio';

@@ -41,10 +41,11 @@ export function milesimesACompra(milesimes: number): number {
 /**
  * Quantitat per mostrar dins d'una recepta:
  * grams i mil·lilitres a l'enter més proper (mínim 1);
- * unitats arrodonides cap amunt al mig (½).
+ * unitats arrodonides cap amunt al mig (½), o a l'enter si són indivisibles.
  */
-export function milesimesAMostrar(milesimes: number, unitat: Unitat): number {
+export function milesimesAMostrar(milesimes: number, unitat: Unitat, indivisible = false): number {
   if (milesimes <= 0) return 0;
-  if (unitat === 'u') return Math.ceil(milesimes / (MILESIMES / 2)) / 2;
+  if (unitat === 'u' && indivisible) return Math.ceil(milesimes / MILESIMES - 1e-9);
+  if (unitat === 'u') return Math.ceil(milesimes / (MILESIMES / 2) - 1e-9) / 2;
   return Math.max(1, Math.round(milesimes / MILESIMES));
 }

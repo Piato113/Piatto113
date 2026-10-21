@@ -73,9 +73,11 @@ La lògica és a `src/domini/` i no depèn de la interfície. Els tests són a `
 
 ## Catàleg inicial
 
-A `src/dades/`: ingredients, receptes (quantitats per a 4 racions normals, sense el text de la recepta)
+A `src/dades/`: ingredients, receptes (quantitats per a 4 racions normals), la preparació pas a pas (`preparacio.ts`)
 i preus **orientatius** de referència Mercadona. Els preus s'han de revisar amb el tiquet i es podran editar a l'app.
-Els tests comproven que el catàleg no té errors, que tot ingredient comprable té preu
+Dins del text dels passos, `{ingredient}` es substitueix per la quantitat escalada i `{ingredient:1/2}` per una part;
+els passos que ho necessiten porten un cronòmetre (durada i nom).
+Els tests comproven que el catàleg no té errors, que cada ingredient surt en algun pas, que tot ingredient comprable té preu
 i que es pot planificar una setmana sense repetir.
 
 ## Posar-ho en marxa en local
