@@ -118,6 +118,8 @@ export interface Preu {
   /** Mida del paquet en la unitat base de l'ingredient (enter > 0). */
   midaPaquet: number;
   preuCentims: number;
+  /** Producte del súper d'on surt el preu; sense producte, el preu és una estimació. */
+  producte?: { id: string; nom: string };
 }
 
 export interface Persona {

@@ -106,3 +106,15 @@ npm run build           # compilació a dist/
 - Al fitxer `.env` i a Cloudflare només hi van la URL del projecte i la **clau pública** de Supabase.
 - La clau secreta de Supabase no es fa servir mai en aquesta aplicació.
 - Cada usuari només pot veure i modificar les seves dades (regles RLS de Supabase).
+
+## Preus del Mercadona
+
+- `dades/mercadona/productes-17003.csv`: llistat de productes del Mercadona de Girona (17003), filtrat a
+  les famílies que fan servir les receptes (sense begudes, dolços, menjar infantil, plats preparats…).
+- `dades/mercadona/correspondencies.json`: quin producte es compra per a cada ingredient
+  (i, si cal, quantes peces porta el paquet o el pes escorregut).
+- `npm run preus` regenera `src/dades/preus-mercadona.ts` a partir d'aquests dos fitxers.
+  Els ingredients que no tenen producte fan servir el preu estimat de `src/dades/preus.ts`.
+- Per actualitzar preus amb un Excel nou: convertir-lo al mateix CSV (mateixes famílies), executar
+  `npm run preus` i `npm test` (els tests avisen si una correspondència apunta a un producte que ja no hi és).
+

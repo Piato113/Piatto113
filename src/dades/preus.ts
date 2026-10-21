@@ -1,13 +1,15 @@
 import type { Preu } from '../domini';
+import { DATA_PREUS_MERCADONA, preusMercadona } from './preus-mercadona';
 
-// Preus ORIENTATIUS de referència Mercadona (format habitual de paquet i preu en cèntims).
-// Són estimacions per començar: s'han de revisar amb el tiquet i es podran editar a l'app.
-// Productes a granel (fruita i verdura, alguna carn): paquet = 1 kg i preu del kg.
+// Preus de compra. Primer manen els del llistat del Mercadona (src/dades/preus-mercadona.ts, generat);
+// els estimats d'aquí sota només s'usen per als ingredients que no hi són (o no s'han trobat al llistat).
 // El rebost no suma al cost de compra; si té preu és només informatiu.
 
-export const DATA_PREUS = '2026-10';
+/** Data del llistat de preus (AAAA-MM-DD). */
+export const DATA_PREUS = DATA_PREUS_MERCADONA;
 
-export const preus: Preu[] = [
+/** Estimacions inicials (octubre de 2026), en format de paquet habitual. */
+const preusEstimats: Preu[] = [
   // Fruita i verdura
   { ingredientId: 'ceba', midaPaquet: 2000, preuCentims: 230 },
   { ingredientId: 'pastanaga', midaPaquet: 1000, preuCentims: 110 },
@@ -116,3 +118,14 @@ export const preus: Preu[] = [
   { ingredientId: 'oli-girasol', midaPaquet: 1000, preuCentims: 179 },
   { ingredientId: 'farina', midaPaquet: 1000, preuCentims: 79 },
 ];
+
+const delMercadona = new Set(preusMercadona.map((p) => p.ingredientId));
+
+/** Preus que fa servir l'app: els del Mercadona i, per a la resta, els estimats. */
+export const preus: Preu[] = [
+  ...preusMercadona.map(({ unitat: _unitat, ...preu }) => preu),
+  ...preusEstimats.filter((p) => !delMercadona.has(p.ingredientId)),
+];
+
+/** Ingredients amb preu estimat (no surten al llistat del Mercadona). */
+export const ingredientsAmbPreuEstimat = preusEstimats.filter((p) => !delMercadona.has(p.ingredientId)).map((p) => p.ingredientId);

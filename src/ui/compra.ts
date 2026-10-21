@@ -18,12 +18,10 @@ export interface AccionsCompra {
 
 const majuscula = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 
-/** «Octubre de 2026» a partir de «2026-10». */
-function mesAny(data: string): string {
-  const [any, mes] = data.split('-').map(Number);
-  const mesos = ['gener', 'febrer', 'març', 'abril', 'maig', 'juny', 'juliol', 'agost', 'setembre', 'octubre', 'novembre', 'desembre'];
-  const nom = mesos[(mes ?? 1) - 1] ?? '';
-  return `${nom} de ${any}`;
+/** «21/10/2026» a partir de «2026-10-21». */
+function dataCurta(data: string): string {
+  const [any, mes, dia] = data.split('-');
+  return dia ? `${Number(dia)}/${Number(mes)}/${any}` : data;
 }
 
 /** Quantitat a comprar; si l'ingredient es compta també en peces, ho afegeix: «450 g (3 u)». */
@@ -36,10 +34,13 @@ function quantitat(e: ElementLlista): string {
 
 function element(e: ElementLlista, marcat: boolean, accions: AccionsCompra): HTMLElement {
   const plats = e.receptes.map((id) => catalegInicial.receptes.get(id)?.nom ?? id).join(', ');
+  const producte = catalegInicial.preus.get(e.ingredientId)?.producte;
   const detall =
     e.rebost || !e.cost
       ? null
-      : tc.paquets(e.cost.paquets, formatQuantitat(e.cost.midaPaquet, e.unitat));
+      : producte
+        ? tc.paquetsProducte(e.cost.paquets, producte.nom, formatQuantitat(e.cost.midaPaquet, e.unitat))
+        : `${tc.paquets(e.cost.paquets, formatQuantitat(e.cost.midaPaquet, e.unitat))} · ${tc.estimat}`;
   return h(
     'li',
     { class: `producte${marcat ? ' producte--fet' : ''}` },
@@ -83,7 +84,7 @@ export function pantallaCompra(llista: LlistaCompra, marcats: ReadonlySet<string
           { class: 'menu__resum' },
           h('p', { class: 'menu__cost' }, tc.resum(aComprar.length, euros(llista.totalCompraCentims))),
           h('p', { class: 'menu__nota', role: 'status' }, tc.fet(fets, aComprar.length)),
-          h('p', { class: 'menu__nota' }, tc.preus(mesAny(DATA_PREUS))),
+          h('p', { class: 'menu__nota' }, tc.preus(dataCurta(DATA_PREUS))),
         ),
     ...seccions.map((s) =>
       h(

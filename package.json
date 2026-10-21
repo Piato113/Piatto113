@@ -13,7 +13,8 @@
     "preview": "vite preview",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "preus": "node scripts/preus-mercadona.mjs"
   },
   "devDependencies": {
     "typescript": "7.0.2",

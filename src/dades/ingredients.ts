@@ -72,7 +72,7 @@ const ingredientsBase: Ingredient[] = [
   { id: 'formatge-blau', nom: 'Formatge blau (gorgonzola)', unitat: 'g', seccio: FRESCOS },
   { id: 'formatgets', nom: 'Formatgets en porcions', unitat: 'u', seccio: FRESCOS, indivisible: true },
   { id: 'gnocchi', nom: 'Gnocchi frescos', unitat: 'g', seccio: FRESCOS },
-  { id: 'raviolis', nom: 'Raviolis frescos', unitat: 'g', seccio: FRESCOS },
+  { id: 'raviolis', nom: 'Raviolis frescos de ricotta i espinacs', unitat: 'g', seccio: FRESCOS },
   { id: 'tortellini', nom: 'Tortellini frescos', unitat: 'g', seccio: FRESCOS },
 
   // Pasta, arròs i llegums
@@ -201,7 +201,6 @@ const ALERGENS_INGREDIENT: Record<string, Alergen[]> = {
  */
 const ORIGEN_EXPLICIT: Record<string, OrigenAnimal> = {
   'brou-pollastre': 'carn',
-  raviolis: 'carn',
   tortellini: 'carn',
   mel: 'derivat',
 };

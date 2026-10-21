@@ -61,8 +61,10 @@ export const textos = {
     titol: 'Llista de la compra',
     resum: (productes: number, total: string) =>
       `${productes === 1 ? '1 producte' : `${productes} productes`} · ${total} aproximadament`,
-    preus: (data: string) => `Preus orientatius del Mercadona (${data}). Es podran editar.`,
+    preus: (data: string) => `Preus del Mercadona de Girona del ${data}.`,
     paquets: (paquets: number, mida: string) => `${paquets} × ${mida}`,
+    paquetsProducte: (paquets: number, producte: string, mida: string) => `${paquets} × ${producte} (${mida})`,
+    estimat: 'preu estimat',
     rebost: 'Del rebost',
     ajudaRebost: 'Comprova que en tens: no compta al cost.',
     senseCost: 'sense preu',

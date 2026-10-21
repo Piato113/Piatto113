@@ -292,7 +292,7 @@ describe('dieta', () => {
     const origen = (id: string) => catalegInicial.ingredients.get(id)?.origen;
     expect(origen('entrecot')).toBe('carn');
     expect(origen('brou-pollastre')).toBe('carn');
-    expect(origen('raviolis')).toBe('carn');
+    expect(origen('raviolis')).toBe('derivat');
     expect(origen('lluc')).toBe('peix');
     expect(origen('fumet')).toBe('peix');
     expect(origen('tonyina')).toBe('peix');
