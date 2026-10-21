@@ -9,6 +9,7 @@ import {
   esCapDeSetmana,
   filtrarReceptes,
   graellaPerDefecte,
+  llegirRespostes,
   planificar,
   PRESSUPOST_RACIO,
   respostesPerDefecte,
@@ -230,5 +231,37 @@ describe('catàleg inicial amb el qüestionari', () => {
         expect(catalegInicial.ingredients.get(e.ingredientId)?.alergens ?? [], e.ingredientId).not.toContain('gluten');
       }
     }
+  });
+});
+
+describe('respostes desades', () => {
+  it('llegeix unes respostes vàlides tal com són', () => {
+    const r = { ...respostesPerDefecte(), receptari: ['economic'], alergens: ['gluten'], exclosos: ['col'] };
+    expect(llegirRespostes(JSON.parse(JSON.stringify(r)), ALERGENS)).toEqual(r);
+  });
+
+  it('corregeix camps no vàlids i descarta les dades sense persones', () => {
+    expect(llegirRespostes(null, ALERGENS)).toBeNull();
+    expect(llegirRespostes({ persones: [] }, ALERGENS)).toBeNull();
+    expect(
+      llegirRespostes(
+        {
+          persones: [{ nom: '  ', ganaCentesimes: 9999 }, 'x'],
+          receptari: ['variat', 'variat', 'contundent'],
+          pressupost: 'car',
+          alergens: ['gluten', 'inventat'],
+          exclosos: ['col', 3],
+        },
+        ALERGENS,
+      ),
+    ).toEqual({
+      persones: [{ nom: 'Persona 1', ganaCentesimes: 300 }],
+      receptari: ['variat'],
+      pressupost: 'mitja',
+      temps: 'mixt',
+      peix: 'normal',
+      exclosos: ['col'],
+      alergens: ['gluten'],
+    });
   });
 });

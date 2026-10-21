@@ -72,3 +72,45 @@ export function configuracioDesDeRespostes(r: RespostesQuestionari): Configuraci
     pressupostRacioCentims: PRESSUPOST_RACIO[r.pressupost],
   };
 }
+
+/** Opcions de gana que ofereix el qüestionari, en centèsimes. */
+export const OPCIONS_GANA = [75, 100, 125, 150] as const;
+/** Màxim de persones de la família. */
+export const MAX_PERSONES = 10;
+
+const RECEPTARI: readonly OpcioReceptari[] = ['variat', 'economic'];
+const PRESSUPOSTOS: readonly OpcioPressupost[] = ['economic', 'mitja', 'flexible'];
+const TEMPSOS: readonly OpcioTemps[] = ['rapid', 'mixt', 'sense-limit'];
+const PEIXOS: readonly OpcioPeix[] = ['normal', 'poc', 'gens'];
+
+const esObjecte = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
+const textos = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+const unDe = <T extends string>(v: unknown, opcions: readonly T[], perDefecte: T): T =>
+  opcions.includes(v as T) ? (v as T) : perDefecte;
+
+/**
+ * Llegeix unes respostes desades (p. ex. del navegador) i les valida.
+ * Els camps que falten o no són vàlids prenen el valor per defecte; si no hi ha cap persona vàlida, retorna `null`.
+ */
+export function llegirRespostes(valor: unknown, alergensValids: readonly string[]): RespostesQuestionari | null {
+  if (!esObjecte(valor)) return null;
+  const perDefecte = respostesPerDefecte();
+  const persones = (Array.isArray(valor.persones) ? valor.persones : [])
+    .filter(esObjecte)
+    .slice(0, MAX_PERSONES)
+    .map((p, i): Persona => {
+      const gana = typeof p.ganaCentesimes === 'number' && Number.isInteger(p.ganaCentesimes) ? p.ganaCentesimes : 100;
+      const nom = typeof p.nom === 'string' && p.nom.trim() !== '' ? p.nom.trim().slice(0, 40) : `Persona ${i + 1}`;
+      return { nom, ganaCentesimes: Math.min(300, Math.max(25, gana)) };
+    });
+  if (persones.length === 0) return null;
+  return {
+    persones,
+    receptari: [...new Set(textos(valor.receptari))].filter((o): o is OpcioReceptari => RECEPTARI.includes(o as OpcioReceptari)),
+    pressupost: unDe(valor.pressupost, PRESSUPOSTOS, perDefecte.pressupost),
+    temps: unDe(valor.temps, TEMPSOS, perDefecte.temps),
+    peix: unDe(valor.peix, PEIXOS, perDefecte.peix),
+    exclosos: [...new Set(textos(valor.exclosos))],
+    alergens: [...new Set(textos(valor.alergens))].filter((a): a is Alergen => alergensValids.includes(a)),
+  };
+}

@@ -21,7 +21,46 @@ export const textos = {
     dg: 'Diumenge',
   } satisfies Record<Dia, string>,
   apats: { dinar: 'Dinar', sopar: 'Sopar' },
+  accions: {
+    comencar: 'Comença',
+    seguent: 'Següent',
+    enrere: 'Enrere',
+    desar: 'Desa',
+    canviar: 'Canvia',
+    acabar: 'Veure el resum',
+    afegirPersona: 'Afegeix una persona',
+    treure: 'Treu',
+  },
+  benvinguda: {
+    explicacio: 'Respon cinc preguntes i et proposarem el menú de la setmana, amb la llista de la compra.',
+    desatLocal: 'De moment, les respostes es guarden en aquest dispositiu.',
+  },
   questionari: {
+    pas: (n: number, total: number) => `Pas ${n} de ${total}`,
+    familia: {
+      pregunta: 'Qui menja a casa?',
+      ajuda: 'Les quantitats de les receptes s’ajusten a la gana de cadascú.',
+      nom: 'Nom',
+      gana: 'Gana',
+      opcionsGana: { 75: 'Menja poc', 100: 'Normal', 125: 'Menja força', 150: 'Menja molt' } as Record<number, string>,
+      maxim: (n: number) => `Com a màxim, ${n} persones.`,
+    },
+    restriccions: {
+      titol: 'Restriccions',
+    },
+    resum: {
+      titol: 'La vostra configuració',
+      persones: (n: number) => (n === 1 ? '1 persona' : `${n} persones`),
+      cap: 'Cap',
+      receptariCap: 'Sense preferència',
+      alergens: 'Al·lèrgies',
+      exclosos: 'No surten mai',
+      plats: (n: number) =>
+        n === 0
+          ? 'Cap plat compleix aquesta configuració. Revisa les restriccions.'
+          : `${n} plats del receptari compleixen aquesta configuració.`,
+      properament: 'Properament: el menú de la setmana i la llista de la compra.',
+    },
     receptari: {
       pregunta: 'Quin tipus de receptari vols prioritzar?',
       ajuda: 'Pots triar-ne més d’un.',
@@ -58,6 +97,9 @@ export const textos = {
     exclosos: {
       pregunta: 'Hi ha algun aliment que no pugui sortir mai?',
       ajuda: 'Verdures o llegums que no agraden, o qualsevol altre ingredient.',
+      cercar: 'Cerca un ingredient',
+      triats: (n: number) => (n === 1 ? '1 aliment triat' : `${n} aliments triats`),
+      capResultat: 'Cap ingredient amb aquest nom.',
     },
     alergens: {
       pregunta: 'Al·lèrgies i intoleràncies',
