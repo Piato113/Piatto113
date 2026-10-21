@@ -209,6 +209,17 @@ body {
   text-align: left;
 }
 
+.entrada__ajuda {
+  margin: -0.25rem 0 0;
+  color: var(--text-suau);
+  font-size: 0.85rem;
+}
+
+.entrada__canvi {
+  margin: 0.5rem 0 0;
+  color: var(--text-suau);
+}
+
 .entrada__familia {
   max-width: 22rem;
   margin-top: 0.5rem;
@@ -1381,5 +1392,12 @@ h1:focus-visible {
 
 .opcio-plat__nota--actual {
   color: var(--taronja);
+  font-weight: 700;
+}
+
+.entrada__canvi .enllac {
+  min-height: 2.75rem;
+  padding: 0 0.25rem;
+  color: var(--text);
   font-weight: 700;
 }

@@ -31,7 +31,20 @@ export interface Usuari {
 }
 
 /** Motius d'error que la pantalla explica a l'usuari. */
-export type ErrorEntrada = 'correu' | 'credencials' | 'no-confirmat' | 'massa-intents' | 'connexio' | 'desconegut';
+export type ErrorEntrada =
+  | 'correu'
+  | 'credencials'
+  | 'no-confirmat'
+  | 'contrasenya-curta'
+  | 'ja-existeix'
+  | 'registre-tancat'
+  | 'no-autoritzat'
+  | 'massa-intents'
+  | 'connexio'
+  | 'desconegut';
+
+/** Mínim de caràcters de la contrasenya (el de Supabase per defecte és 6). */
+export const MIN_CONTRASENYA = 6;
 
 // ——— Sessió ———
 
@@ -47,7 +60,11 @@ function errorDe(e: unknown): ErrorEntrada {
   const { code, status, name } = (e ?? {}) as { code?: string; status?: number; name?: string };
   if (code === 'invalid_credentials') return 'credencials';
   if (code === 'email_not_confirmed') return 'no-confirmat';
-  if (code === 'over_request_rate_limit' || status === 429) return 'massa-intents';
+  if (code === 'weak_password') return 'contrasenya-curta';
+  if (code === 'user_already_exists' || code === 'email_exists') return 'ja-existeix';
+  if (code === 'signup_disabled' || code === 'email_provider_disabled') return 'registre-tancat';
+  if (code === 'email_address_not_authorized') return 'no-autoritzat';
+  if (code === 'over_request_rate_limit' || code === 'over_email_send_rate_limit' || status === 429) return 'massa-intents';
   if (code === 'email_address_invalid' || code === 'validation_failed') return 'correu';
   if (name === 'AuthRetryableFetchError' || status === 0 || (typeof navigator !== 'undefined' && !navigator.onLine)) return 'connexio';
   // Un correu o una contrasenya incorrectes de versions antigues de Supabase arriben sense codi.
@@ -55,10 +72,7 @@ function errorDe(e: unknown): ErrorEntrada {
   return 'desconegut';
 }
 
-/**
- * Entra amb correu i contrasenya. El compte el crea Roger a Supabase (Authentication → Users):
- * l'app no en crea ni envia cap correu.
- */
+/** Entra amb correu i contrasenya. */
 export async function entrar(correu: string, contrasenya: string): Promise<ErrorEntrada | null> {
   if (!client) return 'desconegut';
   try {
@@ -66,6 +80,23 @@ export async function entrar(correu: string, contrasenya: string): Promise<Error
     return error ? errorDe(error) : null;
   } catch (e) {
     return errorDe(e);
+  }
+}
+
+/**
+ * Crea un compte nou. Si Supabase té desactivat «Confirm email», la sessió queda iniciada de seguida;
+ * si el té activat, envia un correu per confirmar-lo i `confirmar` és `true`.
+ */
+export async function registrar(correu: string, contrasenya: string): Promise<{ error: ErrorEntrada | null; confirmar: boolean }> {
+  if (!client) return { error: 'desconegut', confirmar: false };
+  try {
+    const { data, error } = await client.auth.signUp({ email: correu, password: contrasenya });
+    if (error) return { error: errorDe(error), confirmar: false };
+    // Amb la confirmació activada, un correu que ja té compte torna un usuari sense identitats (per no revelar-ho).
+    if (data.user && data.user.identities?.length === 0) return { error: 'ja-existeix', confirmar: false };
+    return { error: null, confirmar: !data.session };
+  } catch (e) {
+    return { error: errorDe(e), confirmar: false };
   }
 }
 
