@@ -1,4 +1,4 @@
-import type { Ingredient } from '../domini';
+import type { Alergen, Ingredient } from '../domini';
 
 // Catàleg inicial d'ingredients. Les conversions `u` diuen quants grams fa una peça
 // (valors mitjans orientatius: es poden ajustar).
@@ -11,7 +11,7 @@ const SECS = 'pasta, arròs i llegums';
 const CONSERVES = 'conserves i brous';
 const FORN = 'forn';
 
-export const ingredients: Ingredient[] = [
+const ingredientsBase: Ingredient[] = [
   // Fruita i verdura
   { id: 'ceba', nom: 'Ceba', unitat: 'g', seccio: FRUITA, conversions: { u: 150 } },
   { id: 'pastanaga', nom: 'Pastanaga', unitat: 'g', seccio: FRUITA, conversions: { u: 100 } },
@@ -135,3 +135,70 @@ export const ingredients: Ingredient[] = [
   { id: 'vinagre', nom: 'Vinagre de vi', unitat: 'ml', rebost: true, seccio: 'rebost' },
   { id: 'mostassa', nom: 'Mostassa', unitat: 'g', rebost: true, seccio: 'rebost' },
 ];
+
+/**
+ * Al·lèrgens de cada ingredient (orientatiu). Criteri prudent: si el producte habitual del súper
+ * en sol portar, hi consta. Embotits, brous i salses envasades poden variar segons la marca:
+ * l'app avisa que cal llegir l'etiqueta.
+ */
+const ALERGENS_INGREDIENT: Record<string, Alergen[]> = {
+  // Cereals amb gluten
+  farina: ['gluten'],
+  'farina-forca': ['gluten'],
+  'pa-ratllat': ['gluten'],
+  'pa-pages': ['gluten'],
+  'pa-hamburguesa': ['gluten', 'sesam', 'llet'],
+  macarrons: ['gluten'],
+  tallarins: ['gluten', 'ou'],
+  'plaques-canelons': ['gluten'],
+  'plaques-lasanya': ['gluten'],
+  'fideus-fins': ['gluten'],
+  'fideus-gruixuts': ['gluten'],
+  'fideus-fideua': ['gluten'],
+  penne: ['gluten'],
+  rigatoni: ['gluten'],
+  espaguetis: ['gluten'],
+  galets: ['gluten'],
+  cuscus: ['gluten'],
+  gnocchi: ['gluten'],
+  raviolis: ['gluten', 'ou', 'llet'],
+  tortellini: ['gluten', 'ou', 'llet'],
+  // Ous
+  ou: ['ou'],
+  'botifarra-ou': ['ou'],
+  // Llet i derivats
+  llet: ['llet'],
+  nata: ['llet'],
+  mantega: ['llet'],
+  'formatge-ratllat': ['llet'],
+  parmesa: ['llet'],
+  mozzarella: ['llet'],
+  'formatge-llesques': ['llet'],
+  'formatge-blau': ['llet'],
+  formatgets: ['llet'],
+  pesto: ['llet', 'fruits-secs'],
+  // Peix, crustacis i mol·luscs
+  bacalla: ['peix'],
+  lluc: ['peix'],
+  tonyina: ['peix'],
+  anxoves: ['peix'],
+  fumet: ['peix', 'crustacis', 'molluscs'],
+  gamba: ['crustacis'],
+  sipia: ['molluscs'],
+  'tinta-sipia': ['molluscs'],
+  // Altres
+  pinyons: ['fruits-secs'],
+  'brou-pollastre': ['api'],
+  'brou-verdures': ['api'],
+  mostassa: ['mostassa'],
+  'vi-blanc': ['sulfits'],
+  vinagre: ['sulfits'],
+};
+
+export const ingredients: Ingredient[] = ingredientsBase.map((i) => {
+  const alergens = ALERGENS_INGREDIENT[i.id];
+  return alergens ? { ...i, alergens } : i;
+});
+
+/** Identificadors amb al·lèrgens assignats (per comprovar als tests que existeixen). */
+export const ingredientsAmbAlergens = Object.keys(ALERGENS_INGREDIENT);

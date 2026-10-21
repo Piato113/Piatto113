@@ -6,7 +6,7 @@ Planificador setmanal d'àpats per a la família. És una aplicació web instal�
 
 ## Què farà
 
-- Configurar la família: persones i factor de gana de cadascuna, preferències alimentàries, aliments exclosos, temps màxim per cuinar i pressupost setmanal.
+- Configurar la família amb un qüestionari curt: persones i factor de gana de cadascuna, tipus de receptari (variat i equilibrat, econòmic), pressupost per àpat, temps per cuinar (entre setmana i cap de setmana), peix, aliments que no poden sortir i al·lèrgies.
 - Triar, dia a dia, si es planifica el dinar, el sopar o tots dos.
   Per defecte: només sopar de dilluns a divendres, i dinar i sopar dissabte i diumenge.
 - Proposar els àpats de la setmana i mostrar-ne les receptes.
@@ -58,17 +58,23 @@ supabase/               Fitxers SQL de l'esquema (s'executen a mà)
 
 ## Planificador
 
-1. **Filtra** les receptes: cap ingredient exclòs, dins del temps màxim i amb totes les etiquetes obligatòries.
+1. **Filtra** les receptes: cap ingredient exclòs ni al·lergen de la família, cap etiqueta exclosa
+   (p. ex. «gens de peix»), totes les obligatòries i dins del temps màxim d'aquell dia
+   (entre setmana i cap de setmana poden tenir límits diferents).
 2. **Tria** una recepta per a cada àpat marcat a la graella, sense repetir mentre n'hi hagi prou.
    Les receptes que ho demanen (carn arrebossada, entrecot…) porten també un acompanyament
    (arròs blanc, patates, cuscús, pa amb tomàquet, amanida, puré…); els acompanyaments no ocupen
    mai un àpat sols. Una principal pot limitar quins acompanyaments admet (les patates d'Olot,
    per exemple), i una recepta de doble ús (la truita de patates) pot fer de principal o
    d'acompanyament.
-   Les etiquetes preferides fan que una recepta tingui més probabilitat de sortir.
+   Les etiquetes preferides fan que una recepta tingui més probabilitat de sortir, i les evitades
+   («poc peix»), menys. En mode **equilibrat** no repeteix el mateix grup (carn, peix, ou, llegums,
+   pasta, arròs) dos àpats seguits si es pot evitar, i els grups ja usats pesen menys.
+   En mode **econòmic**, els plats més barats surten més sovint.
    El sorteig fa servir una llavor: la mateixa llavor dona el mateix menú.
-3. **Ajusta al pressupost:** si el cost de compra el supera, canvia la recepta més cara
-   per la candidata més barata, fins que hi cap o ja no es pot abaratir més.
+3. **Ajusta al pressupost:** el pressupost és per ració i àpat, i es compara amb el cost del
+   que es menja (no amb el de compra, que inclou paquets sencers que duren més d'una setmana).
+   Si el supera, canvia l'àpat més car per l'opció més barata, fins que hi cap o ja no es pot abaratir més.
 4. **Avisa** si no hi ha àpats marcats, si cap recepta és vàlida, si cal repetir receptes,
    si el pressupost no és possible o si falten preus.
 

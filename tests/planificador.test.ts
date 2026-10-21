@@ -11,7 +11,7 @@ import {
   type Graella,
 } from '../src/domini';
 import { textAvis } from '../src/textos/ca';
-import { configuracio, ingredients, preus, receptes, receptesSintetiques } from './dades-prova';
+import { configuracio, ingredients, preus, receptes, receptesSintetiques, temps } from './dades-prova';
 
 const cataleg = crearCataleg(ingredients, receptes, preus);
 
@@ -64,7 +64,7 @@ describe('filtres', () => {
   });
 
   it('respecta el temps màxim', () => {
-    const ids = filtrarReceptes(cataleg, configuracio({ tempsMaximMinuts: 30 })).map((r) => r.id);
+    const ids = filtrarReceptes(cataleg, configuracio({ tempsMaximMinuts: temps(30) })).map((r) => r.id);
     expect(ids).toEqual(['salmo', 'truita']);
   });
 
@@ -133,7 +133,7 @@ describe('planificador', () => {
   });
 
   it('avisa si cap recepta compleix la configuració', () => {
-    const pla = planificar({ ...base, configuracio: configuracio({ tempsMaximMinuts: 10 }) });
+    const pla = planificar({ ...base, configuracio: configuracio({ tempsMaximMinuts: temps(10) }) });
     expect(pla.apats).toEqual([]);
     expect(pla.avisos).toEqual([{ codi: 'cap-recepta-valida' }]);
   });
@@ -149,14 +149,16 @@ describe('planificador', () => {
   });
 
   describe('pressupost', () => {
-    // Menú més barat possible (truita, llenties, arròs amb pollastre): 18,80 € de compra.
+    // Cost del que es menja (4 racions): truita 1,80 €, llenties 2,24 €, arròs amb pollastre 5,58 €, salmó 16,75 €.
+    // Menú més barat possible (truita, llenties, arròs amb pollastre): 9,62 €, 3,21 € per àpat.
     it('substitueix la recepta més cara per encabir-se al pressupost', () => {
       const senseLimit = Array.from({ length: 20 }, (_, llavor) => planificar({ ...base, llavor }));
       expect(senseLimit.some((p) => p.apats.some((a) => a.receptaId === 'salmo'))).toBe(true);
 
       for (let llavor = 0; llavor < 20; llavor++) {
-        const pla = planificar({ ...base, llavor, configuracio: configuracio({ pressupostCentims: 1900 }) });
-        expect(pla.llista.totalCompraCentims).toBeLessThanOrEqual(1900);
+        // 0,81 € per ració × 4 racions × 3 àpats = 9,72 €.
+        const pla = planificar({ ...base, llavor, configuracio: configuracio({ pressupostRacioCentims: 81 }) });
+        expect(pla.costConsumitCentims).toBeLessThanOrEqual(972);
         expect(pla.apats.map((a) => a.receptaId)).not.toContain('salmo');
         expect(pla.avisos).toEqual([]);
       }
@@ -164,17 +166,17 @@ describe('planificador', () => {
 
     it('no toca un menú que ja hi cap', () => {
       const lliure = planificar(base);
-      const ambMarge = planificar({ ...base, configuracio: configuracio({ pressupostCentims: 100_000 }) });
+      const ambMarge = planificar({ ...base, configuracio: configuracio({ pressupostRacioCentims: 100_000 }) });
       expect(ambMarge.apats).toEqual(lliure.apats);
     });
 
     it('avisa clarament si no és possible', () => {
-      const pla = planificar({ ...base, configuracio: configuracio({ pressupostCentims: 1000 }) });
+      const pla = planificar({ ...base, configuracio: configuracio({ pressupostRacioCentims: 50 }) });
       expect(pla.apats).toHaveLength(3);
-      expect(pla.avisos).toEqual([{ codi: 'pressupost-impossible', pressupostCentims: 1000, minimCentims: 1880 }]);
-      expect(pla.llista.totalCompraCentims).toBe(1880);
+      expect(pla.avisos).toEqual([{ codi: 'pressupost-impossible', pressupostApatCentims: 200, minimApatCentims: 321 }]);
+      expect(pla.costConsumitCentims).toBe(962);
       expect(textAvis(pla.avisos[0]!)).toBe(
-        'No s’ha pogut ajustar al pressupost de 10,00 €. El menú més barat que s’ha trobat costa 18,80 €.',
+        'No s’ha pogut ajustar al pressupost de 2,00 € per àpat. El menú més barat que s’ha trobat surt a 3,21 € per àpat.',
       );
     });
   });

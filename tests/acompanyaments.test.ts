@@ -10,7 +10,7 @@ import {
   type Graella,
   type Recepta,
 } from '../src/domini';
-import { configuracio, ingredients, preus } from './dades-prova';
+import { configuracio, ingredients, preus, temps } from './dades-prova';
 
 const pollastre: Recepta = {
   id: 'pollastre-arrebossat',
@@ -88,7 +88,7 @@ describe('acompanyaments', () => {
     for (let llavor = 0; llavor < 20; llavor++) {
       const pla = planificar({
         cataleg,
-        configuracio: configuracio({ tempsMaximMinuts: 30 }),
+        configuracio: configuracio({ tempsMaximMinuts: temps(30) }),
         graella: graellaPerDefecte(),
         llavor,
       });
@@ -103,11 +103,12 @@ describe('acompanyaments', () => {
 
   it('el pressupost també abarateix l’acompanyament', () => {
     const nomesPollastre = crearCataleg(ingredients, [pollastre, arrosBlanc, salmoGuarnicio], preus);
-    // Amb l’arròs blanc: pollastre 800 + ous 300 + arròs 150 = 12,50 €; amb la guarnició de salmó: 31,00 €.
+    // Cost del que es menja: pollastre 4,80 + ous 0,50 + arròs 0,45 = 5,75 €; amb la guarnició de salmó, 13,30 €.
+    // Pressupost: 1,50 € per ració × 4 = 6,00 € per àpat.
     for (let llavor = 0; llavor < 20; llavor++) {
       const pla = planificar({
         cataleg: nomesPollastre,
-        configuracio: configuracio({ pressupostCentims: 1500 }),
+        configuracio: configuracio({ pressupostRacioCentims: 150 }),
         graella: nomesDilluns(),
         llavor,
       });

@@ -25,9 +25,10 @@ const acompanyament = (id: string, ingredientId: string, quantitat: number): Rec
   ingredients: [{ ingredientId, quantitat }],
 });
 
-const arros = acompanyament('arros-blanc', 'arros', 300); // 1,50 €
-const amanida = acompanyament('amanida', 'tomaquet', 400); // 2,50 €
-const salmo = acompanyament('guarnicio-salmo', 'salmo', 400); // 20,00 €
+// Cost del que es menja per a 4 racions:
+const arros = acompanyament('arros-blanc', 'arros', 300); // 0,45 €
+const amanida = acompanyament('amanida', 'tomaquet', 400); // 1,00 €
+const salmo = acompanyament('guarnicio-salmo', 'salmo', 400); // 8,00 €
 
 /** Truita de doble ús: principal amb amanida o salmó, o acompanyament d’una altra principal. */
 const truita: Recepta = {
@@ -100,11 +101,12 @@ describe('acompanyaments compatibles', () => {
 
   it('el pressupost tria l’acompanyament més barat dels admesos, no el més barat de tots', () => {
     const nomesTruita = crearCataleg(ingredients, [truita, arros, amanida, salmo], preus);
-    // Ous 3,00 € + amanida 2,50 € = 5,50 €. L’arròs (1,50 €) és més barat, però la truita no l’admet.
+    // Ous 1,50 € + amanida 1,00 € = 2,50 € (pressupost: 0,70 € × 4 = 2,80 €).
+    // L’arròs (0,45 €) és més barat, però la truita no l’admet.
     for (let llavor = 0; llavor < 20; llavor++) {
       const pla = planificar({
         cataleg: nomesTruita,
-        configuracio: configuracio({ pressupostCentims: 600 }),
+        configuracio: configuracio({ pressupostRacioCentims: 70 }),
         graella: nomesDilluns(),
         llavor,
       });

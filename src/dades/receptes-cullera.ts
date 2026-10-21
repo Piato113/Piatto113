@@ -414,7 +414,7 @@ export const receptesCullera: Recepta[] = [
     nom: 'Ous al plat amb tomàquet, pèsols i pernil',
     racions: 4,
     tempsMinuts: 35,
-    etiquetes: ['carn'],
+    etiquetes: ['ou', 'carn'],
     ingredients: [
       l('ou', 8),
       l('tomaquet-fregit', 400),

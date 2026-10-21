@@ -10,3 +10,4 @@ export * from './graella';
 export * from './aleatori';
 export * from './planificador';
 export * from './preparacio';
+export * from './questionari';

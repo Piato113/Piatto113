@@ -715,7 +715,7 @@ export const receptesCatalanes: Recepta[] = [
     nom: 'Truita de botifarra d’ou amb pa amb tomàquet',
     racions: 4,
     tempsMinuts: 25,
-    etiquetes: ['carn'],
+    etiquetes: ['ou', 'carn'],
     ingredients: [
       l('ou', 8),
       l('botifarra-ou', 300),
@@ -757,7 +757,7 @@ export const receptesCatalanes: Recepta[] = [
     nom: 'Truita de patates amb ceba',
     racions: 4,
     tempsMinuts: 50,
-    etiquetes: ['vegetaria'],
+    etiquetes: ['ou', 'vegetaria'],
     // Doble ús: plat principal (amb amanida o pa amb tomàquet) o acompanyament d'una altra principal.
     tipus: 'ambdos',
     ambAcompanyament: true,

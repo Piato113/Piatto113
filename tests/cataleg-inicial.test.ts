@@ -10,10 +10,15 @@ const familia: ConfiguracioFamilia = {
     { nom: 'D', ganaCentesimes: 100 },
   ],
   exclosos: [],
+  alergens: [],
   etiquetesObligatories: [],
+  etiquetesExcloses: [],
   etiquetesPreferides: [],
-  tempsMaximMinuts: null,
-  pressupostCentims: null,
+  etiquetesEvitades: [],
+  equilibrat: false,
+  economic: false,
+  tempsMaximMinuts: { feiners: null, capDeSetmana: null },
+  pressupostRacioCentims: null,
 };
 
 describe('catàleg inicial', () => {

@@ -86,13 +86,24 @@ export function configuracio(canvis: Partial<ConfiguracioFamilia> = {}): Configu
       { nom: 'D', ganaCentesimes: 100 },
     ],
     exclosos: [],
+    alergens: [],
     etiquetesObligatories: [],
+    etiquetesExcloses: [],
     etiquetesPreferides: [],
-    tempsMaximMinuts: null,
-    pressupostCentims: null,
+    etiquetesEvitades: [],
+    equilibrat: false,
+    economic: false,
+    tempsMaximMinuts: { feiners: null, capDeSetmana: null },
+    pressupostRacioCentims: null,
     ...canvis,
   };
 }
+
+/** El mateix temps màxim tots els dies. */
+export const temps = (minuts: number | null): ConfiguracioFamilia['tempsMaximMinuts'] => ({
+  feiners: minuts,
+  capDeSetmana: minuts,
+});
 
 /** Receptes sintètiques d'un sol ingredient, per tenir-ne moltes. */
 export function receptesSintetiques(quantes: number): Recepta[] {

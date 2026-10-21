@@ -5,6 +5,28 @@
 // - Diners en cèntims enters.
 // - Factors (gana) en centèsimes enteres: 100 = normal, 125 = menja un 25 % més.
 
+/**
+ * Els 14 al·lèrgens de declaració obligatòria a la UE (Reglament 1169/2011).
+ * 'llet' inclou la lactosa; 'fruits-secs' són els de closca (ametlles, avellanes, pinyons…).
+ */
+export const ALERGENS = [
+  'gluten',
+  'crustacis',
+  'ou',
+  'peix',
+  'cacauets',
+  'soja',
+  'llet',
+  'fruits-secs',
+  'api',
+  'mostassa',
+  'sesam',
+  'sulfits',
+  'tramussos',
+  'molluscs',
+] as const;
+export type Alergen = (typeof ALERGENS)[number];
+
 /** Unitats base: grams, mil·lilitres i unitats (peces). */
 export type Unitat = 'g' | 'ml' | 'u';
 
@@ -17,6 +39,8 @@ export interface Ingredient {
   rebost?: boolean;
   /** Peces que no es parteixen (ous, grans d'all…): a la recepta s'arrodoneixen cap amunt a l'enter. */
   indivisible?: boolean;
+  /** Al·lèrgens que conté (orientatiu: els productes envasats poden variar segons la marca). */
+  alergens?: Alergen[];
   /** Secció del supermercat, per ordenar la llista de compra. */
   seccio?: string;
   /**
@@ -97,18 +121,38 @@ export interface Persona {
   ganaCentesimes: number;
 }
 
+/** Temps màxim per cuinar, en minuts, per a cada tipus de dia. `null` = sense límit. */
+export interface TempsMaxim {
+  /** De dilluns a divendres. */
+  feiners: number | null;
+  /** Dissabte i diumenge. */
+  capDeSetmana: number | null;
+}
+
 export interface ConfiguracioFamilia {
   persones: Persona[];
   /** Ingredients que no poden aparèixer mai. */
   exclosos: string[];
+  /** Al·lèrgens de la família: cap recepta amb un ingredient que en contingui no surt mai. */
+  alergens: Alergen[];
   /** Totes les receptes triades han de tenir aquestes etiquetes (p. ex. 'vegetaria'). */
   etiquetesObligatories: string[];
+  /** Cap recepta triada pot tenir aquestes etiquetes (p. ex. 'peix' per a «gens de peix»). */
+  etiquetesExcloses: string[];
   /** Receptes amb aquestes etiquetes tenen més probabilitat de sortir. */
   etiquetesPreferides: string[];
-  /** Temps màxim per cuinar, en minuts. `null` = sense límit. */
-  tempsMaximMinuts: number | null;
-  /** Pressupost setmanal en cèntims. `null` = sense límit. */
-  pressupostCentims: number | null;
+  /** Receptes amb aquestes etiquetes surten menys (p. ex. 'peix' per a «poc peix»). */
+  etiquetesEvitades: string[];
+  /** Reparteix carn, peix, ou, llegums, pasta i arròs: mai el mateix grup dos àpats seguits si es pot evitar. */
+  equilibrat: boolean;
+  /** Els plats més barats surten més sovint. */
+  economic: boolean;
+  tempsMaximMinuts: TempsMaxim;
+  /**
+   * Pressupost per ració normal (gana 100) i àpat, en cèntims. `null` = sense límit.
+   * Es compara amb el cost del que es menja (no amb el de compra, que inclou paquets sencers).
+   */
+  pressupostRacioCentims: number | null;
 }
 
 export type Dia = 'dl' | 'dt' | 'dc' | 'dj' | 'dv' | 'ds' | 'dg';
@@ -130,5 +174,6 @@ export type Avis =
   | { codi: 'cap-apat-marcat' }
   | { codi: 'cap-recepta-valida' }
   | { codi: 'receptes-repetides'; disponibles: number; necessaries: number }
-  | { codi: 'pressupost-impossible'; pressupostCentims: number; minimCentims: number }
+  /** Imports per àpat de tota la família (mitjana de la setmana). */
+  | { codi: 'pressupost-impossible'; pressupostApatCentims: number; minimApatCentims: number }
   | { codi: 'sense-preu'; ingredientIds: string[] };

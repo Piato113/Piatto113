@@ -5,6 +5,9 @@ export const APATS: readonly Apat[] = ['dinar', 'sopar'];
 
 const CAP_DE_SETMANA: ReadonlySet<Dia> = new Set(['ds', 'dg']);
 
+/** Dissabte i diumenge. */
+export const esCapDeSetmana = (dia: Dia): boolean => CAP_DE_SETMANA.has(dia);
+
 /** Per defecte: només sopar de dilluns a divendres; dinar i sopar dissabte i diumenge. */
 export function graellaPerDefecte(): Graella {
   const graella = {} as Graella;
