@@ -1,4 +1,4 @@
-import type { Alergen, Ingredient } from '../domini';
+import type { Alergen, Ingredient, OrigenAnimal } from '../domini';
 
 // Catàleg inicial d'ingredients. Les conversions `u` diuen quants grams fa una peça
 // (valors mitjans orientatius: es poden ajustar).
@@ -195,9 +195,30 @@ const ALERGENS_INGREDIENT: Record<string, Alergen[]> = {
   vinagre: ['sulfits'],
 };
 
+/**
+ * Origen animal que no es dedueix de la secció ni dels al·lèrgens.
+ * Criteri prudent: els farcits que poden portar carn compten com a carn.
+ */
+const ORIGEN_EXPLICIT: Record<string, OrigenAnimal> = {
+  'brou-pollastre': 'carn',
+  raviolis: 'carn',
+  tortellini: 'carn',
+  mel: 'derivat',
+};
+
+/** Origen animal: explícit, o per la secció (carn, peix), o pels al·lèrgens (peix i marisc; ou i llet). */
+function origenDe(i: Ingredient, alergens: readonly Alergen[]): OrigenAnimal | undefined {
+  if (ORIGEN_EXPLICIT[i.id]) return ORIGEN_EXPLICIT[i.id];
+  if (i.seccio === CARN) return 'carn';
+  if (i.seccio === PEIX || alergens.some((a) => a === 'peix' || a === 'crustacis' || a === 'molluscs')) return 'peix';
+  if (alergens.some((a) => a === 'ou' || a === 'llet')) return 'derivat';
+  return undefined;
+}
+
 export const ingredients: Ingredient[] = ingredientsBase.map((i) => {
   const alergens = ALERGENS_INGREDIENT[i.id];
-  return alergens ? { ...i, alergens } : i;
+  const origen = origenDe(i, alergens ?? []);
+  return { ...i, ...(alergens ? { alergens } : {}), ...(origen ? { origen } : {}) };
 });
 
 /** Identificadors amb al·lèrgens assignats (per comprovar als tests que existeixen). */

@@ -27,6 +27,9 @@ export const ALERGENS = [
 ] as const;
 export type Alergen = (typeof ALERGENS)[number];
 
+/** Origen animal d'un ingredient, per a les dietes: carn, peix (i marisc) o derivat (ous, làctics, mel). */
+export type OrigenAnimal = 'carn' | 'peix' | 'derivat';
+
 /** Unitats base: grams, mil·lilitres i unitats (peces). */
 export type Unitat = 'g' | 'ml' | 'u';
 
@@ -39,6 +42,8 @@ export interface Ingredient {
   rebost?: boolean;
   /** Peces que no es parteixen (ous, grans d'all…): a la recepta s'arrodoneixen cap amunt a l'enter. */
   indivisible?: boolean;
+  /** Origen animal; sense valor, és d'origen vegetal (o mineral, com la sal). */
+  origen?: OrigenAnimal;
   /** Al·lèrgens que conté (orientatiu: els productes envasats poden variar segons la marca). */
   alergens?: Alergen[];
   /** Secció del supermercat, per ordenar la llista de compra. */
@@ -133,6 +138,8 @@ export interface ConfiguracioFamilia {
   persones: Persona[];
   /** Ingredients que no poden aparèixer mai. */
   exclosos: string[];
+  /** Dieta: cap recepta amb ingredients d'aquests orígens (vegetariana: carn i peix; vegana: tots). */
+  origensExclosos: OrigenAnimal[];
   /** Al·lèrgens de la família: cap recepta amb un ingredient que en contingui no surt mai. */
   alergens: Alergen[];
   /** Totes les receptes triades han de tenir aquestes etiquetes (p. ex. 'vegetaria'). */

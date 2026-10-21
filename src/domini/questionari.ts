@@ -1,4 +1,4 @@
-import type { Alergen, ConfiguracioFamilia, Persona } from './tipus';
+import type { Alergen, ConfiguracioFamilia, OrigenAnimal, Persona } from './tipus';
 
 // Qüestionari de configuració: respostes tancades que es tradueixen a la configuració del planificador.
 // Els textos de les preguntes i les opcions són a `src/textos/ca.ts`.
@@ -9,15 +9,21 @@ export type OpcioReceptari = 'variat' | 'economic';
 export type OpcioPressupost = 'economic' | 'mitja' | 'flexible';
 /** Temps habitual per cuinar. */
 export type OpcioTemps = 'rapid' | 'mixt' | 'sense-limit';
-/** Quant de peix voleu. */
-export type OpcioPeix = 'normal' | 'poc' | 'gens';
+/** Tipus de dieta de la família. */
+export type OpcioDieta = 'omnivora' | 'pescetariana' | 'vegetariana' | 'vegana';
+/** Quanta carn o quant de peix voleu (només si la dieta en permet). */
+export type OpcioQuantitat = 'normal' | 'poc' | 'gens';
 
 export interface RespostesQuestionari {
   persones: Persona[];
   receptari: OpcioReceptari[];
   pressupost: OpcioPressupost;
   temps: OpcioTemps;
-  peix: OpcioPeix;
+  dieta: OpcioDieta;
+  /** Només compta amb la dieta omnívora. */
+  carn: OpcioQuantitat;
+  /** Només compta amb les dietes omnívora i pescetariana. */
+  peix: OpcioQuantitat;
   /** Ingredients que no han de sortir mai (verdures o llegums que no agraden, o qualsevol altre). */
   exclosos: string[];
   /** Al·lèrgies i intoleràncies de la família. */
@@ -50,22 +56,40 @@ export function respostesPerDefecte(): RespostesQuestionari {
     receptari: ['variat'],
     pressupost: 'mitja',
     temps: 'mixt',
+    dieta: 'omnivora',
+    carn: 'normal',
     peix: 'normal',
     exclosos: [],
     alergens: [],
   };
 }
 
+/** La dieta permet triar quanta carn (omnívora) o quant peix (omnívora i pescetariana). */
+export const permetCarn = (dieta: OpcioDieta): boolean => dieta === 'omnivora';
+export const permetPeix = (dieta: OpcioDieta): boolean => dieta === 'omnivora' || dieta === 'pescetariana';
+
+/** Carn i peix efectius: la dieta mana sobre la resposta de quantitat. */
+export function quantitatsEfectives(r: RespostesQuestionari): { carn: OpcioQuantitat; peix: OpcioQuantitat } {
+  return { carn: permetCarn(r.dieta) ? r.carn : 'gens', peix: permetPeix(r.dieta) ? r.peix : 'gens' };
+}
+
 /** Configuració del planificador que correspon a les respostes. */
 export function configuracioDesDeRespostes(r: RespostesQuestionari): ConfiguracioFamilia {
+  const { carn, peix } = quantitatsEfectives(r);
+  const origensExclosos: OrigenAnimal[] = [
+    ...(carn === 'gens' ? (['carn'] as const) : []),
+    ...(peix === 'gens' ? (['peix'] as const) : []),
+    ...(r.dieta === 'vegana' ? (['derivat'] as const) : []),
+  ];
   return {
     persones: r.persones.map((p) => ({ ...p })),
     exclosos: [...r.exclosos],
+    origensExclosos,
     alergens: [...r.alergens],
     etiquetesObligatories: [],
-    etiquetesExcloses: r.peix === 'gens' ? ['peix'] : [],
+    etiquetesExcloses: [],
     etiquetesPreferides: [],
-    etiquetesEvitades: r.peix === 'poc' ? ['peix'] : [],
+    etiquetesEvitades: [...(carn === 'poc' ? ['carn'] : []), ...(peix === 'poc' ? ['peix'] : [])],
     equilibrat: r.receptari.includes('variat'),
     economic: r.receptari.includes('economic'),
     tempsMaximMinuts: { ...TEMPS[r.temps] },
@@ -81,7 +105,8 @@ export const MAX_PERSONES = 10;
 const RECEPTARI: readonly OpcioReceptari[] = ['variat', 'economic'];
 const PRESSUPOSTOS: readonly OpcioPressupost[] = ['economic', 'mitja', 'flexible'];
 const TEMPSOS: readonly OpcioTemps[] = ['rapid', 'mixt', 'sense-limit'];
-const PEIXOS: readonly OpcioPeix[] = ['normal', 'poc', 'gens'];
+const QUANTITATS: readonly OpcioQuantitat[] = ['normal', 'poc', 'gens'];
+const DIETES: readonly OpcioDieta[] = ['omnivora', 'pescetariana', 'vegetariana', 'vegana'];
 
 const esObjecte = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
 const textos = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
@@ -109,7 +134,9 @@ export function llegirRespostes(valor: unknown, alergensValids: readonly string[
     receptari: [...new Set(textos(valor.receptari))].filter((o): o is OpcioReceptari => RECEPTARI.includes(o as OpcioReceptari)),
     pressupost: unDe(valor.pressupost, PRESSUPOSTOS, perDefecte.pressupost),
     temps: unDe(valor.temps, TEMPSOS, perDefecte.temps),
-    peix: unDe(valor.peix, PEIXOS, perDefecte.peix),
+    dieta: unDe(valor.dieta, DIETES, perDefecte.dieta),
+    carn: unDe(valor.carn, QUANTITATS, perDefecte.carn),
+    peix: unDe(valor.peix, QUANTITATS, perDefecte.peix),
     exclosos: [...new Set(textos(valor.exclosos))],
     alergens: [...new Set(textos(valor.alergens))].filter((a): a is Alergen => alergensValids.includes(a)),
   };

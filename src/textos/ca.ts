@@ -1,4 +1,4 @@
-import type { OpcioPeix, OpcioPressupost, OpcioReceptari, OpcioTemps } from '../domini/questionari';
+import type { OpcioDieta, OpcioPressupost, OpcioQuantitat, OpcioReceptari, OpcioTemps } from '../domini/questionari';
 import type { Alergen, Avis, Dia } from '../domini/tipus';
 import { formatEuros } from '../domini/format';
 
@@ -46,7 +46,7 @@ export const textos = {
       maxim: (n: number) => `Com a màxim, ${n} persones.`,
     },
     restriccions: {
-      titol: 'Restriccions',
+      titol: 'Dieta i restriccions',
     },
     resum: {
       titol: 'La vostra configuració',
@@ -86,13 +86,36 @@ export const textos = {
         'sense-limit': 'Sense límit de temps',
       } satisfies Record<OpcioTemps, string>,
     },
+    dieta: {
+      pregunta: 'Quin tipus de dieta seguiu?',
+      opcions: {
+        omnivora: 'Omnívora: de tot',
+        pescetariana: 'Pescetariana: peix, però no carn',
+        vegetariana: 'Vegetariana: sense carn ni peix, amb ous i làctics',
+        vegana: 'Vegana: cap producte d’origen animal',
+      } satisfies Record<OpcioDieta, string>,
+      curta: {
+        omnivora: 'Omnívora',
+        pescetariana: 'Pescetariana',
+        vegetariana: 'Vegetariana',
+        vegana: 'Vegana',
+      } satisfies Record<OpcioDieta, string>,
+    },
+    carn: {
+      pregunta: 'Quanta carn voleu?',
+      opcions: {
+        normal: 'Sense restricció',
+        poc: 'Poca carn',
+        gens: 'Gens de carn',
+      } satisfies Record<OpcioQuantitat, string>,
+    },
     peix: {
       pregunta: 'Quant de peix voleu?',
       opcions: {
-        normal: 'Cap restricció',
+        normal: 'Sense restricció',
         poc: 'Poc peix',
         gens: 'Gens de peix',
-      } satisfies Record<OpcioPeix, string>,
+      } satisfies Record<OpcioQuantitat, string>,
     },
     exclosos: {
       pregunta: 'Hi ha algun aliment que no pugui sortir mai?',

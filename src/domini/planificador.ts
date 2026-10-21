@@ -44,7 +44,7 @@ function tempsMaximGlobal(configuracio: ConfiguracioFamilia): number | null {
 
 const dinsTemps = (r: Recepta, limit: number | null): boolean => limit === null || r.tempsMinuts <= limit;
 
-/** Restriccions que no depenen del dia: ingredients exclosos, al·lèrgens i etiquetes excloses. */
+/** Restriccions que no depenen del dia: ingredients exclosos, dieta, al·lèrgens i etiquetes excloses. */
 function permesa(cataleg: Cataleg, r: Recepta, configuracio: ConfiguracioFamilia): boolean {
   const exclosos = configuracio.exclosos;
   const alergens = configuracio.alergens;
@@ -53,6 +53,7 @@ function permesa(cataleg: Cataleg, r: Recepta, configuracio: ConfiguracioFamilia
     !r.ingredients.some((l) => {
       if (exclosos.includes(l.ingredientId)) return true;
       const ing = cataleg.ingredients.get(l.ingredientId);
+      if (ing?.origen && configuracio.origensExclosos.includes(ing.origen)) return true;
       return (ing?.alergens ?? []).some((a) => alergens.includes(a));
     })
   );

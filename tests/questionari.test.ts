@@ -175,7 +175,7 @@ describe('qüestionari', () => {
       economic: true,
       pressupostRacioCentims: 200,
       tempsMaximMinuts: { feiners: 40, capDeSetmana: 40 },
-      etiquetesExcloses: ['peix'],
+      origensExclosos: ['peix'],
       etiquetesEvitades: [],
       exclosos: ['col'],
       alergens: ['gluten'],
@@ -259,9 +259,63 @@ describe('respostes desades', () => {
       receptari: ['variat'],
       pressupost: 'mitja',
       temps: 'mixt',
+      dieta: 'omnivora',
+      carn: 'normal',
       peix: 'normal',
       exclosos: ['col'],
       alergens: ['gluten'],
     });
   });
+});
+
+describe('dieta', () => {
+  const amb = (canvis: Partial<ReturnType<typeof respostesPerDefecte>>) =>
+    configuracioDesDeRespostes({ ...respostesPerDefecte(), ...canvis });
+
+  it('la dieta mana sobre les respostes de carn i peix', () => {
+    expect(amb({ dieta: 'omnivora', carn: 'poc', peix: 'gens' })).toMatchObject({
+      origensExclosos: ['peix'],
+      etiquetesEvitades: ['carn'],
+    });
+    expect(amb({ dieta: 'pescetariana', carn: 'normal', peix: 'poc' })).toMatchObject({
+      origensExclosos: ['carn'],
+      etiquetesEvitades: ['peix'],
+    });
+    expect(amb({ dieta: 'vegetariana', carn: 'normal', peix: 'normal' })).toMatchObject({
+      origensExclosos: ['carn', 'peix'],
+      etiquetesEvitades: [],
+    });
+    expect(amb({ dieta: 'vegana' }).origensExclosos).toEqual(['carn', 'peix', 'derivat']);
+  });
+
+  it('l’origen dels ingredients es dedueix de la secció, els al·lèrgens i els casos explícits', () => {
+    const origen = (id: string) => catalegInicial.ingredients.get(id)?.origen;
+    expect(origen('entrecot')).toBe('carn');
+    expect(origen('brou-pollastre')).toBe('carn');
+    expect(origen('raviolis')).toBe('carn');
+    expect(origen('lluc')).toBe('peix');
+    expect(origen('fumet')).toBe('peix');
+    expect(origen('tonyina')).toBe('peix');
+    expect(origen('ou')).toBe('derivat');
+    expect(origen('mozzarella')).toBe('derivat');
+    expect(origen('mel')).toBe('derivat');
+    expect(origen('patata')).toBeUndefined();
+    expect(origen('brou-verdures')).toBeUndefined();
+  });
+
+  for (const [dieta, prohibits] of [
+    ['pescetariana', ['carn']],
+    ['vegetariana', ['carn', 'peix']],
+    ['vegana', ['carn', 'peix', 'derivat']],
+  ] as const) {
+    it(`menú ${dieta}: cap ingredient de ${prohibits.join(', ')}`, () => {
+      const config = amb({ dieta });
+      for (const pla of plans(config, graellaPerDefecte(), 10, catalegInicial)) {
+        for (const e of pla.llista.elements) {
+          const origen = catalegInicial.ingredients.get(e.ingredientId)?.origen;
+          if (origen) expect(prohibits as readonly string[], e.ingredientId).not.toContain(origen);
+        }
+      }
+    });
+  }
 });

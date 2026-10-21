@@ -5,9 +5,13 @@ import {
   filtrarReceptes,
   MAX_PERSONES,
   OPCIONS_GANA,
+  permetCarn,
+  permetPeix,
+  quantitatsEfectives,
   type Alergen,
   type Ingredient,
-  type OpcioPeix,
+  type OpcioDieta,
+  type OpcioQuantitat,
   type OpcioPressupost,
   type OpcioReceptari,
   type OpcioTemps,
@@ -283,11 +287,26 @@ function selectorExclosos(r: RespostesQuestionari): HTMLElement {
   );
 }
 
-function pasRestriccions(r: RespostesQuestionari): HTMLElement {
+function pasRestriccions(r: RespostesQuestionari, refer: () => void): HTMLElement {
   return h(
     'div',
     { class: 'grups' },
-    grup(t.peix.pregunta, undefined, radios<OpcioPeix>('peix', t.peix.opcions, r.peix, (v) => (r.peix = v))),
+    grup(
+      t.dieta.pregunta,
+      undefined,
+      radios<OpcioDieta>('dieta', t.dieta.opcions, r.dieta, (v) => {
+        r.dieta = v;
+        // Mostra o amaga les preguntes de carn i peix segons la dieta, sense perdre el focus.
+        refer();
+        document.querySelector<HTMLInputElement>(`input[name=dieta][value=${v}]`)?.focus();
+      }),
+    ),
+    permetCarn(r.dieta)
+      ? grup(t.carn.pregunta, undefined, radios<OpcioQuantitat>('carn', t.carn.opcions, r.carn, (v) => (r.carn = v)))
+      : null,
+    permetPeix(r.dieta)
+      ? grup(t.peix.pregunta, undefined, radios<OpcioQuantitat>('peix', t.peix.opcions, r.peix, (v) => (r.peix = v)))
+      : null,
     grup(
       t.alergens.pregunta,
       t.alergens.ajuda,
@@ -343,7 +362,7 @@ export function pantallaPas(
             ? pasPressupost(r)
             : pas === 'temps'
               ? pasTemps(r)
-              : pasRestriccions(r);
+              : pasRestriccions(r, refer);
     substituir(cos, contingut);
   };
   refer();
@@ -409,8 +428,11 @@ function resumDe(r: RespostesQuestionari): { pas: Pas; titol: string; valor: str
   const persones = r.persones
     .map((p) => `${p.nom} (${t.familia.opcionsGana[p.ganaCentesimes]?.toLowerCase() ?? p.ganaCentesimes})`)
     .join(', ');
+  const { carn, peix } = quantitatsEfectives(r);
   const restriccions = [
-    t.peix.opcions[r.peix],
+    t.dieta.curta[r.dieta],
+    permetCarn(r.dieta) && carn !== 'normal' ? t.carn.opcions[carn] : null,
+    permetPeix(r.dieta) && peix !== 'normal' ? t.peix.opcions[peix] : null,
     r.alergens.length > 0 ? `${t.resum.alergens}: ${r.alergens.map((x) => textos.alergens[x]).join(', ')}` : null,
     r.exclosos.length > 0
       ? `${t.resum.exclosos}: ${r.exclosos.map((id) => catalegInicial.ingredients.get(id)?.nom ?? id).join(', ')}`

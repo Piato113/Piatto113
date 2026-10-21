@@ -10,6 +10,7 @@ const familia: ConfiguracioFamilia = {
     { nom: 'D', ganaCentesimes: 100 },
   ],
   exclosos: [],
+  origensExclosos: [],
   alergens: [],
   etiquetesObligatories: [],
   etiquetesExcloses: [],

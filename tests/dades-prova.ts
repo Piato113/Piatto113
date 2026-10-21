@@ -86,6 +86,7 @@ export function configuracio(canvis: Partial<ConfiguracioFamilia> = {}): Configu
       { nom: 'D', ganaCentesimes: 100 },
     ],
     exclosos: [],
+    origensExclosos: [],
     alergens: [],
     etiquetesObligatories: [],
     etiquetesExcloses: [],
