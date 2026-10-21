@@ -51,6 +51,23 @@ supabase/               Fitxers SQL de l'esquema (s'executen a mà)
   i cost = paquets × preu del paquet.
 - **Cost consumit:** quantitat necessària × preu del paquet ÷ mida del paquet.
 - **Rebost** (oli, sal, espècies…): surt a la llista, però no suma al cost de compra.
+- **Conversions:** una recepta pot dir «1 u» de ceba si l'ingredient declara quants grams fa una unitat.
+  Sense conversió declarada, no es converteix mai.
+- **Arrodoniment:** les sumes es fan en mil·lèsimes exactes i només s'arrodoneix al final, cap amunt
+  (dues receptes amb mitja ceba = 1 ceba, no 2).
+
+## Planificador
+
+1. **Filtra** les receptes: cap ingredient exclòs, dins del temps màxim i amb totes les etiquetes obligatòries.
+2. **Tria** una recepta per a cada àpat marcat a la graella, sense repetir mentre n'hi hagi prou.
+   Les etiquetes preferides fan que una recepta tingui més probabilitat de sortir.
+   El sorteig fa servir una llavor: la mateixa llavor dona el mateix menú.
+3. **Ajusta al pressupost:** si el cost de compra el supera, canvia la recepta més cara
+   per la candidata més barata, fins que hi cap o ja no es pot abaratir més.
+4. **Avisa** si no hi ha àpats marcats, si cap recepta és vàlida, si cal repetir receptes,
+   si el pressupost no és possible o si falten preus.
+
+La lògica és a `src/domini/` i no depèn de la interfície. Els tests són a `tests/`.
 
 ## Posar-ho en marxa en local
 
