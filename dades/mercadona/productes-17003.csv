@@ -918,6 +918,7 @@ id,categoria,subcategoria,producte,format,quantitat,preu,preu_referencia,unitat_
 61270,Congelados,Fruta y verdura,Garrofón Hacendado ultracongelado,kg,0.45,1.55,3.445,kg,2026-10-21
 61215,Congelados,Fruta y verdura,Guisante fino Hacendado ultracongelado,kg,1,1.55,1.55,kg,2026-10-21
 61200,Congelados,Fruta y verdura,Guisante muy tierno Hacendado ultracongelado,kg,0.3,1.05,3.5,kg,2026-10-21
+23155,Congelados,Fruta y verdura,Gyozas de pollo y verduras Hacendado congeladas,kg,0.23,1.95,8.479,kg,2026-10-21
 61252,Congelados,Fruta y verdura,Habas baby Hacendado ultracongelada,kg,0.45,1.74,3.867,kg,2026-10-21
 61233,Congelados,Fruta y verdura,Habas fina Hacendado ultracongelada,kg,0.45,1.19,2.645,kg,2026-10-21
 61285,Congelados,Fruta y verdura,Habitas muy tiernas Hacendado ultracongeladas,kg,0.3,2.92,9.734,kg,2026-10-21
@@ -1052,6 +1053,11 @@ id,categoria,subcategoria,producte,format,quantitat,preu,preu_referencia,unitat_
 18621,"Conservas, caldos y cremas",Berberechos y mejillones,Mejillones picantes en escabeche Hacendado pequeños,kg,0.111,1.8,26.087,kg,2026-10-21
 23531,"Conservas, caldos y cremas",Berberechos y mejillones,Zamburiñas en salsa de vieira Hacendado,kg,0.111,2.05,32.54,kg,2026-10-21
 16314,"Conservas, caldos y cremas",Conservas de verdura y frutas,Acelgas troceadas Hacendado,kg,0.66,1.8,4.236,kg,2026-10-21
+22180,"Conservas, caldos y cremas",Conservas de verdura y frutas,Bolsita puré fresa y plátano Hacendado +8 meses,kg,0.12,0.85,7.084,kg,2026-10-21
+22178,"Conservas, caldos y cremas",Conservas de verdura y frutas,Bolsita puré fruta variada Hacendado +6 meses,kg,0.12,0.85,7.084,kg,2026-10-21
+16463,"Conservas, caldos y cremas",Conservas de verdura y frutas,"Bolsita puré manzana, mango, frambuesa, plátano y papaya Hacendado +6 meses",kg,0.12,0.9,7.5,kg,2026-10-21
+22179,"Conservas, caldos y cremas",Conservas de verdura y frutas,Bolsita puré plátano y manzana Hacendado +6 meses,kg,0.12,0.85,7.084,kg,2026-10-21
+22182,"Conservas, caldos y cremas",Conservas de verdura y frutas,"Bolsita puré plátano, fresa, arándanos y avena Hacendado +8 meses",kg,0.12,0.9,7.5,kg,2026-10-21
 15031,"Conservas, caldos y cremas",Conservas de verdura y frutas,Cabello de Ángel Hida,kg,0.52,2.6,5,kg,2026-10-21
 16618,"Conservas, caldos y cremas",Conservas de verdura y frutas,Champiñones laminados Hacendado,kg,0.355,1,5.556,kg,2026-10-21
 16625,"Conservas, caldos y cremas",Conservas de verdura y frutas,Champiñón entero Hacendado,kg,0.355,1.45,8.056,kg,2026-10-21
@@ -1081,6 +1087,10 @@ id,categoria,subcategoria,producte,format,quantitat,preu,preu_referencia,unitat_
 15206,"Conservas, caldos y cremas",Conservas de verdura y frutas,Melocotón en almíbar Hacendado,kg,0.6,2.35,6.812,kg,2026-10-21
 15260,"Conservas, caldos y cremas",Conservas de verdura y frutas,Melocotón light Hacendado sin azúcares añadidos,kg,0.4,1.45,6.042,kg,2026-10-21
 16711,"Conservas, caldos y cremas",Conservas de verdura y frutas,Palmito al natural entero Hacendado,kg,0.41,2.55,10.2,kg,2026-10-21
+22189,"Conservas, caldos y cremas",Conservas de verdura y frutas,Papilla fruta variada Hacendado +4 meses,kg,0.52,2.9,5.577,kg,2026-10-21
+22191,"Conservas, caldos y cremas",Conservas de verdura y frutas,Papilla frutas con avena Hacendado +8 meses,kg,0.52,2.95,5.674,kg,2026-10-21
+22194,"Conservas, caldos y cremas",Conservas de verdura y frutas,Papilla pera y manzana Hacendado +4 meses,kg,0.52,2.9,5.577,kg,2026-10-21
+35961,"Conservas, caldos y cremas",Conservas de verdura y frutas,Papilla tres frutas con yogur Hacendado +8 meses,kg,0.52,2.95,5.674,kg,2026-10-21
 15534,"Conservas, caldos y cremas",Conservas de verdura y frutas,Patatas cocidas Hacendado,kg,0.66,1.9,4.75,kg,2026-10-21
 16103,"Conservas, caldos y cremas",Conservas de verdura y frutas,Pimientos asados en tiras Hacendado,kg,0.29,2.4,8.276,kg,2026-10-21
 16005,"Conservas, caldos y cremas",Conservas de verdura y frutas,Pimientos del piquillo enteros Hacendado extra,kg,0.34,1.45,5.273,kg,2026-10-21
@@ -1397,6 +1407,14 @@ id,categoria,subcategoria,producte,format,quantitat,preu,preu_referencia,unitat_
 10545,"Huevos, leche y mantequilla",Leche y bebidas vegetales,Leche semidesnatada sin lactosa Hacendado,l,9,9.72,1.08,L,2026-10-21
 10546,"Huevos, leche y mantequilla",Leche y bebidas vegetales,Leche semidesnatada sin lactosa Hacendado,l,1.5,1.62,1.08,L,2026-10-21
 17174,"Huevos, leche y mantequilla",Leche y bebidas vegetales,Preparado de coco Hacendado,l,0.4,1.3,3.25,L,2026-10-21
+9187,"Huevos, leche y mantequilla",Leche y bebidas vegetales,Preparado lácteo Hacendado +1 año,l,6,8.4,1.4,L,2026-10-21
+9188,"Huevos, leche y mantequilla",Leche y bebidas vegetales,Preparado lácteo Hacendado +1 año,l,1,1.4,1.4,L,2026-10-21
+9398,"Huevos, leche y mantequilla",Leche y bebidas vegetales,Preparado lácteo con cereales Hacendado +1 año,l,6,9.6,1.6,L,2026-10-21
+9397,"Huevos, leche y mantequilla",Leche y bebidas vegetales,Preparado lácteo con cereales Hacendado +1 año,l,1,1.6,1.6,L,2026-10-21
+9057,"Huevos, leche y mantequilla",Leche y bebidas vegetales,Preparado lácteo con cereales crecimiento Peques 3 Puleva,l,6,12,2,L,2026-10-21
+9034,"Huevos, leche y mantequilla",Leche y bebidas vegetales,Preparado lácteo con cereales crecimiento Peques 3 Puleva,l,1,2,2,L,2026-10-21
+9049,"Huevos, leche y mantequilla",Leche y bebidas vegetales,Preparado lácteo crecimiento Peques 3 Puleva,l,6,12,2,L,2026-10-21
+9040,"Huevos, leche y mantequilla",Leche y bebidas vegetales,Preparado lácteo crecimiento Peques 3 Puleva,l,1,2,2,L,2026-10-21
 10376,"Huevos, leche y mantequilla",Mantequilla y margarina,Crema de soja Hacendado,l,0.2,1.1,5.5,L,2026-10-21
 20722,"Huevos, leche y mantequilla",Mantequilla y margarina,Mantequilla con sal Hacendado,kg,0.25,2.05,8.2,kg,2026-10-21
 20727,"Huevos, leche y mantequilla",Mantequilla y margarina,Mantequilla con sal Hacendado,kg,0.25,2.45,9.8,kg,2026-10-21
@@ -1428,9 +1446,24 @@ id,categoria,subcategoria,producte,format,quantitat,preu,preu_referencia,unitat_
 87292,Marisco y pescado,Marisco,Langostino cocido,kg,0.6,6.45,10.75,kg,2026-10-21
 85144,Marisco y pescado,Marisco,Mejillón vivo,kg,1,2.95,2.95,kg,2026-10-21
 85145,Marisco y pescado,Marisco,Mejillón vivo selección,kg,1,3.95,3.95,kg,2026-10-21
+62501,Marisco y pescado,Marisco,Muslitos de surimi Hacendado ultracongelados,kg,0.45,2.75,6.112,kg,2026-10-21
 81422,Marisco y pescado,Marisco,Navajas,kg,0.5,4.5,9,kg,2026-10-21
 62502,Marisco y pescado,Marisco,Palitos de surimi Hacendado,kg,0.46,2,4.348,kg,2026-10-21
 87789,Marisco y pescado,Marisco,Salpicón de marisco Hacendado,kg,0.4,5.18,12.95,kg,2026-10-21
+63435,Marisco y pescado,Pescado congelado,Albóndigas de bacalao Camós congeladas,kg,0.4,2.1,5.25,kg,2026-10-21
+63163,Marisco y pescado,Pescado congelado,Anillas de pota a la romana Hacendado ultracongeladas,kg,0.5,5.25,10.5,kg,2026-10-21
+63238,Marisco y pescado,Pescado congelado,Aritos de surimi a la romana Hacendado ultracongelados,kg,0.6,3.3,5.5,kg,2026-10-21
+26775,Marisco y pescado,Pescado congelado,Chipirones enharinados Hacendado ultracongelado,kg,0.325,4.95,15.231,kg,2026-10-21
+60954,Marisco y pescado,Pescado congelado,Croquetas de merluza Hacendado ultracongelados,kg,0.35,2.3,6.572,kg,2026-10-21
+63407,Marisco y pescado,Pescado congelado,Empanadillas de atún Hacendado ultracongeladas,kg,0.5,1.9,3.8,kg,2026-10-21
+63159,Marisco y pescado,Pescado congelado,Figuritas de merluza empanadas Hacendado ultracongeladas,kg,0.5,3.75,7.5,kg,2026-10-21
+63114,Marisco y pescado,Pescado congelado,Filetes de boquerón en tempura Hacendado ultracongelado,kg,0.4,3.75,9.375,kg,2026-10-21
+63101,Marisco y pescado,Pescado congelado,Filetes de merluza al huevo Hacendado ultracongelados,kg,0.6,5.05,8.417,kg,2026-10-21
+16562,Marisco y pescado,Pescado congelado,Fingers de merluza Hacendado ultracongelados,kg,0.4,3.75,9.375,kg,2026-10-21
+63144,Marisco y pescado,Pescado congelado,Langostino caballitos rebozados Hacendado ultracongelados,kg,0.3,3.25,10.834,kg,2026-10-21
+63140,Marisco y pescado,Pescado congelado,Merluza empanada pan fino Hacendado ultracongelada,kg,0.51,4,7.844,kg,2026-10-21
+63151,Marisco y pescado,Pescado congelado,Palitos de merluza a la romana Hacendado ultracongelados,kg,0.5,2.8,5.6,kg,2026-10-21
+63161,Marisco y pescado,Pescado congelado,Rabas empanadas Hacendado ultracongeladas,kg,0.5,4.05,8.1,kg,2026-10-21
 87254,Marisco y pescado,Pescado fresco,Anguila troceada,kg,0.33,10.1,30.6,kg,2026-10-21
 81204.1,Marisco y pescado,Pescado fresco,Bacalao a rodajas,kg,2.38,32.73,13.75,kg,2026-10-21
 81204.2,Marisco y pescado,Pescado fresco,Bacalao abierto en libro sin cabeza y sin espina,kg,2.38,32.73,13.75,kg,2026-10-21
@@ -1501,8 +1534,13 @@ id,categoria,subcategoria,producte,format,quantitat,preu,preu_referencia,unitat_
 18808,Marisco y pescado,Salazones y ahumados,Sucedáneo de caviar negro Ubago Caviartic,kg,0.075,1.95,26,kg,2026-10-21
 22612,Marisco y pescado,Salazones y ahumados,Taquitos de salmón ahumado Hacendado,kg,0.1,3.8,38,kg,2026-10-21
 32524,Panadería y pastelería,Harina y preparado repostería,Aroma de vainilla Hacendado,l,0.15,2,13.334,L,2026-10-21
+12543,Panadería y pastelería,Harina y preparado repostería,Chocolate blanco fundir Hacendado,kg,0.2,2.25,11.25,kg,2026-10-21
+12533,Panadería y pastelería,Harina y preparado repostería,Chocolate con leche fundir Hacendado,kg,0.2,2.25,11.25,kg,2026-10-21
+12530,Panadería y pastelería,Harina y preparado repostería,Chocolate negro 70% cacao fundir Hacendado 0% azúcares añadidos,kg,0.2,3.25,16.25,kg,2026-10-21
+12531,Panadería y pastelería,Harina y preparado repostería,Chocolate negro fundir Hacendado,kg,0.2,2.25,11.25,kg,2026-10-21
 29004,Panadería y pastelería,Harina y preparado repostería,Gasificante repostería casera Hacendado,kg,0.044,0.7,1.591,100 g,2026-10-21
 16275,Panadería y pastelería,Harina y preparado repostería,Gelatina neutra en láminas Foodsy,kg,0.02,1.2,6,100 g,2026-10-21
+12544,Panadería y pastelería,Harina y preparado repostería,Gotas de chocolate negro para fundir Hacendado,kg,0.25,2.55,10.2,kg,2026-10-21
 29130,Panadería y pastelería,Harina y preparado repostería,Harina de arroz Hacendado,kg,0.5,1.31,2.62,kg,2026-10-21
 29174,Panadería y pastelería,Harina y preparado repostería,Harina de espelta Hacendado 100% integral,kg,1,1.45,1.45,kg,2026-10-21
 29019,Panadería y pastelería,Harina y preparado repostería,Harina de fuerza Hacendado,kg,1,0.95,0.95,kg,2026-10-21
@@ -1628,6 +1666,7 @@ id,categoria,subcategoria,producte,format,quantitat,preu,preu_referencia,unitat_
 82439,Panadería y pastelería,Pan tostado y rallado,Crackers con sal Hacendado,kg,0.5,1.85,3.7,kg,2026-10-21
 82626,Panadería y pastelería,Pan tostado y rallado,Crackers integrales de espelta Bachman,kg,0.24,1.65,6.875,kg,2026-10-21
 82651,Panadería y pastelería,Pan tostado y rallado,Crackers sin gluten Hacendado con romero,kg,0.2,1.7,8.5,kg,2026-10-21
+21584,Panadería y pastelería,Pan tostado y rallado,Galletas saladas con semillas y orégano Hacendado,kg,0.25,1.45,5.8,kg,2026-10-21
 82585,Panadería y pastelería,Pan tostado y rallado,Galletas saladas salpicks Galbusera,kg,0.4,1.9,4.75,kg,2026-10-21
 82117,Panadería y pastelería,Pan tostado y rallado,Mini biscotes de trigo Hacendado,kg,0.12,0.76,6.334,kg,2026-10-21
 82070,Panadería y pastelería,Pan tostado y rallado,Mini tostadas de trigo Hacendado extra finas,kg,0.1,1.35,13.5,kg,2026-10-21
