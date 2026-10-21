@@ -588,7 +588,9 @@ export const preparacio: Record<string, Pas[]> = {
       'Asseca la carn amb paper de cuina per les dues bandes (si és humida, no es daura) i unta-la amb l’oli ({oli-oliva}).',
     ),
     c(
-      'Escalfa una paella o planxa de ferro a foc fort fins que sigui molt calenta: unes gotes d’aigua hi han de saltar i evaporar-se a l’instant.',
+      'A la planxa: escalfa una paella o planxa de ferro a foc fort fins que sigui molt calenta (unes gotes d’aigua hi han de saltar i evaporar-se a l’instant). ' +
+        'A la brasa: encén la llenya o el carbó amb temps i espera que les flames s’apaguin i quedi brasa vermella coberta de cendra blanca; ' +
+        'posa-hi la graella a sobre perquè s’escalfi (pots aguantar la mà a 10 cm només 2-3 segons). El cronòmetre és per a la planxa.',
       3,
       'Escalfar la planxa',
     ),

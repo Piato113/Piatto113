@@ -25,6 +25,12 @@ export const ingredients: Ingredient[] = [
   { id: 'all', nom: 'All (grans)', unitat: 'u', seccio: FRUITA, indivisible: true },
   { id: 'bolets', nom: 'Bolets de temporada', unitat: 'g', seccio: FRUITA },
   { id: 'platan', nom: 'Plàtans', unitat: 'g', seccio: FRUITA, conversions: { u: 150 } },
+  { id: 'pebrot-verd', nom: 'Pebrot verd', unitat: 'g', seccio: FRUITA, conversions: { u: 150 } },
+  { id: 'tomaquet', nom: 'Tomàquets', unitat: 'g', seccio: FRUITA, conversions: { u: 150 } },
+  { id: 'llimona', nom: 'Llimones', unitat: 'g', seccio: FRUITA, conversions: { u: 120 } },
+  { id: 'julivert', nom: 'Julivert fresc', unitat: 'g', seccio: FRUITA },
+  { id: 'espinacs', nom: 'Espinacs congelats', unitat: 'g', seccio: FRUITA },
+  { id: 'pesols', nom: 'Pèsols congelats', unitat: 'g', seccio: FRUITA },
 
   // Carn
   { id: 'carn-picada', nom: 'Carn picada mixta (vedella i porc)', unitat: 'g', seccio: CARN },
@@ -38,10 +44,19 @@ export const ingredients: Ingredient[] = [
   { id: 'botifarra', nom: 'Botifarra', unitat: 'g', seccio: CARN },
   { id: 'cansalada', nom: 'Cansalada viada', unitat: 'g', seccio: CARN },
   { id: 'xorico', nom: 'Xoriço per cuinar', unitat: 'g', seccio: CARN },
+  { id: 'vedella-estofar', nom: 'Vedella a daus per estofar', unitat: 'g', seccio: CARN },
+  { id: 'vedella-llata', nom: 'Vedella a filets prims (llata)', unitat: 'g', seccio: CARN },
+  { id: 'salsitxes', nom: 'Salsitxes fresques de porc', unitat: 'g', seccio: CARN },
+  { id: 'botifarra-ou', nom: 'Botifarra d’ou', unitat: 'g', seccio: CARN },
+  { id: 'pernil-dolc', nom: 'Pernil dolç a llesques', unitat: 'g', seccio: CARN },
+  { id: 'taquets-pernil', nom: 'Pernil serrà a daus', unitat: 'g', seccio: CARN },
 
   // Peix i marisc
   { id: 'sipia', nom: 'Sípia neta', unitat: 'g', seccio: PEIX },
   { id: 'gamba', nom: 'Gambes', unitat: 'g', seccio: PEIX },
+  { id: 'bacalla', nom: 'Bacallà dessalat (lloms)', unitat: 'g', seccio: PEIX },
+  { id: 'lluc', nom: 'Lluç (lloms)', unitat: 'g', seccio: PEIX },
+  { id: 'tinta-sipia', nom: 'Tinta de sípia (sobres)', unitat: 'g', seccio: PEIX },
 
   // Ous i làctics
   { id: 'ou', nom: 'Ous', unitat: 'u', seccio: FRESCOS, indivisible: true },
@@ -49,6 +64,14 @@ export const ingredients: Ingredient[] = [
   { id: 'nata', nom: 'Nata per cuinar', unitat: 'ml', seccio: FRESCOS },
   { id: 'mantega', nom: 'Mantega', unitat: 'g', seccio: FRESCOS },
   { id: 'formatge-ratllat', nom: 'Formatge ratllat', unitat: 'g', seccio: FRESCOS },
+  { id: 'parmesa', nom: 'Formatge parmesà ratllat', unitat: 'g', seccio: FRESCOS },
+  { id: 'mozzarella', nom: 'Mozzarella ratllada', unitat: 'g', seccio: FRESCOS },
+  { id: 'formatge-llesques', nom: 'Formatge a llesques', unitat: 'g', seccio: FRESCOS },
+  { id: 'formatge-blau', nom: 'Formatge blau (gorgonzola)', unitat: 'g', seccio: FRESCOS },
+  { id: 'formatgets', nom: 'Formatgets en porcions', unitat: 'u', seccio: FRESCOS, indivisible: true },
+  { id: 'gnocchi', nom: 'Gnocchi frescos', unitat: 'g', seccio: FRESCOS },
+  { id: 'raviolis', nom: 'Raviolis frescos', unitat: 'g', seccio: FRESCOS },
+  { id: 'tortellini', nom: 'Tortellini frescos', unitat: 'g', seccio: FRESCOS },
 
   // Pasta, arròs i llegums
   { id: 'macarrons', nom: 'Macarrons', unitat: 'g', seccio: SECS },
@@ -60,6 +83,17 @@ export const ingredients: Ingredient[] = [
   { id: 'arros', nom: 'Arròs rodó', unitat: 'g', seccio: SECS },
   { id: 'cuscus', nom: 'Cuscús', unitat: 'g', seccio: SECS },
   { id: 'llenties', nom: 'Llenties pardines', unitat: 'g', seccio: SECS },
+  { id: 'penne', nom: 'Penne', unitat: 'g', seccio: SECS },
+  { id: 'rigatoni', nom: 'Rigatoni', unitat: 'g', seccio: SECS },
+  { id: 'espaguetis', nom: 'Espaguetis', unitat: 'g', seccio: SECS },
+  { id: 'plaques-lasanya', nom: 'Plaques de lasanya', unitat: 'u', seccio: SECS, indivisible: true },
+  { id: 'galets', nom: 'Galets', unitat: 'g', seccio: SECS },
+  { id: 'cigrons', nom: 'Cigrons cuits (pot)', unitat: 'g', seccio: SECS },
+  { id: 'mongetes-cuites', nom: 'Mongetes blanques cuites (pot)', unitat: 'g', seccio: SECS },
+  { id: 'prunes', nom: 'Prunes seques sense pinyol', unitat: 'g', seccio: SECS },
+  { id: 'pinyons', nom: 'Pinyons', unitat: 'g', seccio: SECS },
+  { id: 'farina-forca', nom: 'Farina de força', unitat: 'g', seccio: SECS },
+  { id: 'llevat', nom: 'Llevat sec de forner', unitat: 'g', seccio: SECS },
 
   // Conserves i brous
   { id: 'tomaquet-triturat', nom: 'Tomàquet triturat', unitat: 'g', seccio: CONSERVES },
@@ -67,9 +101,17 @@ export const ingredients: Ingredient[] = [
   { id: 'brou-verdures', nom: 'Brou de verdures', unitat: 'ml', seccio: CONSERVES },
   { id: 'brou-pollastre', nom: 'Brou de pollastre', unitat: 'ml', seccio: CONSERVES },
   { id: 'fumet', nom: 'Fumet de peix', unitat: 'ml', seccio: CONSERVES },
+  { id: 'tonyina', nom: 'Tonyina en oli (llaunes)', unitat: 'g', seccio: CONSERVES },
+  { id: 'anxoves', nom: 'Anxoves en oli', unitat: 'g', seccio: CONSERVES },
+  { id: 'olives-negres', nom: 'Olives negres sense pinyol', unitat: 'g', seccio: CONSERVES },
+  { id: 'taperes', nom: 'Tàperes', unitat: 'g', seccio: CONSERVES },
+  { id: 'pesto', nom: 'Pesto (pot)', unitat: 'g', seccio: CONSERVES },
+  { id: 'vi-blanc', nom: 'Vi blanc per cuinar', unitat: 'ml', seccio: CONSERVES },
 
   // Forn
   { id: 'pa-ratllat', nom: 'Pa ratllat', unitat: 'g', seccio: FORN },
+  { id: 'pa-pages', nom: 'Pa de pagès', unitat: 'g', seccio: FORN },
+  { id: 'pa-hamburguesa', nom: 'Panets d’hamburguesa', unitat: 'u', seccio: FORN, indivisible: true },
 
   // Rebost: surt a la llista però no suma al cost de compra
   { id: 'oli-oliva', nom: 'Oli d’oliva', unitat: 'ml', rebost: true, seccio: 'rebost' },
@@ -81,4 +123,12 @@ export const ingredients: Ingredient[] = [
   { id: 'orenga', nom: 'Orenga', unitat: 'g', rebost: true, seccio: 'rebost' },
   { id: 'colorant', nom: 'Colorant o safrà', unitat: 'g', rebost: true, seccio: 'rebost' },
   { id: 'nou-moscada', nom: 'Nou moscada', unitat: 'g', rebost: true, seccio: 'rebost' },
+  { id: 'farigola', nom: 'Farigola', unitat: 'g', rebost: true, seccio: 'rebost' },
+  { id: 'romani', nom: 'Romaní', unitat: 'g', rebost: true, seccio: 'rebost' },
+  { id: 'llorer', nom: 'Llorer (fulles)', unitat: 'u', rebost: true, seccio: 'rebost', indivisible: true },
+  { id: 'comi', nom: 'Comí mòlt', unitat: 'g', rebost: true, seccio: 'rebost' },
+  { id: 'bitxo', nom: 'Bitxo sec', unitat: 'u', rebost: true, seccio: 'rebost', indivisible: true },
+  { id: 'sucre', nom: 'Sucre', unitat: 'g', rebost: true, seccio: 'rebost' },
+  { id: 'mel', nom: 'Mel', unitat: 'g', rebost: true, seccio: 'rebost' },
+  { id: 'mostassa', nom: 'Mostassa', unitat: 'g', rebost: true, seccio: 'rebost' },
 ];

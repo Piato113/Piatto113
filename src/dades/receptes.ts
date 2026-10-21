@@ -1,5 +1,9 @@
 import type { LiniaRecepta, Recepta, Unitat } from '../domini';
 import { preparacio } from './preparacio';
+import { receptesCatalanes } from './receptes-catalanes';
+import { receptesCullera } from './receptes-cullera';
+import { receptesForn } from './receptes-forn';
+import { receptesItalianes } from './receptes-italianes';
 
 // Catàleg inicial de receptes. Quantitats orientatives per a 4 racions normals:
 // la gana de cada persona ja s'aplica amb el factor de la família.
@@ -181,7 +185,7 @@ const receptesBase: Recepta[] = [
   // Llegums
   {
     id: 'llenties-estofades',
-    nom: 'Llenties estofades',
+    nom: 'Llenties estofades amb xoriço',
     racions: 4,
     tempsMinuts: 75,
     etiquetes: ['llegums', 'carn'],
@@ -254,7 +258,7 @@ const receptesBase: Recepta[] = [
   arrebossat('pollastre-arrebossat', 'Pit de pollastre arrebossat', 'pit-pollastre'),
   {
     id: 'entrecot',
-    nom: 'Entrecot a la planxa',
+    nom: 'Entrecot a la planxa o a la brasa',
     racions: 4,
     tempsMinuts: 30,
     etiquetes: ['carn'],
@@ -325,7 +329,13 @@ const receptesBase: Recepta[] = [
 ];
 
 /** Receptes amb la preparació pas a pas (vegeu `preparacio.ts`). */
-export const receptes: Recepta[] = receptesBase.map((r) => {
-  const passos = preparacio[r.id];
-  return passos ? { ...r, passos } : r;
-});
+export const receptes: Recepta[] = [
+  ...receptesBase.map((r) => {
+    const passos = preparacio[r.id];
+    return passos ? { ...r, passos } : r;
+  }),
+  ...receptesCatalanes,
+  ...receptesCullera,
+  ...receptesForn,
+  ...receptesItalianes,
+];
