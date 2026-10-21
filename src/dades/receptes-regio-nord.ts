@@ -313,7 +313,7 @@ export const receptesNord: Recepta[] = [
         'En una cassola a foc baix amb la meitat de l’oli ({oli-oliva:1/2}), cou la ceba i l’all tapats, remenant de tant en tant, fins que la ceba sigui ' +
           'molt tova i lleugerament daurada: la salsa és bàsicament aquesta ceba, així que no tinguis pressa.',
         30,
-        'Pochar la ceba',
+        'Ofegar la ceba',
       ),
       p(
         'Afegeix-hi la carn de pebrot xoricer ({pebrot-xoricer}), el pa ({pa-barra}) a trossets i el fumet ({fumet}), i cou-ho 5 minuts. ' +
@@ -498,7 +498,7 @@ export const receptesNord: Recepta[] = [
       c(
         'En una paella a foc mitjà-baix amb tres quarts de l’oli ({oli-oliva:3/4}), cou la ceba i el pebrot fins que siguin ben tous i dolços.',
         15,
-        'Pochar la ceba',
+        'Ofegar la ceba',
       ),
       c('Afegeix-hi el bacallà i cou-lo, remenant, fins que perdi la transparència.', 3, 'Bacallà'),
       p('Bat els ous ({ou}) en un bol (sense sal: el bacallà ja en té) amb el julivert ({julivert}) picat. Afegeix-hi el sofregit escorregut i remena.'),
