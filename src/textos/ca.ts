@@ -31,6 +31,30 @@ export const textos = {
     afegirPersona: 'Afegeix una persona',
     treure: 'Treu',
   },
+  navegacio: {
+    menu: 'Menú',
+    configuracio: 'Configuració',
+    principal: 'Seccions',
+  },
+  menu: {
+    titol: 'Menú de la setmana',
+    veureMenu: 'Veure el menú de la setmana',
+    apats: (n: number) => (n === 1 ? '1 àpat' : `${n} àpats`),
+    costSetmana: (total: string, perApat: string) => `${total} del que es menja (${perApat} per àpat)`,
+    compra: (total: string) => `Compra estimada: ${total}.`,
+    explicacioCompra: 'La compra inclou paquets sencers: el que sobri servirà per a la setmana vinent.',
+    pressupost: (limit: string) => `Pressupost: fins a ${limit} per àpat.`,
+    sobrePressupost: 'Aquest menú supera el pressupost. Canvia algun plat o fes-ne un altre.',
+    graella: 'Quins àpats feu a casa?',
+    ajudaGraella: 'Marca o desmarca els àpats. El menú es torna a fer.',
+    canviar: 'Canvia',
+    canviarEtiqueta: (apat: string, dia: string, plat: string) => `Canvia el ${apat.toLowerCase()} de ${dia.toLowerCase()} (${plat})`,
+    senseAlternativa: 'No hi ha cap altre plat possible per a aquest àpat.',
+    tornarAFer: 'Fes un altre menú',
+    amb: (nom: string) => `amb ${nom.charAt(0).toLowerCase()}${nom.slice(1)}`,
+    minuts: (n: number) => `${n} min`,
+    capApat: 'No hi ha cap àpat marcat. Marca’n algun a «Quins àpats feu a casa?».',
+  },
   benvinguda: {
     explicacio: 'Respon cinc preguntes i et proposarem el menú de la setmana, amb la llista de la compra.',
     desatLocal: 'De moment, les respostes es guarden en aquest dispositiu.',
@@ -59,7 +83,7 @@ export const textos = {
         n === 0
           ? 'Cap plat compleix aquesta configuració. Revisa les restriccions.'
           : `${n} plats del receptari compleixen aquesta configuració.`,
-      properament: 'Properament: el menú de la setmana i la llista de la compra.',
+      properament: 'Properament: la llista de la compra i les receptes pas a pas.',
     },
     receptari: {
       pregunta: 'Quin tipus de receptari vols prioritzar?',

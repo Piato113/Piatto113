@@ -338,3 +338,68 @@ export function planificar({ cataleg, configuracio, graella, llavor }: EntradaPl
   });
   return { apats, llista, racionsCentesimes, costConsumitCentims: costTotal(), avisos };
 }
+
+/** Llista de la compra i cost del que es menja d'uns àpats ja triats. */
+export function avaluarMenu(
+  cataleg: Cataleg,
+  configuracio: ConfiguracioFamilia,
+  apats: readonly ApatPlanificat[],
+): { llista: LlistaCompra; costConsumitCentims: number; racionsCentesimes: number } {
+  const racionsCentesimes = racionsEfectives(configuracio.persones);
+  const ids = apats.flatMap((a) => (a.acompanyamentId ? [a.receptaId, a.acompanyamentId] : [a.receptaId]));
+  const costConsumitCentims = ids.reduce((s, id) => {
+    const r = cataleg.receptes.get(id);
+    return s + (r ? costRecepta(cataleg, r, racionsCentesimes) : 0);
+  }, 0);
+  return { llista: generarLlista(cataleg, ids, racionsCentesimes), costConsumitCentims, racionsCentesimes };
+}
+
+/**
+ * Canvia el plat d'un àpat per un altre que compleixi la configuració i el temps d'aquell dia.
+ * Prefereix plats que no surtin aquella setmana i, en mode equilibrat, d'un grup diferent dels àpats del costat.
+ * Si la principal demana acompanyament, en tria un dels que admet, preferint els no usats.
+ * Retorna una còpia dels àpats; si no hi ha cap alternativa, la retorna sense canvis.
+ */
+export function canviarPlat(
+  cataleg: Cataleg,
+  configuracio: ConfiguracioFamilia,
+  apats: readonly ApatPlanificat[],
+  index: number,
+  llavor: number,
+): ApatPlanificat[] {
+  const actual = apats[index];
+  if (!actual) return [...apats];
+  const limit = esCapDeSetmana(actual.dia) ? configuracio.tempsMaximMinuts.capDeSetmana : configuracio.tempsMaximMinuts.feiners;
+  const acompanyaments = filtrarAcompanyaments(cataleg, configuracio);
+  const usats = new Set(apats.filter((_, i) => i !== index).flatMap((a) => [a.receptaId, a.acompanyamentId ?? '']));
+  const veins = [apats[index - 1], apats[index + 1]]
+    .flatMap((a) => (a ? [cataleg.receptes.get(a.receptaId)] : []))
+    .filter((r): r is Recepta => r !== undefined);
+  const grupsVeins = new Set(veins.flatMap(grups));
+
+  let opcions = filtrarReceptes(cataleg, configuracio).filter(
+    (r) => r.id !== actual.receptaId && apta(r, acompanyaments, limit),
+  );
+  const preferir = (filtre: (r: Recepta) => boolean): void => {
+    const restants = opcions.filter(filtre);
+    if (restants.length > 0) opcions = restants;
+  };
+  preferir((r) => !usats.has(r.id));
+  if (configuracio.equilibrat) preferir((r) => !grups(r).some((g) => grupsVeins.has(g)));
+  if (opcions.length === 0) return [...apats];
+
+  const aleatori = generadorAleatori(llavor);
+  const principal = opcions[Math.floor(aleatori() * opcions.length)] ?? opcions[0]!;
+  let acompanyament: Recepta | undefined;
+  if (principal.ambAcompanyament) {
+    const possibles = acompanyamentsPossibles(principal, acompanyaments, limit);
+    const nous = possibles.filter((a) => !usats.has(a.id));
+    const triables = nous.length > 0 ? nous : possibles;
+    acompanyament = triables[Math.floor(aleatori() * triables.length)];
+  }
+
+  const nou: ApatPlanificat = acompanyament
+    ? { dia: actual.dia, apat: actual.apat, receptaId: principal.id, acompanyamentId: acompanyament.id }
+    : { dia: actual.dia, apat: actual.apat, receptaId: principal.id };
+  return apats.map((a, i) => (i === index ? nou : a));
+}
