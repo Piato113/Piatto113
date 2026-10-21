@@ -11,6 +11,8 @@ import { receptesAltresRegions } from './receptes-regio-altres';
 import { receptesAndaluses } from './receptes-regio-andalusa';
 import { receptesCatalanes2 } from './receptes-regio-catalana';
 import { receptesNord } from './receptes-regio-nord';
+import { receptesVeganes } from './receptes-veganes';
+import { receptesVegetarianes } from './receptes-vegetarianes';
 
 // Catàleg inicial de receptes. Quantitats orientatives per a 4 racions normals:
 // la gana de cada persona ja s'aplica amb el factor de la família.
@@ -350,6 +352,8 @@ const totes: Recepta[] = [
   ...receptesNord,
   ...receptesAndaluses,
   ...receptesAltresRegions,
+  ...receptesVeganes,
+  ...receptesVegetarianes,
   ...receptesAcompanyaments,
 ];
 

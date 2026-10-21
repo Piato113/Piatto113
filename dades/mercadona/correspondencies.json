@@ -139,5 +139,16 @@
   "panses": { "producte": "23010" },
   "xocolata-negra": { "producte": "12531" },
   "pebrot-xoricer": { "producte": "34157" },
-  "massa-empanada": { "producte": "63476", "peces": 1, "nota": "Una làmina per paquet (per confirmar)" }
+  "massa-empanada": { "producte": "63476", "peces": 1, "nota": "Una làmina per paquet (per confirmar)" },
+  "coliflor": { "producte": "69220" },
+  "llenties-cuites": { "producte": "26030", "mida": 400, "nota": "Pot de 570 g, uns 400 g escorreguts (per confirmar)" },
+  "mongetes-vermelles-cuites": { "producte": "26000", "mida": 400, "nota": "Pot de 570 g, uns 400 g escorreguts (per confirmar)" },
+  "soja-texturitzada": { "producte": "13926" },
+  "quinoa": { "producte": "22278" },
+  "arros-basmati": { "producte": "5002" },
+  "anacards": { "producte": "23365" },
+  "llet-coco": { "producte": "17174" },
+  "tahini": { "producte": "17441" },
+  "tomaquet-sec": { "producte": "16046" },
+  "massa-quebrada": { "producte": "63464", "peces": 1, "nota": "Una làmina per paquet (per confirmar)" }
 }

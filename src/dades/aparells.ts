@@ -44,6 +44,19 @@ export const aparellsReceptes: Record<string, (Aparell | Aparell[])[]> = {
   'ensaladilla-russa': ['batedora'], // maionesa
   'calamars-tinta': ['batedora'],
   'bacalla-biscaina': ['batedora'],
+  // Vegetarianes i veganes (octubre de 2026)
+  falafel: ['batedora'],
+  'crema-carbassa': ['batedora'],
+  'coliflor-rostida-cigrons': FORN,
+  'alberginies-farcides-llenties': FORN,
+  'pebrots-farcits-arros': FORN,
+  'bol-quinoa': FORN,
+  'lasanya-verdures': FORN,
+  'canelons-espinacs': FORN,
+  'quiche-porros': FORN,
+  'pizza-verdures': FORN,
+  'coliflor-gratinada': FORN,
+  'macarrons-formatge': FORN,
 };
 
 /** Afegeix a cada recepta els aparells que necessita. */

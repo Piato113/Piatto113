@@ -39,6 +39,7 @@ const ingredientsBase: Ingredient[] = [
   { id: 'carbassa', nom: 'Carbassa a trossos', unitat: 'g', seccio: FRUITA },
   { id: 'faves', nom: 'Faves congelades', unitat: 'g', seccio: FRUITA },
   { id: 'carxofes', nom: 'Carxofes a trossos congelades', unitat: 'g', seccio: FRUITA },
+  { id: 'coliflor', nom: 'Coliflor', unitat: 'g', seccio: FRUITA, conversions: { u: 1000 } },
 
   // Carn
   { id: 'carn-picada', nom: 'Carn picada mixta (vedella i porc)', unitat: 'g', seccio: CARN },
@@ -119,6 +120,12 @@ const ingredientsBase: Ingredient[] = [
   { id: 'ametlles', nom: 'Ametlles torrades pelades', unitat: 'g', seccio: SECS },
   { id: 'panses', nom: 'Panses sense llavors', unitat: 'g', seccio: SECS },
   { id: 'xocolata-negra', nom: 'Xocolata negra per fondre', unitat: 'g', seccio: SECS },
+  { id: 'llenties-cuites', nom: 'Llenties cuites (pot)', unitat: 'g', seccio: SECS },
+  { id: 'mongetes-vermelles-cuites', nom: 'Mongetes vermelles cuites (pot)', unitat: 'g', seccio: SECS },
+  { id: 'soja-texturitzada', nom: 'Soja texturitzada fina', unitat: 'g', seccio: SECS },
+  { id: 'quinoa', nom: 'Quinoa cuita', unitat: 'g', seccio: SECS },
+  { id: 'arros-basmati', nom: 'Arròs basmati', unitat: 'g', seccio: SECS },
+  { id: 'anacards', nom: 'Anacards naturals', unitat: 'g', seccio: SECS },
   { id: 'mongetes-cuites', nom: 'Mongetes blanques cuites (pot)', unitat: 'g', seccio: SECS },
   { id: 'prunes', nom: 'Prunes seques sense pinyol', unitat: 'g', seccio: SECS },
   { id: 'pinyons', nom: 'Pinyons', unitat: 'g', seccio: SECS },
@@ -141,6 +148,9 @@ const ingredientsBase: Ingredient[] = [
   { id: 'salsa-soja', nom: 'Salsa de soja', unitat: 'ml', seccio: CONSERVES },
   { id: 'salsa-iogurt', nom: 'Salsa de iogurt', unitat: 'ml', seccio: CONSERVES },
   { id: 'pebrot-xoricer', nom: 'Carn de pebrot xoricer (pot)', unitat: 'g', seccio: CONSERVES },
+  { id: 'llet-coco', nom: 'Llet de coco per cuinar', unitat: 'ml', seccio: CONSERVES },
+  { id: 'tahini', nom: 'Tahini (pasta de sèsam)', unitat: 'g', seccio: CONSERVES },
+  { id: 'tomaquet-sec', nom: 'Tomàquet sec en oli', unitat: 'g', seccio: CONSERVES },
   { id: 'vi-blanc', nom: 'Vi blanc per cuinar', unitat: 'ml', seccio: CONSERVES },
 
   // Forn
@@ -152,6 +162,7 @@ const ingredientsBase: Ingredient[] = [
   { id: 'piadina', nom: 'Piadines', unitat: 'u', seccio: FORN, indivisible: true },
   { id: 'nachos', nom: 'Nachos (totopos de blat de moro)', unitat: 'g', seccio: FORN },
   { id: 'massa-empanada', nom: 'Massa fresca d’empanada (làmines)', unitat: 'u', seccio: FORN, indivisible: true },
+  { id: 'massa-quebrada', nom: 'Massa fresca quebrada (làmina)', unitat: 'u', seccio: FORN, indivisible: true },
 
   // Rebost: surt a la llista però no suma al cost de compra
   { id: 'oli-oliva', nom: 'Oli d’oliva', unitat: 'ml', rebost: true, seccio: 'rebost' },
@@ -167,6 +178,7 @@ const ingredientsBase: Ingredient[] = [
   { id: 'romani', nom: 'Romaní', unitat: 'g', rebost: true, seccio: 'rebost' },
   { id: 'llorer', nom: 'Llorer (fulles)', unitat: 'u', rebost: true, seccio: 'rebost', indivisible: true },
   { id: 'comi', nom: 'Comí mòlt', unitat: 'g', rebost: true, seccio: 'rebost' },
+  { id: 'curri', nom: 'Curri en pols', unitat: 'g', rebost: true, seccio: 'rebost' },
   { id: 'bitxo', nom: 'Bitxo sec', unitat: 'u', rebost: true, seccio: 'rebost', indivisible: true },
   { id: 'sucre', nom: 'Sucre', unitat: 'g', rebost: true, seccio: 'rebost' },
   { id: 'mel', nom: 'Mel', unitat: 'g', rebost: true, seccio: 'rebost' },
@@ -206,6 +218,10 @@ const ALERGENS_INGREDIENT: Record<string, Alergen[]> = {
   piadina: ['gluten'],
   noodles: ['gluten'],
   'massa-empanada': ['gluten'],
+  'massa-quebrada': ['gluten', 'llet'],
+  anacards: ['fruits-secs'],
+  tahini: ['sesam'],
+  'soja-texturitzada': ['soja'],
   ametlles: ['fruits-secs'],
   'xocolata-negra': ['llet', 'soja'],
   // Ous
