@@ -185,15 +185,23 @@ body {
   font-weight: 700;
 }
 
-.entrada__codi {
-  font-size: 1.5rem;
-  letter-spacing: 0.3em;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
+.entrada__contrasenya {
+  position: relative;
 }
 
-.entrada__formulari .benvinguda__nota {
-  text-align: center;
+.entrada__contrasenya .camp {
+  padding-right: 5.5rem;
+}
+
+.entrada__veure {
+  position: absolute;
+  top: 50%;
+  right: 0.25rem;
+  transform: translateY(-50%);
+}
+
+.entrada__veure:active {
+  transform: translateY(-50%) scale(0.98);
 }
 
 .entrada__avis {

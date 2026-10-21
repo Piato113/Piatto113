@@ -2,7 +2,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { fusionar } from '../domini';
 import { COLUMNES, esborrarDades, llegirDades, posarDades, quanEsDesi, type Columna } from './emmagatzematge';
 
-// Inici de sessió amb codi per correu i còpia de les dades al compte (Supabase, taula `dades_usuari`).
+// Inici de sessió amb correu i contrasenya i còpia de les dades al compte (Supabase, taula `dades_usuari`).
 // Sense les variables VITE_SUPABASE_URL i VITE_SUPABASE_ANON_KEY (p. ex. en desenvolupament), l'app funciona
 // només amb el que es desa al mòbil i no demana iniciar sessió.
 // Amb el mateix correu a dos mòbils, tots dos veuen les mateixes dades.
@@ -31,7 +31,7 @@ export interface Usuari {
 }
 
 /** Motius d'error que la pantalla explica a l'usuari. */
-export type ErrorEntrada = 'correu' | 'codi' | 'massa-intents' | 'no-autoritzat' | 'connexio' | 'desconegut';
+export type ErrorEntrada = 'correu' | 'credencials' | 'no-confirmat' | 'massa-intents' | 'connexio' | 'desconegut';
 
 // ——— Sessió ———
 
@@ -45,34 +45,25 @@ export async function usuariActual(): Promise<Usuari | null> {
 
 function errorDe(e: unknown): ErrorEntrada {
   const { code, status, name } = (e ?? {}) as { code?: string; status?: number; name?: string };
-  if (code === 'otp_expired') return 'codi';
-  if (code === 'over_email_send_rate_limit' || code === 'over_request_rate_limit' || status === 429) return 'massa-intents';
-  if (code === 'email_address_not_authorized') return 'no-autoritzat';
+  if (code === 'invalid_credentials') return 'credencials';
+  if (code === 'email_not_confirmed') return 'no-confirmat';
+  if (code === 'over_request_rate_limit' || status === 429) return 'massa-intents';
   if (code === 'email_address_invalid' || code === 'validation_failed') return 'correu';
   if (name === 'AuthRetryableFetchError' || status === 0 || (typeof navigator !== 'undefined' && !navigator.onLine)) return 'connexio';
+  // Un correu o una contrasenya incorrectes de versions antigues de Supabase arriben sense codi.
+  if (status === 400) return 'credencials';
   return 'desconegut';
 }
 
-/** Envia un codi al correu. Si el correu no té compte, se'n crea un. */
-export async function enviarCodi(correu: string): Promise<ErrorEntrada | null> {
+/**
+ * Entra amb correu i contrasenya. El compte el crea Roger a Supabase (Authentication → Users):
+ * l'app no en crea ni envia cap correu.
+ */
+export async function entrar(correu: string, contrasenya: string): Promise<ErrorEntrada | null> {
   if (!client) return 'desconegut';
   try {
-    const { error } = await client.auth.signInWithOtp({ email: correu, options: { shouldCreateUser: true } });
+    const { error } = await client.auth.signInWithPassword({ email: correu, password: contrasenya });
     return error ? errorDe(error) : null;
-  } catch (e) {
-    return errorDe(e);
-  }
-}
-
-/** Comprova el codi; si és bo, la sessió queda iniciada. */
-export async function verificarCodi(correu: string, codi: string): Promise<ErrorEntrada | null> {
-  if (!client) return 'desconegut';
-  try {
-    const { error } = await client.auth.verifyOtp({ email: correu, token: codi, type: 'email' });
-    if (!error) return null;
-    // Un codi equivocat i un de caducat tenen el mateix missatge per a l'usuari.
-    const motiu = errorDe(error);
-    return motiu === 'desconegut' && error.status === 403 ? 'codi' : motiu;
   } catch (e) {
     return errorDe(e);
   }

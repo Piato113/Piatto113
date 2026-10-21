@@ -1,190 +1,56 @@
 import { textos } from '../textos/ca';
 import { h, substituir } from './dom';
-import { enviarCodi, verificarCodi, type ErrorEntrada } from './nuvol';
+import { entrar, type ErrorEntrada } from './nuvol';
 
-// Pantalla d'entrada: correu → codi de 6 xifres que arriba per correu.
-// Es fa amb codi (i no amb enllaç) perquè l'enllaç s'obre al navegador i no a l'app instal·lada.
+// Pantalla d'entrada: correu i contrasenya.
+// No hi ha registre a l'app: el compte es crea a Supabase. La família entra amb el mateix correu.
 
 const t = textos.entrada;
-/** Supabase no deixa demanar un altre codi abans d'un minut. */
-const ESPERA_REENVIAR_S = 60;
 
 interface Estat {
-  pas: 'correu' | 'codi';
   correu: string;
-  codi: string;
+  contrasenya: string;
+  veure: boolean;
   enviant: boolean;
   error: ErrorEntrada | null;
-  nota: string | null;
-  /** Moment a partir del qual es pot tornar a demanar el codi. */
-  reenviarDes: number;
 }
 
 const correuValid = (c: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c);
-const netejarCodi = (c: string): string => c.replace(/\D/g, '').slice(0, 10);
 
 /** Crea la pantalla d'entrada. `entrat` es crida quan la sessió ja és iniciada. */
 export function pantallaEntrada(entrat: () => void): { element: HTMLElement; desmuntar: () => void } {
-  const estat: Estat = { pas: 'correu', correu: '', codi: '', enviant: false, error: null, nota: null, reenviarDes: 0 };
+  const estat: Estat = { correu: '', contrasenya: '', veure: false, enviant: false, error: null };
   const element = h('main', { class: 'benvinguda entrada' });
-  let rellotge: ReturnType<typeof setInterval> | null = null;
 
-  const segonsPerReenviar = (): number => Math.max(0, Math.ceil((estat.reenviarDes - Date.now()) / 1000));
-
-  async function demanarCodi(): Promise<void> {
+  async function enviar(): Promise<void> {
     const correu = estat.correu.trim().toLowerCase();
     if (!correuValid(correu)) {
       estat.error = 'correu';
       pintar('[name="correu"]');
       return;
     }
+    if (estat.contrasenya === '') {
+      estat.error = 'credencials';
+      pintar('[name="contrasenya"]');
+      return;
+    }
     estat.correu = correu;
     estat.enviant = true;
     estat.error = null;
     pintar();
-    const error = await enviarCodi(correu);
-    estat.enviant = false;
+    const error = await entrar(correu, estat.contrasenya);
     if (error) {
+      estat.enviant = false;
       estat.error = error;
-      pintar(estat.pas === 'correu' ? '[name="correu"]' : '[name="codi"]');
+      pintar(error === 'correu' ? '[name="correu"]' : '[name="contrasenya"]');
       return;
     }
-    estat.nota = estat.pas === 'codi' ? t.reenviat : null;
-    estat.pas = 'codi';
-    estat.codi = '';
-    estat.reenviarDes = Date.now() + ESPERA_REENVIAR_S * 1000;
-    pintar('[name="codi"]');
-  }
-
-  async function comprovarCodi(): Promise<void> {
-    const codi = netejarCodi(estat.codi);
-    if (codi.length < 6) {
-      estat.error = 'codi';
-      pintar('[name="codi"]');
-      return;
-    }
-    estat.enviant = true;
-    estat.error = null;
-    estat.nota = null;
-    pintar();
-    const error = await verificarCodi(estat.correu, codi);
-    estat.enviant = false;
-    if (error) {
-      estat.error = error;
-      pintar('[name="codi"]');
-      return;
-    }
-    estat.nota = t.carregant;
-    estat.enviant = true;
-    pintar();
     entrat();
-  }
-
-  /** Error o nota, just sota el camp perquè es vegi sense baixar. */
-  const missatges = (): (HTMLElement | null)[] => [
-    estat.error ? h('p', { class: 'avis avis--error entrada__avis', id: 'entrada-error', role: 'alert' }, t.errors[estat.error]) : null,
-    estat.nota ? h('p', { class: 'avis entrada__avis', role: 'status' }, estat.nota) : null,
-  ];
-
-  function formulariCorreu(): HTMLElement {
-    return h(
-      'form',
-      {
-        class: 'entrada__formulari',
-        novalidate: true,
-        onsubmit: (e: Event) => {
-          e.preventDefault();
-          void demanarCodi();
-        },
-      },
-      h('label', { class: 'entrada__etiqueta', for: 'entrada-correu' }, t.correu),
-      h('input', {
-        id: 'entrada-correu',
-        class: 'camp',
-        name: 'correu',
-        type: 'email',
-        inputmode: 'email',
-        autocomplete: 'email',
-        autocapitalize: 'off',
-        spellcheck: 'false',
-        required: true,
-        value: estat.correu,
-        'aria-invalid': estat.error === 'correu' ? 'true' : false,
-        'aria-describedby': estat.error ? 'entrada-error' : false,
-        oninput: (e: Event) => {
-          estat.correu = (e.target as HTMLInputElement).value;
-        },
-      }),
-      ...missatges(),
-      h('button', { type: 'submit', class: 'boto boto--principal boto--gran', disabled: estat.enviant }, estat.enviant ? t.enviant : t.enviar),
-    );
-  }
-
-  function formulariCodi(): HTMLElement {
-    const segons = segonsPerReenviar();
-    return h(
-      'form',
-      {
-        class: 'entrada__formulari',
-        novalidate: true,
-        onsubmit: (e: Event) => {
-          e.preventDefault();
-          void comprovarCodi();
-        },
-      },
-      h('label', { class: 'entrada__etiqueta', for: 'entrada-codi' }, t.codi),
-      h('input', {
-        id: 'entrada-codi',
-        class: 'camp entrada__codi',
-        name: 'codi',
-        type: 'text',
-        inputmode: 'numeric',
-        autocomplete: 'one-time-code',
-        pattern: '[0-9]*',
-        maxlength: 10,
-        value: estat.codi,
-        'aria-invalid': estat.error === 'codi' ? 'true' : false,
-        'aria-describedby': estat.error ? 'entrada-error' : false,
-        oninput: (e: Event) => {
-          const camp = e.target as HTMLInputElement;
-          estat.codi = netejarCodi(camp.value);
-          if (camp.value !== estat.codi) camp.value = estat.codi;
-        },
-      }),
-      ...missatges(),
-      h('button', { type: 'submit', class: 'boto boto--principal boto--gran', disabled: estat.enviant }, estat.enviant ? t.comprovant : t.entrar),
-      h(
-        'button',
-        {
-          type: 'button',
-          class: 'boto boto--secundari',
-          'data-reenviar': true,
-          disabled: estat.enviant || segons > 0,
-          onclick: () => void demanarCodi(),
-        },
-        t.reenviar,
-      ),
-      segons > 0 ? h('p', { class: 'benvinguda__nota', 'data-compte-enrere': true }, t.reenviarEn(segons)) : null,
-      h(
-        'button',
-        {
-          type: 'button',
-          class: 'boto boto--fantasma',
-          disabled: estat.enviant,
-          onclick: () => {
-            estat.pas = 'correu';
-            estat.error = null;
-            estat.nota = null;
-            pintar('[name="correu"]');
-          },
-        },
-        t.canviarCorreu,
-      ),
-    );
   }
 
   function pintar(enfocar?: string): void {
     const { nomParts, lema } = textos.app;
+    const descrit = estat.error ? 'entrada-error' : false;
     substituir(
       element,
       h('img', { class: 'benvinguda__icona entrada__icona', src: '/icons/icona-512.png', alt: '', width: 112, height: 112 }),
@@ -195,33 +61,76 @@ export function pantallaEntrada(entrat: () => void): { element: HTMLElement; des
         h('span', { class: 'marca__numero' }, nomParts.numero),
       ),
       h('p', { class: 'benvinguda__lema' }, lema),
-      h('h1', { class: 'entrada__titol', tabindex: -1 }, estat.pas === 'correu' ? t.titol : t.titolCodi),
-      h('p', { class: 'benvinguda__estat entrada__explicacio' }, estat.pas === 'correu' ? t.explicacio : t.codiEnviat(estat.correu)),
-      estat.pas === 'correu' ? formulariCorreu() : formulariCodi(),
-      estat.pas === 'correu' ? h('p', { class: 'benvinguda__nota entrada__familia' }, t.familia) : null,
+      h('h1', { class: 'entrada__titol', tabindex: -1 }, t.titol),
+      h(
+        'form',
+        {
+          class: 'entrada__formulari',
+          novalidate: true,
+          onsubmit: (e: Event) => {
+            e.preventDefault();
+            void enviar();
+          },
+        },
+        h('label', { class: 'entrada__etiqueta', for: 'entrada-correu' }, t.correu),
+        h('input', {
+          id: 'entrada-correu',
+          class: 'camp',
+          name: 'correu',
+          type: 'email',
+          inputmode: 'email',
+          autocomplete: 'username',
+          autocapitalize: 'off',
+          spellcheck: 'false',
+          value: estat.correu,
+          'aria-invalid': estat.error === 'correu' ? 'true' : false,
+          'aria-describedby': descrit,
+          oninput: (e: Event) => {
+            estat.correu = (e.target as HTMLInputElement).value;
+          },
+        }),
+        h('label', { class: 'entrada__etiqueta', for: 'entrada-contrasenya' }, t.contrasenya),
+        h(
+          'div',
+          { class: 'entrada__contrasenya' },
+          h('input', {
+            id: 'entrada-contrasenya',
+            class: 'camp',
+            name: 'contrasenya',
+            type: estat.veure ? 'text' : 'password',
+            autocomplete: 'current-password',
+            autocapitalize: 'off',
+            spellcheck: 'false',
+            value: estat.contrasenya,
+            'aria-invalid': estat.error === 'credencials' ? 'true' : false,
+            'aria-describedby': descrit,
+            oninput: (e: Event) => {
+              estat.contrasenya = (e.target as HTMLInputElement).value;
+            },
+          }),
+          h(
+            'button',
+            {
+              type: 'button',
+              class: 'boto boto--petit boto--fantasma entrada__veure',
+              'aria-pressed': estat.veure ? 'true' : 'false',
+              'aria-controls': 'entrada-contrasenya',
+              onclick: () => {
+                estat.veure = !estat.veure;
+                pintar('.entrada__veure');
+              },
+            },
+            estat.veure ? t.amagar : t.mostrar,
+          ),
+        ),
+        estat.error ? h('p', { class: 'avis avis--error entrada__avis', id: 'entrada-error', role: 'alert' }, t.errors[estat.error]) : null,
+        h('button', { type: 'submit', class: 'boto boto--principal boto--gran', disabled: estat.enviant }, estat.enviant ? t.entrant : t.entrar),
+      ),
+      h('p', { class: 'benvinguda__nota entrada__familia' }, t.familia),
     );
     if (enfocar) element.querySelector<HTMLElement>(enfocar)?.focus();
   }
 
-  // Compte enrere per tornar a demanar el codi: només actualitza aquest text i el botó.
-  rellotge = setInterval(() => {
-    if (estat.pas !== 'codi') return;
-    const segons = segonsPerReenviar();
-    const boto = element.querySelector<HTMLButtonElement>('[data-reenviar]');
-    const text = element.querySelector<HTMLElement>('[data-compte-enrere]');
-    if (boto) boto.disabled = estat.enviant || segons > 0;
-    if (text) {
-      if (segons > 0) text.textContent = t.reenviarEn(segons);
-      else text.remove();
-    }
-  }, 1000);
-
   pintar();
-  return {
-    element,
-    desmuntar: () => {
-      if (rellotge) clearInterval(rellotge);
-      rellotge = null;
-    },
-  };
+  return { element, desmuntar: () => {} };
 }
