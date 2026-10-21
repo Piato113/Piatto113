@@ -93,3 +93,24 @@ export function generarLlista(
 
   return { elements, totalCompraCentims, totalConsumitCentims, senseCost };
 }
+
+export interface SeccioLlista {
+  seccio: string;
+  rebost: boolean;
+  elements: ElementLlista[];
+}
+
+/**
+ * Agrupa la llista per seccions del súper, en l'ordre de la llista
+ * (primer el que s'ha de comprar; el rebost, al final i en una sola secció).
+ */
+export function agruparPerSeccio(elements: readonly ElementLlista[]): SeccioLlista[] {
+  const seccions: SeccioLlista[] = [];
+  for (const e of elements) {
+    const clau = e.rebost ? 'rebost' : e.seccio;
+    const actual = seccions.find((s) => s.seccio === clau && s.rebost === e.rebost);
+    if (actual) actual.elements.push(e);
+    else seccions.push({ seccio: clau, rebost: e.rebost, elements: [e] });
+  }
+  return seccions;
+}

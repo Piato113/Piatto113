@@ -109,3 +109,28 @@ export function desarMenu(menu: MenuDesat): void {
     // Sense emmagatzematge.
   }
 }
+
+// ——— Productes marcats a la llista de la compra ———
+
+const CLAU_COMPRA = 'piatto113:compra:v1';
+
+/** Productes marcats, si són de la mateixa llista (`signatura`); si la llista ha canviat, cap. */
+export function carregarMarcats(signatura: string): Set<string> {
+  try {
+    const text = window.localStorage.getItem(CLAU_COMPRA);
+    if (!text) return new Set();
+    const v = JSON.parse(text) as { signatura?: unknown; marcats?: unknown };
+    if (v.signatura !== signatura || !Array.isArray(v.marcats)) return new Set();
+    return new Set(v.marcats.filter((x): x is string => typeof x === 'string'));
+  } catch {
+    return new Set();
+  }
+}
+
+export function desarMarcats(signatura: string, marcats: ReadonlySet<string>): void {
+  try {
+    window.localStorage.setItem(CLAU_COMPRA, JSON.stringify({ signatura, marcats: [...marcats] }));
+  } catch {
+    // Sense emmagatzematge.
+  }
+}

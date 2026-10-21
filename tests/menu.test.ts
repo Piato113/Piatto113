@@ -56,3 +56,17 @@ describe('canviar un plat', () => {
     expect(canviarPlat(cataleg, configuracio(), apats, 5, 1)).toEqual(apats);
   });
 });
+
+describe('llista per seccions', () => {
+  it('agrupa per secció, amb el rebost al final', async () => {
+    const { agruparPerSeccio } = await import('../src/domini');
+    const config = configuracioDesDeRespostes(respostesPerDefecte());
+    const pla = planificar({ cataleg: catalegInicial, configuracio: config, graella: graellaPerDefecte(), llavor: 8 });
+    const seccions = agruparPerSeccio(pla.llista.elements);
+    expect(seccions.flatMap((s) => s.elements)).toEqual(pla.llista.elements);
+    expect(new Set(seccions.map((s) => s.seccio)).size).toBe(seccions.length);
+    const rebost = seccions.findIndex((s) => s.rebost);
+    expect(rebost === -1 || rebost === seccions.length - 1).toBe(true);
+    for (const s of seccions) for (const e of s.elements) expect(e.rebost).toBe(s.rebost);
+  });
+});

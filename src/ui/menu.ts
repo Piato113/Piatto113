@@ -4,7 +4,6 @@ import {
   avaluarMenu,
   costRecepta,
   DIES,
-  formatEuros as formatEurosBase,
   type ApatPlanificat,
   type Avis,
   type ConfiguracioFamilia,
@@ -12,10 +11,9 @@ import {
 } from '../domini';
 import { textAvis, textos } from '../textos/ca';
 import { h } from './dom';
+import { euros as formatEuros } from './format';
 
 const tm = textos.menu;
-/** Imports sense que l'euro quedi sol a la línia següent. */
-const formatEuros = (centims: number): string => formatEurosBase(centims).replace(/ €$/, '\u00a0€');
 
 export interface DadesMenu {
   configuracio: ConfiguracioFamilia;
@@ -31,6 +29,7 @@ export interface AccionsMenu {
   canviarPlat: (index: number) => void;
   canviarGraella: (graella: Graella, clau: string) => void;
   tornarAFer: () => void;
+  obrirRecepta: (index: number) => void;
 }
 
 const nomIngredient = (id: string): string => catalegInicial.ingredients.get(id)?.nom ?? id;
@@ -71,7 +70,7 @@ function graellaEditable(graella: Graella, oberta: boolean, canviar: (g: Graella
   );
 }
 
-function targetaApat(a: ApatPlanificat, index: number, racions: number, canviar: (i: number) => void): HTMLElement {
+function targetaApat(a: ApatPlanificat, index: number, racions: number, accions: AccionsMenu): HTMLElement {
   const principal = recepta(a.receptaId);
   const acompanyament = a.acompanyamentId ? recepta(a.acompanyamentId) : undefined;
   const cost =
@@ -86,7 +85,15 @@ function targetaApat(a: ApatPlanificat, index: number, racions: number, canviar:
       'div',
       { class: 'apat__text' },
       h('p', { class: 'apat__quan' }, textos.apats[a.apat]),
-      h('h3', { class: 'apat__plat' }, nomPlat),
+      h(
+        'h3',
+        { class: 'apat__plat' },
+        h(
+          'button',
+          { type: 'button', class: 'enllac', 'aria-label': tm.veureRecepta(nomPlat), onclick: () => accions.obrirRecepta(index) },
+          nomPlat,
+        ),
+      ),
       acompanyament ? h('p', { class: 'apat__acompanyament' }, tm.amb(acompanyament.nom)) : null,
       h('p', { class: 'apat__meta' }, [temps, formatEuros(cost)].filter(Boolean).join(' · ')),
     ),
@@ -97,7 +104,7 @@ function targetaApat(a: ApatPlanificat, index: number, racions: number, canviar:
         class: 'boto boto--petit boto--secundari',
         'data-canviar': index,
         'aria-label': tm.canviarEtiqueta(textos.apats[a.apat], textos.dies[a.dia], nomPlat),
-        onclick: () => canviar(index),
+        onclick: () => accions.canviarPlat(index),
       },
       tm.canviar,
     ),
@@ -154,7 +161,7 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
         'section',
         { class: 'dia', 'aria-labelledby': `dia-${dia}` },
         h('h2', { class: 'dia__nom', id: `dia-${dia}` }, textos.dies[dia]),
-        ...delDia.map(({ a, index }) => targetaApat(a, index, racionsCentesimes, accions.canviarPlat)),
+        ...delDia.map(({ a, index }) => targetaApat(a, index, racionsCentesimes, accions)),
       ),
     ),
     apats.length > 0

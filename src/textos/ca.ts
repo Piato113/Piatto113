@@ -33,6 +33,7 @@ export const textos = {
   },
   navegacio: {
     menu: 'Menú',
+    compra: 'Compra',
     configuracio: 'Configuració',
     principal: 'Seccions',
   },
@@ -48,12 +49,40 @@ export const textos = {
     graella: 'Quins àpats feu a casa?',
     ajudaGraella: 'Marca o desmarca els àpats. El menú es torna a fer.',
     canviar: 'Canvia',
+    veureRecepta: (plat: string) => `Recepta: ${plat}`,
     canviarEtiqueta: (apat: string, dia: string, plat: string) => `Canvia el ${apat.toLowerCase()} de ${dia.toLowerCase()} (${plat})`,
     senseAlternativa: 'No hi ha cap altre plat possible per a aquest àpat.',
     tornarAFer: 'Fes un altre menú',
     amb: (nom: string) => `amb ${nom.charAt(0).toLowerCase()}${nom.slice(1)}`,
     minuts: (n: number) => `${n} min`,
     capApat: 'No hi ha cap àpat marcat. Marca’n algun a «Quins àpats feu a casa?».',
+  },
+  compra: {
+    titol: 'Llista de la compra',
+    resum: (productes: number, total: string) =>
+      `${productes === 1 ? '1 producte' : `${productes} productes`} · ${total} aproximadament`,
+    preus: (data: string) => `Preus orientatius del Mercadona (${data}). Es podran editar.`,
+    paquets: (paquets: number, mida: string) => `${paquets} × ${mida}`,
+    rebost: 'Del rebost',
+    ajudaRebost: 'Comprova que en tens: no compta al cost.',
+    senseCost: 'sense preu',
+    desmarcar: 'Desmarca-ho tot',
+    fet: (n: number, total: number) => `${n} de ${total} al carro`,
+    buida: 'La llista és buida: no hi ha cap àpat al menú.',
+    perA: (plats: string) => `Per a: ${plats}`,
+  },
+  recepta: {
+    tornar: 'Torna',
+    ingredients: 'Ingredients',
+    preparacio: 'Preparació',
+    perA: (persones: number, racions: string) =>
+      `Quantitats per a ${persones === 1 ? '1 persona' : `${persones} persones`} (${racions} racions)`,
+    temps: (n: number) => `${n} min`,
+    cronometre: (minuts: string, nom: string) => `Cronòmetre: ${minuts} · ${nom}`,
+    acompanyament: 'Acompanyament',
+    ambPlat: 'S’acompanya amb',
+    rebost: 'del rebost',
+    noTrobada: 'No s’ha trobat aquesta recepta.',
   },
   benvinguda: {
     explicacio: 'Respon cinc preguntes i et proposarem el menú de la setmana, amb la llista de la compra.',
@@ -83,7 +112,7 @@ export const textos = {
         n === 0
           ? 'Cap plat compleix aquesta configuració. Revisa les restriccions.'
           : `${n} plats del receptari compleixen aquesta configuració.`,
-      properament: 'Properament: la llista de la compra i les receptes pas a pas.',
+      properament: 'Properament: el mode «cuinar», amb els cronòmetres de cada pas.',
     },
     receptari: {
       pregunta: 'Quin tipus de receptari vols prioritzar?',
