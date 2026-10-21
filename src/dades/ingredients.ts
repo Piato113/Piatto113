@@ -27,6 +27,8 @@ export const ingredients: Ingredient[] = [
   { id: 'platan', nom: 'Plàtans', unitat: 'g', seccio: FRUITA, conversions: { u: 150 } },
   { id: 'pebrot-verd', nom: 'Pebrot verd', unitat: 'g', seccio: FRUITA, conversions: { u: 150 } },
   { id: 'tomaquet', nom: 'Tomàquets', unitat: 'g', seccio: FRUITA, conversions: { u: 150 } },
+  { id: 'enciam', nom: 'Enciam romà', unitat: 'u', seccio: FRUITA, indivisible: true },
+  { id: 'cogombre', nom: 'Cogombre', unitat: 'g', seccio: FRUITA, conversions: { u: 300 } },
   { id: 'llimona', nom: 'Llimones', unitat: 'g', seccio: FRUITA, conversions: { u: 120 } },
   { id: 'julivert', nom: 'Julivert fresc', unitat: 'g', seccio: FRUITA },
   { id: 'espinacs', nom: 'Espinacs congelats', unitat: 'g', seccio: FRUITA },
@@ -130,5 +132,6 @@ export const ingredients: Ingredient[] = [
   { id: 'bitxo', nom: 'Bitxo sec', unitat: 'u', rebost: true, seccio: 'rebost', indivisible: true },
   { id: 'sucre', nom: 'Sucre', unitat: 'g', rebost: true, seccio: 'rebost' },
   { id: 'mel', nom: 'Mel', unitat: 'g', rebost: true, seccio: 'rebost' },
+  { id: 'vinagre', nom: 'Vinagre de vi', unitat: 'ml', rebost: true, seccio: 'rebost' },
   { id: 'mostassa', nom: 'Mostassa', unitat: 'g', rebost: true, seccio: 'rebost' },
 ];

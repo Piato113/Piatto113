@@ -52,6 +52,8 @@ export interface Pas {
   cronometre?: Cronometre;
 }
 
+export type TipusRecepta = 'principal' | 'acompanyament' | 'ambdos';
+
 export interface Recepta {
   id: string;
   nom: string;
@@ -63,11 +65,20 @@ export interface Recepta {
   ingredients: LiniaRecepta[];
   /**
    * 'principal' (per defecte) ocupa un àpat; 'acompanyament' (arròs blanc, patates…)
-   * només surt al costat d'una principal que el demana.
+   * només surt al costat d'una principal que el demana; 'ambdos' (truita de patates)
+   * pot ocupar un àpat o anar al costat d'una altra principal.
    */
-  tipus?: 'principal' | 'acompanyament';
-  /** La principal es planifica amb un acompanyament (p. ex. carn arrebossada). */
+  tipus?: TipusRecepta;
+  /**
+   * Quan fa de principal, es planifica amb un acompanyament (p. ex. carn arrebossada).
+   * Una recepta 'ambdos' que fa d'acompanyament no en porta cap.
+   */
   ambAcompanyament?: boolean;
+  /**
+   * Acompanyaments que admet aquesta principal (identificadors).
+   * Si no s'indica, admet qualsevol acompanyament.
+   */
+  acompanyaments?: string[];
   /** Preparació pas a pas. */
   passos?: Pas[];
 }

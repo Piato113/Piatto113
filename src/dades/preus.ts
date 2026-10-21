@@ -23,6 +23,8 @@ export const preus: Preu[] = [
   { ingredientId: 'platan', midaPaquet: 1000, preuCentims: 230 },
   { ingredientId: 'pebrot-verd', midaPaquet: 1000, preuCentims: 249 },
   { ingredientId: 'tomaquet', midaPaquet: 1000, preuCentims: 229 },
+  { ingredientId: 'enciam', midaPaquet: 1, preuCentims: 95 },
+  { ingredientId: 'cogombre', midaPaquet: 1000, preuCentims: 159 },
   { ingredientId: 'llimona', midaPaquet: 1000, preuCentims: 199 },
   { ingredientId: 'julivert', midaPaquet: 40, preuCentims: 99 },
   { ingredientId: 'espinacs', midaPaquet: 1000, preuCentims: 179 },

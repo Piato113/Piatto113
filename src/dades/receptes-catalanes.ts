@@ -557,6 +557,7 @@ export const receptesCatalanes: Recepta[] = [
     tempsMinuts: 100,
     etiquetes: ['carn'],
     ambAcompanyament: true,
+    acompanyaments: ['pa-amb-tomaquet', 'amanida', 'pure-patata'],
     ingredients: [
       l('patata', 1000),
       l('carn-picada', 400),
@@ -757,7 +758,10 @@ export const receptesCatalanes: Recepta[] = [
     racions: 4,
     tempsMinuts: 50,
     etiquetes: ['vegetaria'],
+    // Doble ús: plat principal (amb amanida o pa amb tomàquet) o acompanyament d'una altra principal.
+    tipus: 'ambdos',
     ambAcompanyament: true,
+    acompanyaments: ['amanida', 'pa-amb-tomaquet'],
     ingredients: [l('patata', 800), l('ceba', 1, 'u'), l('ou', 6), l('oli-oliva', 100), l('sal', 6)],
     passos: [
       p(

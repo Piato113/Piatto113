@@ -1,5 +1,5 @@
 import { generadorAleatori } from './aleatori';
-import type { Cataleg } from './cataleg';
+import { acompanyamentsAdmesos, potSerAcompanyament, potSerPrincipal, type Cataleg } from './cataleg';
 import { costRecepta } from './cost';
 import { racionsEfectives } from './escalat';
 import { apatsMarcats } from './graella';
@@ -24,8 +24,6 @@ export interface PlaSetmanal {
 /** Pes extra de cada etiqueta preferida en el sorteig. */
 const PES_PREFERIDA = 2;
 
-const esAcompanyament = (r: Recepta): boolean => r.tipus === 'acompanyament';
-
 function compleix(r: Recepta, configuracio: ConfiguracioFamilia, exclosos: ReadonlySet<string>): boolean {
   return (
     !r.ingredients.some((l) => exclosos.has(l.ingredientId)) &&
@@ -36,29 +34,29 @@ function compleix(r: Recepta, configuracio: ConfiguracioFamilia, exclosos: Reado
 const perId = (a: Recepta, b: Recepta): number => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 
 /**
- * Acompanyaments vàlids: cap ingredient exclòs i dins del temps màxim.
+ * Acompanyaments vàlids (també les receptes de doble ús): cap ingredient exclòs i dins del temps màxim.
  * Les etiquetes obligatòries s'apliquen a la recepta principal, no a l'acompanyament.
  */
 export function filtrarAcompanyaments(cataleg: Cataleg, configuracio: ConfiguracioFamilia): Recepta[] {
   const exclosos = new Set(configuracio.exclosos);
   return [...cataleg.receptes.values()]
-    .filter((r) => esAcompanyament(r) && compleix(r, configuracio, exclosos))
+    .filter((r) => potSerAcompanyament(r) && compleix(r, configuracio, exclosos))
     .sort(perId);
 }
 
 /**
  * Receptes principals que compleixen la configuració:
  * cap ingredient exclòs, dins del temps màxim i amb totes les etiquetes obligatòries.
- * Les que demanen acompanyament només hi són si n'hi ha algun de vàlid.
+ * Les que demanen acompanyament només hi són si n'hi ha algun de vàlid entre els que admeten.
  * Ordenades per identificador perquè el resultat no depengui de l'ordre del catàleg.
  */
 export function filtrarReceptes(cataleg: Cataleg, configuracio: ConfiguracioFamilia): Recepta[] {
   const exclosos = new Set(configuracio.exclosos);
-  const hiHaAcompanyaments = filtrarAcompanyaments(cataleg, configuracio).length > 0;
+  const acompanyaments = filtrarAcompanyaments(cataleg, configuracio);
   return [...cataleg.receptes.values()]
-    .filter((r) => !esAcompanyament(r) && compleix(r, configuracio, exclosos))
+    .filter((r) => potSerPrincipal(r) && compleix(r, configuracio, exclosos))
     .filter((r) => configuracio.etiquetesObligatories.every((e) => r.etiquetes.includes(e)))
-    .filter((r) => !r.ambAcompanyament || hiHaAcompanyaments)
+    .filter((r) => !r.ambAcompanyament || acompanyamentsAdmesos(r, acompanyaments).length > 0)
     .sort(perId);
 }
 
@@ -90,6 +88,38 @@ class Sorteig {
   }
 }
 
+/**
+ * Tria l'acompanyament de cada principal entre els que admet:
+ * primer els menys usats de la setmana (comptant també les principals, perquè una recepta
+ * de doble ús no surti dues vegades si es pot evitar), i mai el mateix que l'anterior si n'hi ha d'altres.
+ */
+class TriaAcompanyaments {
+  private readonly usos = new Map<string, number>();
+  private anterior: string | undefined;
+
+  constructor(
+    private readonly acompanyaments: Recepta[],
+    private readonly aleatori: () => number,
+  ) {}
+
+  anotar(id: string): void {
+    this.usos.set(id, (this.usos.get(id) ?? 0) + 1);
+  }
+
+  treure(principal: Recepta): Recepta | undefined {
+    const admesos = acompanyamentsAdmesos(principal, this.acompanyaments);
+    if (admesos.length === 0) return undefined;
+    const usos = (r: Recepta): number => this.usos.get(r.id) ?? 0;
+    const senseAnterior = admesos.length > 1 ? admesos.filter((r) => r.id !== this.anterior) : admesos;
+    const minim = Math.min(...senseAnterior.map(usos));
+    const elegibles = senseAnterior.filter((r) => usos(r) === minim);
+    const triat = elegibles[Math.floor(this.aleatori() * elegibles.length)] ?? elegibles[0]!;
+    this.anotar(triat.id);
+    this.anterior = triat.id;
+    return triat;
+  }
+}
+
 interface Triada {
   principal: Recepta;
   acompanyament?: Recepta;
@@ -102,7 +132,7 @@ const idsDe = (triades: Triada[]): string[] =>
  * Planifica la setmana:
  * 1. filtra les receptes;
  * 2. en tria una per àpat marcat, sense repetir mentre n'hi hagi prou, amb la llavor;
- *    si la recepta demana acompanyament, en tria un també;
+ *    si la recepta demana acompanyament, en tria un dels que admet;
  * 3. si el cost de compra supera el pressupost, substitueix l'àpat més car
  *    per l'opció més barata disponible, fins que hi càpiga o ja no es pugui abaratir.
  */
@@ -136,10 +166,12 @@ export function planificar({ cataleg, configuracio, graella, llavor }: EntradaPl
 
   const aleatori = generadorAleatori(llavor);
   const sorteigPrincipals = new Sorteig(candidates, configuracio.etiquetesPreferides, aleatori);
-  const sorteigAcompanyaments = new Sorteig(acompanyaments, [], aleatori);
-  const triades: Triada[] = forats.map(() => {
-    const principal = sorteigPrincipals.treure();
-    return principal.ambAcompanyament ? { principal, acompanyament: sorteigAcompanyaments.treure() } : { principal };
+  const principals = forats.map(() => sorteigPrincipals.treure());
+  const triaAcompanyaments = new TriaAcompanyaments(acompanyaments, aleatori);
+  for (const principal of principals) triaAcompanyaments.anotar(principal.id);
+  const triades: Triada[] = principals.map((principal) => {
+    const acompanyament = principal.ambAcompanyament ? triaAcompanyaments.treure(principal) : undefined;
+    return acompanyament ? { principal, acompanyament } : { principal };
   });
 
   let llista = generarLlista(cataleg, idsDe(triades), racionsCentesimes);
@@ -150,13 +182,17 @@ export function planificar({ cataleg, configuracio, graella, llavor }: EntradaPl
       [...candidates, ...acompanyaments].map((r) => [r.id, costRecepta(cataleg, r, racionsCentesimes)]),
     );
     const costDe = (r: Recepta | undefined): number => (r ? (cost.get(r.id) ?? 0) : 0);
-    const acompanyamentMesBarat = acompanyaments.reduce<Recepta | undefined>(
-      (millor, r) => (millor === undefined || costDe(r) < costDe(millor) ? r : millor),
-      undefined,
-    );
-    /** Opció més barata per a un àpat: la principal i, si cal, l'acompanyament més barat. */
-    const opcio = (r: Recepta): Triada =>
-      r.ambAcompanyament && acompanyamentMesBarat ? { principal: r, acompanyament: acompanyamentMesBarat } : { principal: r };
+    /** Acompanyament més barat dels que admet una principal. */
+    const acompanyamentMesBarat = (r: Recepta): Recepta | undefined =>
+      acompanyamentsAdmesos(r, acompanyaments).reduce<Recepta | undefined>(
+        (millor, a) => (millor === undefined || costDe(a) < costDe(millor) ? a : millor),
+        undefined,
+      );
+    /** Opció més barata per a un àpat: la principal i, si cal, l'acompanyament més barat que admet. */
+    const opcio = (r: Recepta): Triada => {
+      const acompanyament = r.ambAcompanyament ? acompanyamentMesBarat(r) : undefined;
+      return acompanyament ? { principal: r, acompanyament } : { principal: r };
+    };
     const costTriada = (t: Triada): number => costDe(t.principal) + costDe(t.acompanyament);
 
     while (llista.totalCompraCentims > pressupost) {

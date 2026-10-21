@@ -61,7 +61,10 @@ supabase/               Fitxers SQL de l'esquema (s'executen a mà)
 1. **Filtra** les receptes: cap ingredient exclòs, dins del temps màxim i amb totes les etiquetes obligatòries.
 2. **Tria** una recepta per a cada àpat marcat a la graella, sense repetir mentre n'hi hagi prou.
    Les receptes que ho demanen (carn arrebossada, entrecot…) porten també un acompanyament
-   (arròs blanc, patates, cuscús…); els acompanyaments no ocupen mai un àpat sols.
+   (arròs blanc, patates, cuscús, pa amb tomàquet, amanida, puré…); els acompanyaments no ocupen
+   mai un àpat sols. Una principal pot limitar quins acompanyaments admet (les patates d'Olot,
+   per exemple), i una recepta de doble ús (la truita de patates) pot fer de principal o
+   d'acompanyament.
    Les etiquetes preferides fan que una recepta tingui més probabilitat de sortir.
    El sorteig fa servir una llavor: la mateixa llavor dona el mateix menú.
 3. **Ajusta al pressupost:** si el cost de compra el supera, canvia la recepta més cara

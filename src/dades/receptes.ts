@@ -1,5 +1,6 @@
 import type { LiniaRecepta, Recepta, Unitat } from '../domini';
 import { preparacio } from './preparacio';
+import { receptesAcompanyaments } from './receptes-acompanyaments';
 import { receptesCatalanes } from './receptes-catalanes';
 import { receptesCullera } from './receptes-cullera';
 import { receptesForn } from './receptes-forn';
@@ -338,4 +339,5 @@ export const receptes: Recepta[] = [
   ...receptesCullera,
   ...receptesForn,
   ...receptesItalianes,
+  ...receptesAcompanyaments,
 ];

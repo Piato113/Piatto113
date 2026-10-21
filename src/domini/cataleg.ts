@@ -17,6 +17,21 @@ export function crearCataleg(ingredients: Ingredient[], receptes: Recepta[], pre
   };
 }
 
+/** Pot ocupar un àpat: principal (per defecte) o de doble ús. */
+export const potSerPrincipal = (r: Recepta): boolean => r.tipus !== 'acompanyament';
+
+/** Pot anar al costat d'una principal: acompanyament o de doble ús. */
+export const potSerAcompanyament = (r: Recepta): boolean => r.tipus === 'acompanyament' || r.tipus === 'ambdos';
+
+/**
+ * Dels acompanyaments donats, els que admet la principal: tots si no en limita la llista,
+ * i mai ella mateixa (una recepta de doble ús no s'acompanya a si mateixa).
+ */
+export function acompanyamentsAdmesos(principal: Recepta, acompanyaments: readonly Recepta[]): Recepta[] {
+  const llista = principal.acompanyaments;
+  return acompanyaments.filter((a) => a.id !== principal.id && (llista === undefined || llista.includes(a.id)));
+}
+
 export function ingredient(cataleg: Cataleg, id: string): Ingredient {
   const trobat = cataleg.ingredients.get(id);
   if (!trobat) throw new Error(`Ingredient desconegut: «${id}»`);
@@ -71,13 +86,29 @@ export function validarCataleg(ingredients: Ingredient[], receptes: Recepta[], p
     errors.push(...validarPassos(r));
   }
 
+  const receptaPerId = new Map(receptes.map((r) => [r.id, r]));
   for (const r of receptes) {
     if (r.tipus === 'acompanyament' && r.ambAcompanyament) {
       errors.push(`Recepta «${r.id}»: un acompanyament no pot demanar acompanyament`);
     }
+    if (r.acompanyaments === undefined) continue;
+    if (!r.ambAcompanyament) {
+      errors.push(`Recepta «${r.id}»: indica acompanyaments però no en demana`);
+    }
+    if (r.acompanyaments.length === 0) errors.push(`Recepta «${r.id}»: la llista d’acompanyaments és buida`);
+    for (const id of r.acompanyaments) {
+      const a = receptaPerId.get(id);
+      if (!a) errors.push(`Recepta «${r.id}»: acompanyament desconegut «${id}»`);
+      else if (id === r.id) errors.push(`Recepta «${r.id}»: no es pot acompanyar a si mateixa`);
+      else if (!potSerAcompanyament(a)) errors.push(`Recepta «${r.id}»: «${id}» no és un acompanyament`);
+    }
   }
-  if (receptes.some((r) => r.ambAcompanyament) && !receptes.some((r) => r.tipus === 'acompanyament')) {
-    errors.push('Hi ha receptes que demanen acompanyament però no n’hi ha cap');
+  const totsElsAcompanyaments = receptes.filter(potSerAcompanyament);
+  for (const r of receptes) {
+    if (!r.ambAcompanyament || r.tipus === 'acompanyament') continue;
+    if (acompanyamentsAdmesos(r, totsElsAcompanyaments).length === 0) {
+      errors.push(`Recepta «${r.id}»: demana acompanyament però no n’hi ha cap de disponible`);
+    }
   }
 
   const preusVistos = new Set<string>();

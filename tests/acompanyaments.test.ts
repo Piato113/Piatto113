@@ -118,7 +118,7 @@ describe('acompanyaments', () => {
 
   it('la validació detecta acompanyaments mal definits', () => {
     expect(validarCataleg(ingredients, [pollastre, truita], preus)).toContain(
-      'Hi ha receptes que demanen acompanyament però no n’hi ha cap',
+      'Recepta «pollastre-arrebossat»: demana acompanyament però no n’hi ha cap de disponible',
     );
     expect(validarCataleg(ingredients, [{ ...arrosBlanc, ambAcompanyament: true }], preus)).toContain(
       'Recepta «arros-blanc»: un acompanyament no pot demanar acompanyament',
