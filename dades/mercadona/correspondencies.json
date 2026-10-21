@@ -102,5 +102,18 @@
   "sucre": { "producte": "19897" },
   "mel": { "producte": "15430" },
   "vinagre": { "producte": "4940" },
-  "mostassa": { "producte": "23410" }
+  "mostassa": { "producte": "23410" },
+  "xampinyons": { "producte": "69519" },
+  "alvocat": { "producte": "3858" },
+  "ruca": { "producte": "69753" },
+  "hamburguesa": { "producte": "2872", "nota": "Unes 6 peces de 90 g per safata (per confirmar)" },
+  "salmo": { "producte": "87205" },
+  "arros-llarg": { "producte": "5063" },
+  "noodles": { "producte": "9861" },
+  "blat-de-moro": { "producte": "16714", "mida": 140, "nota": "Llauna de 225 g, uns 140 g escorreguts (per confirmar)" },
+  "salsa-soja": { "producte": "17360" },
+  "salsa-iogurt": { "producte": "17327" },
+  "pa-barra": { "producte": "83202.1" },
+  "tortilla-blat": { "producte": "80859", "peces": 8, "nota": "Peces per paquet per confirmar" },
+  "piadina": { "producte": "21448", "peces": 4, "nota": "Peces per paquet per confirmar" }
 }

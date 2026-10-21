@@ -112,6 +112,7 @@ const preusEstimats: Preu[] = [
   { ingredientId: 'pa-ratllat', midaPaquet: 750, preuCentims: 120 },
   { ingredientId: 'pa-pages', midaPaquet: 500, preuCentims: 189 },
   { ingredientId: 'pa-hamburguesa', midaPaquet: 4, preuCentims: 115 },
+  { ingredientId: 'nachos', midaPaquet: 200, preuCentims: 129 },
 
   // Rebost (informatiu)
   { ingredientId: 'oli-oliva', midaPaquet: 1000, preuCentims: 595 },

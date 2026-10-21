@@ -5,6 +5,7 @@ import { receptesCatalanes } from './receptes-catalanes';
 import { receptesCullera } from './receptes-cullera';
 import { receptesForn } from './receptes-forn';
 import { receptesItalianes } from './receptes-italianes';
+import { receptesRapides } from './receptes-rapides';
 
 // Catàleg inicial de receptes. Quantitats orientatives per a 4 racions normals:
 // la gana de cada persona ja s'aplica amb el factor de la família.
@@ -339,5 +340,6 @@ export const receptes: Recepta[] = [
   ...receptesCullera,
   ...receptesForn,
   ...receptesItalianes,
+  ...receptesRapides,
   ...receptesAcompanyaments,
 ];

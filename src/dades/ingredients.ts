@@ -33,6 +33,9 @@ const ingredientsBase: Ingredient[] = [
   { id: 'julivert', nom: 'Julivert fresc', unitat: 'g', seccio: FRUITA },
   { id: 'espinacs', nom: 'Espinacs congelats', unitat: 'g', seccio: FRUITA },
   { id: 'pesols', nom: 'Pèsols congelats', unitat: 'g', seccio: FRUITA },
+  { id: 'xampinyons', nom: 'Xampinyons laminats', unitat: 'g', seccio: FRUITA },
+  { id: 'alvocat', nom: 'Alvocats', unitat: 'g', seccio: FRUITA, conversions: { u: 200 } },
+  { id: 'ruca', nom: 'Ruca', unitat: 'g', seccio: FRUITA },
 
   // Carn
   { id: 'carn-picada', nom: 'Carn picada mixta (vedella i porc)', unitat: 'g', seccio: CARN },
@@ -52,6 +55,7 @@ const ingredientsBase: Ingredient[] = [
   { id: 'botifarra-ou', nom: 'Botifarra d’ou', unitat: 'g', seccio: CARN },
   { id: 'pernil-dolc', nom: 'Pernil dolç a llesques', unitat: 'g', seccio: CARN },
   { id: 'taquets-pernil', nom: 'Pernil serrà a daus', unitat: 'g', seccio: CARN },
+  { id: 'hamburguesa', nom: 'Hamburgueses de vedella i porc', unitat: 'g', seccio: CARN, conversions: { u: 90 } },
 
   // Peix i marisc
   { id: 'sipia', nom: 'Sípia neta', unitat: 'g', seccio: PEIX },
@@ -59,6 +63,7 @@ const ingredientsBase: Ingredient[] = [
   { id: 'bacalla', nom: 'Bacallà dessalat (lloms)', unitat: 'g', seccio: PEIX },
   { id: 'lluc', nom: 'Lluç (lloms)', unitat: 'g', seccio: PEIX },
   { id: 'tinta-sipia', nom: 'Tinta de sípia (sobres)', unitat: 'g', seccio: PEIX },
+  { id: 'salmo', nom: 'Salmó a rodanxes', unitat: 'g', seccio: PEIX },
 
   // Ous i làctics
   { id: 'ou', nom: 'Ous', unitat: 'u', seccio: FRESCOS, indivisible: true },
@@ -83,6 +88,7 @@ const ingredientsBase: Ingredient[] = [
   { id: 'fideus-gruixuts', nom: 'Fideus gruixuts (per a cassola)', unitat: 'g', seccio: SECS },
   { id: 'fideus-fideua', nom: 'Fideus per a fideuà', unitat: 'g', seccio: SECS },
   { id: 'arros', nom: 'Arròs rodó', unitat: 'g', seccio: SECS },
+  { id: 'arros-llarg', nom: 'Arròs llarg', unitat: 'g', seccio: SECS },
   { id: 'cuscus', nom: 'Cuscús', unitat: 'g', seccio: SECS },
   { id: 'llenties', nom: 'Llenties pardines', unitat: 'g', seccio: SECS },
   { id: 'penne', nom: 'Penne', unitat: 'g', seccio: SECS },
@@ -96,6 +102,7 @@ const ingredientsBase: Ingredient[] = [
   { id: 'pinyons', nom: 'Pinyons', unitat: 'g', seccio: SECS },
   { id: 'farina-forca', nom: 'Farina de força', unitat: 'g', seccio: SECS },
   { id: 'llevat', nom: 'Llevat sec de forner', unitat: 'g', seccio: SECS },
+  { id: 'noodles', nom: 'Noodles de blat', unitat: 'g', seccio: SECS },
 
   // Conserves i brous
   { id: 'tomaquet-triturat', nom: 'Tomàquet triturat', unitat: 'g', seccio: CONSERVES },
@@ -108,12 +115,19 @@ const ingredientsBase: Ingredient[] = [
   { id: 'olives-negres', nom: 'Olives negres sense pinyol', unitat: 'g', seccio: CONSERVES },
   { id: 'taperes', nom: 'Tàperes', unitat: 'g', seccio: CONSERVES },
   { id: 'pesto', nom: 'Pesto (pot)', unitat: 'g', seccio: CONSERVES },
+  { id: 'blat-de-moro', nom: 'Blat de moro dolç (llauna)', unitat: 'g', seccio: CONSERVES },
+  { id: 'salsa-soja', nom: 'Salsa de soja', unitat: 'ml', seccio: CONSERVES },
+  { id: 'salsa-iogurt', nom: 'Salsa de iogurt', unitat: 'ml', seccio: CONSERVES },
   { id: 'vi-blanc', nom: 'Vi blanc per cuinar', unitat: 'ml', seccio: CONSERVES },
 
   // Forn
   { id: 'pa-ratllat', nom: 'Pa ratllat', unitat: 'g', seccio: FORN },
   { id: 'pa-pages', nom: 'Pa de pagès', unitat: 'g', seccio: FORN },
   { id: 'pa-hamburguesa', nom: 'Panets d’hamburguesa', unitat: 'u', seccio: FORN, indivisible: true },
+  { id: 'pa-barra', nom: 'Barra de pa', unitat: 'g', seccio: FORN },
+  { id: 'tortilla-blat', nom: 'Tortilles de blat (wraps)', unitat: 'u', seccio: FORN, indivisible: true },
+  { id: 'piadina', nom: 'Piadines', unitat: 'u', seccio: FORN, indivisible: true },
+  { id: 'nachos', nom: 'Nachos (totopos de blat de moro)', unitat: 'g', seccio: FORN },
 
   // Rebost: surt a la llista però no suma al cost de compra
   { id: 'oli-oliva', nom: 'Oli d’oliva', unitat: 'ml', rebost: true, seccio: 'rebost' },
@@ -163,6 +177,10 @@ const ALERGENS_INGREDIENT: Record<string, Alergen[]> = {
   gnocchi: ['gluten'],
   raviolis: ['gluten', 'ou', 'llet'],
   tortellini: ['gluten', 'ou', 'llet'],
+  'pa-barra': ['gluten'],
+  'tortilla-blat': ['gluten'],
+  piadina: ['gluten'],
+  noodles: ['gluten'],
   // Ous
   ou: ['ou'],
   'botifarra-ou': ['ou'],
@@ -186,11 +204,14 @@ const ALERGENS_INGREDIENT: Record<string, Alergen[]> = {
   gamba: ['crustacis'],
   sipia: ['molluscs'],
   'tinta-sipia': ['molluscs'],
+  salmo: ['peix'],
   // Altres
   pinyons: ['fruits-secs'],
   'brou-pollastre': ['api'],
   'brou-verdures': ['api'],
   mostassa: ['mostassa'],
+  'salsa-soja': ['soja', 'gluten'],
+  'salsa-iogurt': ['llet', 'ou'],
   'vi-blanc': ['sulfits'],
   vinagre: ['sulfits'],
 };
