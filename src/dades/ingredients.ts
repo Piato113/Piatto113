@@ -36,6 +36,7 @@ const ingredientsBase: Ingredient[] = [
   { id: 'xampinyons', nom: 'Xampinyons laminats', unitat: 'g', seccio: FRUITA },
   { id: 'alvocat', nom: 'Alvocats', unitat: 'g', seccio: FRUITA, conversions: { u: 200 } },
   { id: 'ruca', nom: 'Ruca', unitat: 'g', seccio: FRUITA },
+  { id: 'carbassa', nom: 'Carbassa a trossos', unitat: 'g', seccio: FRUITA },
 
   // Carn
   { id: 'carn-picada', nom: 'Carn picada mixta (vedella i porc)', unitat: 'g', seccio: CARN },
@@ -56,6 +57,9 @@ const ingredientsBase: Ingredient[] = [
   { id: 'pernil-dolc', nom: 'Pernil dolç a llesques', unitat: 'g', seccio: CARN },
   { id: 'taquets-pernil', nom: 'Pernil serrà a daus', unitat: 'g', seccio: CARN },
   { id: 'hamburguesa', nom: 'Hamburgueses de vedella i porc', unitat: 'g', seccio: CARN, conversions: { u: 90 } },
+  { id: 'cansalada-fresca', nom: 'Cansalada fresca (tocino)', unitat: 'g', seccio: CARN },
+  { id: 'os-blanc-salat', nom: 'Os blanc de porc salat', unitat: 'g', seccio: CARN },
+  { id: 'espinada-porc', nom: 'Espinada de porc', unitat: 'g', seccio: CARN },
 
   // Peix i marisc
   { id: 'sipia', nom: 'Sípia neta', unitat: 'g', seccio: PEIX },
@@ -97,6 +101,7 @@ const ingredientsBase: Ingredient[] = [
   { id: 'plaques-lasanya', nom: 'Plaques de lasanya', unitat: 'u', seccio: SECS, indivisible: true },
   { id: 'galets', nom: 'Galets', unitat: 'g', seccio: SECS },
   { id: 'cigrons', nom: 'Cigrons cuits (pot)', unitat: 'g', seccio: SECS },
+  { id: 'cigrons-secs', nom: 'Cigrons secs (llet andalusos)', unitat: 'g', seccio: SECS },
   { id: 'mongetes-cuites', nom: 'Mongetes blanques cuites (pot)', unitat: 'g', seccio: SECS },
   { id: 'prunes', nom: 'Prunes seques sense pinyol', unitat: 'g', seccio: SECS },
   { id: 'pinyons', nom: 'Pinyons', unitat: 'g', seccio: SECS },

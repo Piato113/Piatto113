@@ -115,5 +115,10 @@
   "salsa-iogurt": { "producte": "17327" },
   "pa-barra": { "producte": "83202.1" },
   "tortilla-blat": { "producte": "80859", "peces": 8, "nota": "Peces per paquet per confirmar" },
-  "piadina": { "producte": "21448", "peces": 4, "nota": "Peces per paquet per confirmar" }
+  "piadina": { "producte": "21448", "peces": 4, "nota": "Peces per paquet per confirmar" },
+  "carbassa": { "producte": "3527" },
+  "cansalada-fresca": { "producte": "35805" },
+  "os-blanc-salat": { "producte": "1892" },
+  "espinada-porc": { "producte": "2689" },
+  "cigrons-secs": { "producte": "5220" }
 }

@@ -123,4 +123,9 @@ export const preusMercadona: (Preu & { unitat: Unitat })[] = [
   { ingredientId: "pa-barra", midaPaquet: 250, preuCentims: 50, unitat: 'g', producte: { id: "83202.1", nom: "Barra de pan" } },
   { ingredientId: "tortilla-blat", midaPaquet: 8, preuCentims: 115, unitat: 'u', producte: { id: "80859", nom: "Tortillas de trigo Hacendado" } },
   { ingredientId: "piadina", midaPaquet: 4, preuCentims: 220, unitat: 'u', producte: { id: "21448", nom: "Piadina Hacendado" } },
+  { ingredientId: "carbassa", midaPaquet: 520, preuCentims: 182, unitat: 'g', producte: { id: "3527", nom: "Calabaza cacahuete cortada a trozos" } },
+  { ingredientId: "cansalada-fresca", midaPaquet: 190, preuCentims: 148, unitat: 'g', producte: { id: "35805", nom: "Tocino de cerdo" } },
+  { ingredientId: "os-blanc-salat", midaPaquet: 350, preuCentims: 189, unitat: 'g', producte: { id: "1892", nom: "Hueso blanco de cerdo salado" } },
+  { ingredientId: "espinada-porc", midaPaquet: 300, preuCentims: 210, unitat: 'g', producte: { id: "2689", nom: "Espinazo de cerdo" } },
+  { ingredientId: "cigrons-secs", midaPaquet: 1000, preuCentims: 250, unitat: 'g', producte: { id: "5220", nom: "Garbanzo lechoso Andaluz Hacendado" } },
 ];

@@ -5,6 +5,70 @@ import { c, l, p } from './ajudants';
 
 export const receptesCullera: Recepta[] = [
   {
+    // Recepta tradicional cordovesa: cigrons llet, avío de carns i salats, mongeta tendra, carbassa i patata.
+    id: 'cocido-cordoves',
+    nom: 'Cocido cordovès',
+    racions: 4,
+    tempsMinuts: 180,
+    etiquetes: ['llegums', 'carn'],
+    ingredients: [
+      l('cigrons-secs', 320),
+      l('vedella-estofar', 250),
+      l('pollastre-trossos', 400),
+      l('cansalada-fresca', 100),
+      l('os-blanc-salat', 350),
+      l('espinada-porc', 300),
+      l('patata', 2, 'u'),
+      l('pastanaga', 2, 'u'),
+      l('mongeta-tendra', 250),
+      l('carbassa', 300),
+      l('sal', 15),
+    ],
+    passos: [
+      p(
+        'La nit abans (unes 12 hores): posa els cigrons ({cigrons-secs}) en un bol gran amb el triple d’aigua i la sal ({sal}): s’inflen fins a doblar ' +
+          'la mida. A part, posa l’os blanc ({os-blanc-salat}) en un altre bol amb aigua freda perquè perdi sal; si l’has de deixar més de 2 hores, ' +
+          'guarda’l a la nevera.',
+      ),
+      c(
+        'Renta la vedella ({vedella-estofar}), el pollastre ({pollastre-trossos}), la cansalada ({cansalada-fresca}) i l’espinada ({espinada-porc}) ' +
+          'sota l’aixeta. Posa-ho en una olla gran amb l’os blanc escorregut i 3 litres d’aigua, i porta-ho a bullir a foc fort. Quan bulli, sortirà ' +
+          'una escuma grisa: treu-la amb una escumadora fins que el brou quedi net.',
+        15,
+        'Escumar el brou',
+      ),
+      c(
+        'Escorre els cigrons i esbandeix-los. Tira’ls a l’olla quan el brou bulli amb força: si entren a l’aigua freda o l’olla deixa de bullir, ' +
+          'els cigrons es queden durs. Abaixa el foc perquè bulli suau però sense parar, tapa l’olla deixant-hi una escletxa i cou-ho. ' +
+          'Si cal afegir aigua, que sigui bullent. A mitja cocció, treu amb una cullera el greix que suri.',
+        110,
+        'Coure els cigrons',
+      ),
+      c(
+        'Pela les patates ({patata}) i trenca-les a trossos grossos (fes un tall i acaba de partir-les fent palanca: així deixen anar fècula i espesseixen ' +
+          'el brou). Pela les pastanagues ({pastanaga}) i talla-les a trossos de 3 cm. Afegeix-les a l’olla.',
+        15,
+        'Patata i pastanaga',
+      ),
+      c(
+        'Neteja les mongetes tendres ({mongeta-tendra}), treu-ne les puntes i talla-les a trossos de 4 cm. Pela la carbassa ({carbassa}) si en té ' +
+          'i talla-la a daus de 3 cm. Afegeix-les a l’olla i cou-ho fins que els cigrons siguin tendres i mantegosos per dins, i la patata es desfaci ' +
+          'en prémer-la amb una forquilla.',
+        15,
+        'Mongeta i carbassa',
+      ),
+      p(
+        'Tasta el brou: els ossos salats ja n’han donat, així que afegeix-hi sal només si en falta. Deixa reposar l’olla 5 minuts fora del foc ' +
+          'i treu el greix que hagi pujat.',
+      ),
+      p(
+        'Treu les carns i els ossos (l’avío) a una plata. Desossa el pollastre i l’espinada, talla la vedella i la cansalada a trossos i llença els ossos. ' +
+          'Serveix els cigrons amb les verdures i el brou en plats fondos, i l’avío al mig perquè cadascú se’n posi. ' +
+          'Amb olla a pressió: després d’escumar i afegir-hi els cigrons, afegeix també les verdures, tanca-la i compta 30 minuts des que xiuli.',
+      ),
+    ],
+  },
+  {
     id: 'estofat-vedella',
     nom: 'Estofat de vedella amb patates',
     racions: 4,
