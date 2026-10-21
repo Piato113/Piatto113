@@ -1,0 +1,15 @@
+# Dependències i compilació
+node_modules/
+dist/
+
+# Variables d'entorn: mai es pugen
+.env
+.env.*
+!.env.example
+
+# Sistema i editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
