@@ -17,6 +17,7 @@ export interface DadesRecepta {
 export interface AccionsRecepta {
   tornar: () => void;
   obrir: (receptaId: string) => void;
+  cuinar: () => void;
 }
 
 export function pantallaRecepta(dades: DadesRecepta, accions: AccionsRecepta): HTMLElement {
@@ -38,6 +39,7 @@ export function pantallaRecepta(dades: DadesRecepta, accions: AccionsRecepta): H
     h('h1', { class: 'pagina__titol', tabindex: -1 }, recepta.nom),
     h('p', { class: 'recepta__meta' }, `${tr.temps(recepta.tempsMinuts)} · ${euros(cost)}`),
     h('p', { class: 'menu__nota' }, tr.perA(dades.persones, formatNombre(dades.racionsCentesimes / 100))),
+    h('button', { type: 'button', class: 'boto boto--principal boto--gran recepta__cuinar', onclick: accions.cuinar }, `👩‍🍳 ${textos.cuinar.comencar}`),
     acompanyament
       ? h(
           'p',

@@ -1001,3 +1001,206 @@ h1:focus-visible {
 .apat .boto {
   flex: none;
 }
+
+/* ——— Mode cuinar ——— */
+
+.recepta__cuinar {
+  align-self: stretch;
+}
+
+.cuinar {
+  max-width: 40rem;
+  min-height: 100dvh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: calc(0.5rem + env(safe-area-inset-top)) 1rem 0;
+}
+
+.cuinar__capcalera {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.cuinar__capcalera .boto {
+  margin-left: -0.5rem;
+  color: var(--text);
+}
+
+.cuinar__recepta {
+  min-width: 0;
+  flex: 1;
+  text-align: right;
+}
+
+.cuinar__nom {
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 700;
+}
+
+.cuinar__recepta .pas__numero {
+  margin: 0;
+}
+
+.cuinar__actius {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.cuinar__actius:empty {
+  display: none;
+}
+
+.actius {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.actius__xip {
+  font-variant-numeric: tabular-nums;
+}
+
+.cuinar__principal {
+  flex: 1;
+  padding: 1.5rem 0 2rem;
+}
+
+.cuinar__cos {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.cuinar__titol {
+  margin: 0;
+  font-size: clamp(1.6rem, 7vw, 2rem);
+  font-weight: 800;
+}
+
+.cuinar__text {
+  margin: 0;
+  font-size: clamp(1.3rem, 5.6vw, 1.6rem);
+  line-height: 1.45;
+}
+
+.cuinar__final {
+  align-items: center;
+  text-align: center;
+  padding-top: 2rem;
+}
+
+.cuinar__peu .boto {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+}
+
+.cronometre {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1rem;
+  border: 1px solid var(--taronja);
+  border-radius: var(--radi);
+  background: rgb(244 115 24 / 0.08);
+}
+
+.cronometre__nom {
+  margin: 0;
+  color: var(--taronja-clar);
+  font-weight: 700;
+  text-align: center;
+}
+
+.cronometre__temps {
+  margin: 0;
+  font-size: clamp(3.5rem, 20vw, 5.5rem);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.cronometre__temps--fet {
+  color: var(--taronja);
+}
+
+.cronometre__botons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.cronometre__botons .boto--principal {
+  flex-basis: 100%;
+}
+
+/* Avís de cronòmetre acabat (a sobre de qualsevol pantalla) */
+.alarma {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(7 6 6 / 0.85);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.alarma__caixa {
+  width: min(100%, 24rem);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border: 2px solid var(--taronja);
+  border-radius: var(--radi);
+  background: var(--superficie);
+  text-align: center;
+  box-shadow: 0 0 40px rgb(244 115 24 / 0.4);
+}
+
+.alarma__icona {
+  margin: 0;
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.alarma__titol {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.alarma__nom {
+  margin: 0;
+  color: var(--taronja-clar);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .alarma__caixa {
+    animation: batec 1s ease-in-out infinite alternate;
+  }
+
+  @keyframes batec {
+    from {
+      box-shadow: 0 0 20px rgb(244 115 24 / 0.3);
+    }
+    to {
+      box-shadow: 0 0 50px rgb(244 115 24 / 0.7);
+    }
+  }
+}

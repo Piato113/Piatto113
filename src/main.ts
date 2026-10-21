@@ -25,6 +25,7 @@ import {
 } from './ui/emmagatzematge';
 import { pantallaMenu } from './ui/menu';
 import { pantallaPas, pantallaResum, PASSOS, type Pas } from './ui/questionari';
+import { pantallaCuinar, sortirDelModeCuinar } from './ui/cuinar';
 import { pantallaRecepta } from './ui/recepta';
 
 const arrel = document.querySelector<HTMLDivElement>('#app');
@@ -35,7 +36,8 @@ type Seccio =
   | { tipus: 'menu' }
   | { tipus: 'compra' }
   | { tipus: 'resum' }
-  | { tipus: 'recepta'; receptaId: string; acompanyamentId?: string };
+  | { tipus: 'recepta'; receptaId: string; acompanyamentId?: string }
+  | { tipus: 'cuinar'; receptaId: string; acompanyamentId?: string; pas: number };
 
 type Pantalla = { tipus: 'benvinguda' } | { tipus: 'pas'; pas: Pas; desDelResum: boolean } | Seccio;
 
@@ -51,6 +53,8 @@ let menu: MenuDesat | null = carregarMenu(catalegInicial);
 let missatge: string | null = null;
 /** Manté oberta la graella després de tocar-la. */
 let graellaOberta = false;
+/** Neteja de la pantalla actual (p. ex. el mode cuinar deixa d'escoltar els cronòmetres). */
+let desmuntar: (() => void) | null = null;
 
 // ——— Adreces ———
 
@@ -64,6 +68,8 @@ function adrecaDe(p: Pantalla): string | null {
       return '#/configuracio';
     case 'recepta':
       return `#/recepta/${encodeURIComponent(p.receptaId)}${p.acompanyamentId ? `?amb=${encodeURIComponent(p.acompanyamentId)}` : ''}`;
+    case 'cuinar':
+      return `#/cuinar/${encodeURIComponent(p.receptaId)}?pas=${p.pas}${p.acompanyamentId ? `&amb=${encodeURIComponent(p.acompanyamentId)}` : ''}`;
     default:
       return null;
   }
@@ -74,6 +80,17 @@ function seccioDe(adreca: string): Seccio | null {
   if (cami === '/menu') return { tipus: 'menu' };
   if (cami === '/compra') return { tipus: 'compra' };
   if (cami === '/configuracio') return { tipus: 'resum' };
+  const cuinar = /^\/cuinar\/([^/]+)$/.exec(cami);
+  if (cuinar) {
+    const receptaId = decodeURIComponent(cuinar[1]!);
+    if (!catalegInicial.receptes.has(receptaId)) return null;
+    const params = new URLSearchParams(consulta);
+    const pas = Math.max(0, Number.parseInt(params.get('pas') ?? '0', 10) || 0);
+    const amb = params.get('amb');
+    return amb && catalegInicial.receptes.has(amb)
+      ? { tipus: 'cuinar', receptaId, acompanyamentId: amb, pas }
+      : { tipus: 'cuinar', receptaId, pas };
+  }
   const recepta = /^\/recepta\/([^/]+)$/.exec(cami);
   if (recepta) {
     const receptaId = decodeURIComponent(recepta[1]!);
@@ -115,6 +132,7 @@ function enfocarTitol(): void {
 }
 
 function anar(nova: Pantalla, { substituirHistoria = false } = {}): void {
+  if (pantalla.tipus === 'cuinar' && nova.tipus !== 'cuinar') sortirDelModeCuinar();
   pantalla = nova;
   graellaOberta = false;
   const adreca = adrecaDe(nova);
@@ -128,7 +146,9 @@ function anar(nova: Pantalla, { substituirHistoria = false } = {}): void {
 
 window.addEventListener('popstate', () => {
   if (!desades) return;
-  pantalla = seccioDe(location.hash) ?? { tipus: 'menu' };
+  const nova: Pantalla = seccioDe(location.hash) ?? { tipus: 'menu' };
+  if (pantalla.tipus === 'cuinar' && nova.tipus !== 'cuinar') sortirDelModeCuinar();
+  pantalla = nova;
   graellaOberta = false;
   pintar();
   enfocarTitol();
@@ -301,8 +321,29 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
       const { racionsCentesimes } = avaluarMenu(catalegInicial, configuracio, []);
       return pantallaRecepta(
         { ...seccio, racionsCentesimes, persones: configuracio.persones.length },
-        { tornar, obrir: (receptaId) => anar({ tipus: 'recepta', receptaId }) },
+        {
+          tornar,
+          obrir: (receptaId) => anar({ tipus: 'recepta', receptaId }),
+          cuinar: () => anar({ ...seccio, tipus: 'cuinar', pas: 0 }),
+        },
       );
+    }
+    case 'cuinar': {
+      const { racionsCentesimes } = avaluarMenu(catalegInicial, configuracio, []);
+      const anarAlPas = (pas: number): void => anar({ ...seccio, pas }, { substituirHistoria: true });
+      const pantallaC = pantallaCuinar(
+        { ...seccio, racionsCentesimes },
+        {
+          anarAlPas,
+          cuinar: (receptaId, pas) =>
+            anar(receptaId === seccio.receptaId ? { ...seccio, pas } : { tipus: 'cuinar', receptaId, pas }, { substituirHistoria: true }),
+          // Torna on era (normalment la recepta); si s'hi ha arribat per un enllaç directe, al menú.
+          sortir: tornar,
+          menu: () => anar({ tipus: 'menu' }, { substituirHistoria: true }),
+        },
+      );
+      desmuntar = pantallaC.desmuntar;
+      return pantallaC.element;
     }
     case 'menu': {
       const avisPuntual = missatge;
@@ -316,11 +357,15 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
 }
 
 function pintar(): void {
+  desmuntar?.();
+  desmuntar = null;
   if (pantalla.tipus === 'pas') {
     substituir(arrel!, pantallaPas(esborrany, pantalla.pas, pantalla.desDelResum, accionsQuestionari));
   } else if (pantalla.tipus === 'benvinguda' || !desades) {
     pantalla = { tipus: 'benvinguda' };
     substituir(arrel!, benvinguda());
+  } else if (pantalla.tipus === 'cuinar') {
+    substituir(arrel!, contingutSeccio(desades, pantalla));
   } else {
     substituir(arrel!, capcalera(), contingutSeccio(desades, pantalla), navegacio());
   }
