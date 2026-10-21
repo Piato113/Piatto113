@@ -60,6 +60,8 @@ supabase/               Fitxers SQL de l'esquema (s'executen a mà)
 
 1. **Filtra** les receptes: cap ingredient exclòs, dins del temps màxim i amb totes les etiquetes obligatòries.
 2. **Tria** una recepta per a cada àpat marcat a la graella, sense repetir mentre n'hi hagi prou.
+   Les receptes que ho demanen (carn arrebossada, entrecot…) porten també un acompanyament
+   (arròs blanc, patates, cuscús…); els acompanyaments no ocupen mai un àpat sols.
    Les etiquetes preferides fan que una recepta tingui més probabilitat de sortir.
    El sorteig fa servir una llavor: la mateixa llavor dona el mateix menú.
 3. **Ajusta al pressupost:** si el cost de compra el supera, canvia la recepta més cara
@@ -68,6 +70,13 @@ supabase/               Fitxers SQL de l'esquema (s'executen a mà)
    si el pressupost no és possible o si falten preus.
 
 La lògica és a `src/domini/` i no depèn de la interfície. Els tests són a `tests/`.
+
+## Catàleg inicial
+
+A `src/dades/`: ingredients, receptes (quantitats per a 4 racions normals, sense el text de la recepta)
+i preus **orientatius** de referència Mercadona. Els preus s'han de revisar amb el tiquet i es podran editar a l'app.
+Els tests comproven que el catàleg no té errors, que tot ingredient comprable té preu
+i que es pot planificar una setmana sense repetir.
 
 ## Posar-ho en marxa en local
 

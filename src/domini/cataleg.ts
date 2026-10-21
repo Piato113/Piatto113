@@ -69,6 +69,15 @@ export function validarCataleg(ingredients: Ingredient[], receptes: Recepta[], p
     }
   }
 
+  for (const r of receptes) {
+    if (r.tipus === 'acompanyament' && r.ambAcompanyament) {
+      errors.push(`Recepta «${r.id}»: un acompanyament no pot demanar acompanyament`);
+    }
+  }
+  if (receptes.some((r) => r.ambAcompanyament) && !receptes.some((r) => r.tipus === 'acompanyament')) {
+    errors.push('Hi ha receptes que demanen acompanyament però no n’hi ha cap');
+  }
+
   const preusVistos = new Set<string>();
   for (const p of preus) {
     if (preusVistos.has(p.ingredientId)) errors.push(`Preu repetit: «${p.ingredientId}»`);

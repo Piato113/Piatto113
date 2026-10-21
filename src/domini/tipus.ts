@@ -42,6 +42,13 @@ export interface Recepta {
   /** Etiquetes alimentàries (p. ex. 'vegetaria', 'peix'). Llista encara oberta. */
   etiquetes: string[];
   ingredients: LiniaRecepta[];
+  /**
+   * 'principal' (per defecte) ocupa un àpat; 'acompanyament' (arròs blanc, patates…)
+   * només surt al costat d'una principal que el demana.
+   */
+  tipus?: 'principal' | 'acompanyament';
+  /** La principal es planifica amb un acompanyament (p. ex. carn arrebossada). */
+  ambAcompanyament?: boolean;
 }
 
 /** Preu orientatiu i editable d'un paquet de compra. */
@@ -82,6 +89,8 @@ export interface ApatPlanificat {
   dia: Dia;
   apat: Apat;
   receptaId: string;
+  /** Només si la recepta principal demana acompanyament. */
+  acompanyamentId?: string;
 }
 
 /** Avisos amb codi; el text en català és a `src/textos/ca.ts`. */
