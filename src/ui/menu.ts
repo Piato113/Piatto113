@@ -26,7 +26,8 @@ export interface DadesMenu {
 }
 
 export interface AccionsMenu {
-  canviarPlat: (index: number) => void;
+  /** Obre el llistat de plats per triar el d'aquest àpat. */
+  obrirTriar: (index: number) => void;
   canviarGraella: (graella: Graella, clau: string) => void;
   tornarAFer: () => void;
   obrirRecepta: (index: number) => void;
@@ -104,7 +105,7 @@ function targetaApat(a: ApatPlanificat, index: number, racions: number, accions:
         class: 'boto boto--petit boto--secundari',
         'data-canviar': index,
         'aria-label': tm.canviarEtiqueta(textos.apats[a.apat], textos.dies[a.dia], nomPlat),
-        onclick: () => accions.canviarPlat(index),
+        onclick: () => accions.obrirTriar(index),
       },
       tm.canviar,
     ),

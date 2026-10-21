@@ -403,3 +403,106 @@ export function canviarPlat(
     : { dia: actual.dia, apat: actual.apat, receptaId: principal.id };
   return apats.map((a, i) => (i === index ? nou : a));
 }
+
+// ——— Triar el plat d'un àpat a mà ———
+
+/** Categories del llistat de plats per triar, en l'ordre en què es mostren. */
+export const CATEGORIES_PLAT = ['carn', 'peix', 'ou', 'llegums', 'pasta', 'arros', 'verdura'] as const;
+export type CategoriaPlat = (typeof CATEGORIES_PLAT)[number];
+
+/**
+ * Categoria d'un plat al llistat. Si en té més d'una, mana el que en fa la base:
+ * canelons de carn → pasta; arròs a la cubana → arròs; llenties amb xoriço → llegums; truita de botifarra → ou.
+ * Els que no tenen cap grup (verdures, sopes, coques…) van a «verdura».
+ */
+export function categoriaPlat(r: Recepta): CategoriaPlat {
+  const ordre: CategoriaPlat[] = ['pasta', 'arros', 'llegums', 'peix', 'ou', 'carn'];
+  return ordre.find((c) => r.etiquetes.includes(c)) ?? 'verdura';
+}
+
+export interface OpcioPlat {
+  recepta: Recepta;
+  categoria: CategoriaPlat;
+  /** Es fa dins del temps que la família té aquell dia. */
+  dinsTemps: boolean;
+  /** És el plat que ara hi ha en aquest àpat. */
+  actual: boolean;
+  /** Índexs dels altres àpats de la setmana on ja surt (com a plat o com a acompanyament). */
+  usatA: number[];
+}
+
+/** Límit de temps de l'àpat indicat. */
+const limitDe = (configuracio: ConfiguracioFamilia, dia: Dia): number | null =>
+  esCapDeSetmana(dia) ? configuracio.tempsMaximMinuts.capDeSetmana : configuracio.tempsMaximMinuts.feiners;
+
+/**
+ * Tots els plats que es poden triar per a un àpat: compleixen la dieta, les al·lèrgies, els aliments exclosos
+ * i les etiquetes; els que demanen acompanyament, només si en tenen algun de vàlid.
+ * El temps i el pressupost no en treuen cap (és una tria a mà), però es diu si passen del temps del dia.
+ * Ordenats per categoria i nom.
+ */
+export function opcionsDePlat(
+  cataleg: Cataleg,
+  configuracio: ConfiguracioFamilia,
+  apats: readonly ApatPlanificat[],
+  index: number,
+): OpcioPlat[] {
+  const apat = apats[index];
+  if (!apat) return [];
+  const limit = limitDe(configuracio, apat.dia);
+  const acompanyaments = filtrarAcompanyaments(cataleg, configuracio);
+  const ordre = (c: CategoriaPlat): number => CATEGORIES_PLAT.indexOf(c);
+  return [...cataleg.receptes.values()]
+    .filter((r) => potSerPrincipal(r) && permesa(cataleg, r, configuracio))
+    .filter((r) => configuracio.etiquetesObligatories.every((e) => r.etiquetes.includes(e)))
+    .filter((r) => !r.ambAcompanyament || acompanyamentsAdmesos(r, acompanyaments).some((a) => a.id !== r.id))
+    .map((r) => ({
+      recepta: r,
+      categoria: categoriaPlat(r),
+      dinsTemps: dinsTemps(r, limit),
+      actual: r.id === apat.receptaId,
+      usatA: apats.flatMap((a, i) => (i !== index && (a.receptaId === r.id || a.acompanyamentId === r.id) ? [i] : [])),
+    }))
+    .sort((a, b) => ordre(a.categoria) - ordre(b.categoria) || a.recepta.nom.localeCompare(b.recepta.nom, 'ca'));
+}
+
+/** Acompanyaments que es poden posar amb una principal (mai ella mateixa), ordenats per nom. */
+export function acompanyamentsDePlat(cataleg: Cataleg, configuracio: ConfiguracioFamilia, receptaId: string): Recepta[] {
+  const r = cataleg.receptes.get(receptaId);
+  if (!r?.ambAcompanyament) return [];
+  return acompanyamentsAdmesos(r, filtrarAcompanyaments(cataleg, configuracio))
+    .filter((a) => a.id !== r.id)
+    .sort((a, b) => a.nom.localeCompare(b.nom, 'ca'));
+}
+
+/**
+ * Posa a l'àpat el plat triat. Si demana acompanyament i no se n'indica cap, en tria un dels que admet,
+ * preferint els que no surten aquella setmana. Retorna una còpia dels àpats;
+ * si el plat o l'acompanyament no es poden triar, la retorna sense canvis.
+ */
+export function triarPlat(
+  cataleg: Cataleg,
+  configuracio: ConfiguracioFamilia,
+  apats: readonly ApatPlanificat[],
+  index: number,
+  receptaId: string,
+  acompanyamentId?: string,
+): ApatPlanificat[] {
+  const actual = apats[index];
+  if (!actual || !opcionsDePlat(cataleg, configuracio, apats, index).some((o) => o.recepta.id === receptaId)) return [...apats];
+  const possibles = acompanyamentsDePlat(cataleg, configuracio, receptaId);
+  let acompanyament: string | undefined;
+  if (possibles.length > 0) {
+    if (acompanyamentId !== undefined) {
+      if (!possibles.some((a) => a.id === acompanyamentId)) return [...apats];
+      acompanyament = acompanyamentId;
+    } else {
+      const usats = new Set(apats.filter((_, i) => i !== index).flatMap((a) => [a.receptaId, a.acompanyamentId ?? '']));
+      acompanyament = (possibles.find((a) => !usats.has(a.id)) ?? possibles[0])!.id;
+    }
+  }
+  const nou: ApatPlanificat = acompanyament
+    ? { dia: actual.dia, apat: actual.apat, receptaId, acompanyamentId: acompanyament }
+    : { dia: actual.dia, apat: actual.apat, receptaId };
+  return apats.map((a, i) => (i === index ? nou : a));
+}

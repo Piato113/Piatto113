@@ -4,6 +4,7 @@ import {
   avaluarMenu,
   canviarPlat,
   configuracioDesDeRespostes,
+  triarPlat,
   planificar,
   respostesPerDefecte,
   type Graella,
@@ -27,6 +28,7 @@ import { pantallaMenu } from './ui/menu';
 import { pantallaPas, pantallaResum, PASSOS, type Pas } from './ui/questionari';
 import { pantallaCuinar, sortirDelModeCuinar } from './ui/cuinar';
 import { pantallaRecepta } from './ui/recepta';
+import { pantallaTriar } from './ui/triar';
 import { pantallaEntrada } from './ui/entrada';
 import {
   aturarSincronitzacio,
@@ -47,6 +49,7 @@ type Seccio =
   | { tipus: 'menu' }
   | { tipus: 'compra' }
   | { tipus: 'resum' }
+  | { tipus: 'triar'; index: number; receptaId?: string }
   | { tipus: 'recepta'; receptaId: string; acompanyamentId?: string }
   | { tipus: 'cuinar'; receptaId: string; acompanyamentId?: string; pas: number };
 
@@ -62,6 +65,8 @@ let esborrany = desades ? copia(desades) : respostesPerDefecte();
 let menu: MenuDesat | null = carregarMenu(catalegInicial);
 /** Missatge puntual per a la pantalla del menú (es mostra una vegada). */
 let missatge: string | null = null;
+/** Element a enfocar en tornar enrere (p. ex. el botó «Canvia» de l'àpat que s'acaba de canviar). */
+let enfocarEnTornar: string | null = null;
 /** Manté oberta la graella després de tocar-la. */
 let graellaOberta = false;
 /** Neteja de la pantalla actual (p. ex. el mode cuinar deixa d'escoltar els cronòmetres). */
@@ -81,6 +86,8 @@ function adrecaDe(p: Pantalla): string | null {
       return '#/compra';
     case 'resum':
       return '#/configuracio';
+    case 'triar':
+      return `#/triar/${p.index}${p.receptaId ? `/${encodeURIComponent(p.receptaId)}` : ''}`;
     case 'recepta':
       return `#/recepta/${encodeURIComponent(p.receptaId)}${p.acompanyamentId ? `?amb=${encodeURIComponent(p.acompanyamentId)}` : ''}`;
     case 'cuinar':
@@ -95,6 +102,13 @@ function seccioDe(adreca: string): Seccio | null {
   if (cami === '/menu') return { tipus: 'menu' };
   if (cami === '/compra') return { tipus: 'compra' };
   if (cami === '/configuracio') return { tipus: 'resum' };
+  const triar = /^\/triar\/(\d+)(?:\/([^/]+))?$/.exec(cami);
+  if (triar) {
+    const index = Number.parseInt(triar[1]!, 10);
+    const receptaId = triar[2] ? decodeURIComponent(triar[2]) : undefined;
+    if (receptaId !== undefined && !catalegInicial.receptes.has(receptaId)) return { tipus: 'triar', index };
+    return receptaId ? { tipus: 'triar', index, receptaId } : { tipus: 'triar', index };
+  }
   const cuinar = /^\/cuinar\/([^/]+)$/.exec(cami);
   if (cuinar) {
     const receptaId = decodeURIComponent(cuinar[1]!);
@@ -166,7 +180,12 @@ window.addEventListener('popstate', () => {
   pantalla = nova;
   graellaOberta = false;
   pintar();
-  enfocarTitol();
+  const enfocar = enfocarEnTornar ? arrel!.querySelector<HTMLElement>(enfocarEnTornar) : null;
+  enfocarEnTornar = null;
+  if (enfocar) {
+    enfocar.scrollIntoView({ block: 'center' });
+    enfocar.focus({ preventScroll: true });
+  } else enfocarTitol();
 });
 
 /** Torna a la pantalla anterior si l'hem obert nosaltres; si no (enllaç directe), al menú. */
@@ -198,8 +217,45 @@ const accionsQuestionari = {
   },
 };
 
+/** Torna al menú des del selector de plats, traient-lo de l'historial, i enfoca l'àpat canviat. */
+function tornarAlMenuDesDeTriar(index: number): void {
+  const passos = pantalla.tipus === 'triar' && pantalla.receptaId ? 2 : 1;
+  enfocarEnTornar = `[data-canviar="${index}"]`;
+  if ((history.state as { piatto?: boolean } | null)?.piatto && history.length > passos) history.go(-passos);
+  else {
+    anar({ tipus: 'menu' }, { substituirHistoria: true });
+    const boto = arrel!.querySelector<HTMLElement>(enfocarEnTornar);
+    enfocarEnTornar = null;
+    boto?.scrollIntoView({ block: 'center' });
+    boto?.focus({ preventScroll: true });
+  }
+}
+
+function accionsTriar(index: number) {
+  return {
+    tornar,
+    triar: (receptaId: string, acompanyamentId?: string): void => {
+      if (!desades || !menu) return;
+      const apats = triarPlat(catalegInicial, configuracioDesDeRespostes(desades), menu.apats, index, receptaId, acompanyamentId);
+      if (apats !== menu.apats && JSON.stringify(apats) !== JSON.stringify(menu.apats)) {
+        menu = { ...menu, apats };
+        desarMenu(menu);
+      }
+      tornarAlMenuDesDeTriar(index);
+    },
+    demanarAcompanyament: (receptaId: string): void => anar({ tipus: 'triar', index, receptaId }),
+    atzar: (): void => {
+      accionsMenu.canviarPlat(index, { pintar: false });
+      tornarAlMenuDesDeTriar(index);
+    },
+  };
+}
+
 const accionsMenu = {
-  canviarPlat: (index: number): void => {
+  /** Obre el llistat de plats per triar el d'aquest àpat. */
+  obrirTriar: (index: number): void => anar({ tipus: 'triar', index }),
+  /** Canvia el plat per un altre a l'atzar. */
+  canviarPlat: (index: number, { pintar: repintar = true } = {}): void => {
     if (!desades || !menu) return;
     const apats = canviarPlat(catalegInicial, configuracioDesDeRespostes(desades), menu.apats, index, llavorNova());
     if (apats[index]?.receptaId === menu.apats[index]?.receptaId) {
@@ -208,6 +264,7 @@ const accionsMenu = {
       menu = { ...menu, apats };
       desarMenu(menu);
     }
+    if (!repintar) return;
     pintar();
     arrel!.querySelector<HTMLElement>(`[data-canviar="${index}"]`)?.focus();
   },
@@ -324,7 +381,7 @@ function seccioCompte(): HTMLElement | null {
 // ——— Pantalles ———
 
 function navegacio(): HTMLElement {
-  const actiu = pantalla.tipus === 'recepta' ? 'menu' : pantalla.tipus;
+  const actiu = pantalla.tipus === 'recepta' || pantalla.tipus === 'triar' ? 'menu' : pantalla.tipus;
   const pestanya = (tipus: 'menu' | 'compra' | 'resum', icona: string, text: string): HTMLElement =>
     h(
       'button',
@@ -431,6 +488,18 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
       );
       desmuntar = pantallaC.desmuntar;
       return pantallaC.element;
+    }
+    case 'triar': {
+      if (!actual.apats[seccio.index]) {
+        pantalla = { tipus: 'menu' };
+        history.replaceState({ piatto: false }, '', '#/menu');
+        return contingutSeccio(respostes, pantalla);
+      }
+      const { racionsCentesimes } = avaluarMenu(catalegInicial, configuracio, []);
+      return pantallaTriar(
+        { configuracio, apats: actual.apats, index: seccio.index, racionsCentesimes, ...(seccio.receptaId ? { receptaId: seccio.receptaId } : {}) },
+        accionsTriar(seccio.index),
+      );
     }
     case 'menu': {
       const avisPuntual = missatge;

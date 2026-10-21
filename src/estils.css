@@ -1296,3 +1296,82 @@ h1:focus-visible {
     }
   }
 }
+
+/* ——— Triar el plat d'un àpat ——— */
+
+.triar__atzar {
+  align-self: flex-start;
+  margin-top: 0.5rem;
+}
+
+.triar__cerca {
+  display: block;
+  margin-top: 1rem;
+}
+
+.triar__categoria {
+  margin-top: 1.5rem;
+}
+
+.triar__titol-categoria {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.triar__compte {
+  color: var(--text-suau);
+  font-weight: 400;
+}
+
+.triar__plats {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.triar__plats--acompanyaments {
+  margin-top: 1rem;
+}
+
+.opcio-plat {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--vora);
+  border-radius: var(--radi);
+  background: var(--superficie);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.opcio-plat:active {
+  transform: scale(0.99);
+}
+
+.opcio-plat--actual {
+  border-color: var(--taronja);
+}
+
+.opcio-plat__nom {
+  font-weight: 700;
+}
+
+.opcio-plat__meta,
+.opcio-plat__nota {
+  color: var(--text-suau);
+  font-size: 0.85rem;
+}
+
+.opcio-plat__nota--actual {
+  color: var(--taronja);
+  font-weight: 700;
+}
