@@ -12,3 +12,4 @@ export * from './planificador';
 export * from './preparacio';
 export * from './questionari';
 export * from './cronometres';
+export * from './sincronitzacio';

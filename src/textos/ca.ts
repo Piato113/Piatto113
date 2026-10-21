@@ -117,6 +117,41 @@ export const textos = {
   benvinguda: {
     explicacio: 'Respon cinc preguntes i et proposarem el menú de la setmana, amb la llista de la compra.',
     desatLocal: 'De moment, les respostes es guarden en aquest dispositiu.',
+    desatCompte: 'Les respostes es desen al teu compte.',
+  },
+  entrada: {
+    titol: 'Entra',
+    explicacio: 'Escriu el teu correu i t’hi enviarem un codi per entrar. No cal contrasenya.',
+    familia: 'Si a casa feu servir el mateix correu, tots veureu el mateix menú i la mateixa llista.',
+    correu: 'Correu electrònic',
+    enviar: 'Envia’m el codi',
+    enviant: 'Enviant…',
+    titolCodi: 'Escriu el codi',
+    codiEnviat: (correu: string) => `T’hem enviat un codi a ${correu}. Pot trigar un minut; mira també el correu brossa.`,
+    codi: 'Codi',
+    entrar: 'Entra',
+    comprovant: 'Comprovant…',
+    reenviar: 'Torna a enviar el codi',
+    reenviarEn: (segons: number) => `Pots tornar a demanar-lo d’aquí a ${segons} s`,
+    reenviat: 'T’hem enviat un codi nou.',
+    canviarCorreu: 'Canvia el correu',
+    carregant: 'Carregant les teves dades…',
+    errors: {
+      correu: 'Aquest correu no sembla vàlid. Revisa’l.',
+      codi: 'El codi no és correcte o ha caducat. Revisa’l o demana’n un de nou.',
+      'massa-intents': 'Massa intents seguits. Espera uns minuts i torna-ho a provar.',
+      'no-autoritzat': 'Aquest correu encara no pot rebre codis. Fes servir el correu del compte de Supabase.',
+      connexio: 'No hi ha connexió. Torna-ho a provar quan en tinguis.',
+      desconegut: 'No ha funcionat. Torna-ho a provar d’aquí a una estona.',
+    },
+  },
+  compte: {
+    titol: 'Compte',
+    entratCom: (correu: string) => `Has entrat com a ${correu}.`,
+    desat: 'Tot desat al compte.',
+    pendent: 'Hi ha canvis sense desar al compte: s’enviaran quan hi hagi connexió.',
+    tancar: 'Tanca la sessió',
+    confirmarTancar: 'Vols tancar la sessió en aquest mòbil? Les dades continuaran al compte.',
   },
   questionari: {
     pas: (n: number, total: number) => `Pas ${n} de ${total}`,
@@ -142,7 +177,6 @@ export const textos = {
         n === 0
           ? 'Cap plat compleix aquesta configuració. Revisa les restriccions.'
           : `${n} plats del receptari compleixen aquesta configuració.`,
-      properament: 'Properament: el mode «cuinar», amb els cronòmetres de cada pas.',
     },
     receptari: {
       pregunta: 'Quin tipus de receptari vols prioritzar?',

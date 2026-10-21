@@ -136,6 +136,104 @@ body {
   color: var(--text-suau);
 }
 
+/* Pantalla d'entrada (correu i codi) */
+.entrada {
+  justify-content: flex-start;
+  gap: 0.75rem;
+  padding-top: calc(2.5rem + env(safe-area-inset-top));
+}
+
+.entrada .entrada__icona {
+  width: clamp(5rem, 24vw, 7rem);
+  margin-bottom: 0.25rem;
+}
+
+.entrada .marca {
+  margin: 0;
+  font-size: clamp(2.25rem, 11vw, 3rem);
+}
+
+.entrada__titol {
+  margin: 1.25rem 0 0;
+  font-size: 1.5rem;
+}
+
+.entrada .benvinguda__estat {
+  margin: 0;
+}
+
+.entrada__formulari {
+  width: 100%;
+  max-width: 22rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+  text-align: left;
+}
+
+.entrada__formulari .boto {
+  margin-top: 0;
+}
+
+.entrada__formulari .boto--gran {
+  min-width: 0;
+  margin-top: 0.5rem;
+}
+
+.entrada__etiqueta {
+  font-weight: 700;
+}
+
+.entrada__codi {
+  font-size: 1.5rem;
+  letter-spacing: 0.3em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.entrada__formulari .benvinguda__nota {
+  text-align: center;
+}
+
+.entrada__avis {
+  margin: 0;
+  text-align: left;
+}
+
+.entrada__familia {
+  max-width: 22rem;
+  margin-top: 0.5rem;
+}
+
+.boto:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Compte (a Configuració) */
+.compte {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--vora);
+}
+
+.compte__titol {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.compte__text {
+  margin: 0 0 0.25rem;
+  color: var(--text-suau);
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+.compte .boto {
+  margin-top: 0.75rem;
+}
+
 /* ——— Elements comuns ——— */
 
 .visualment-amagat {
@@ -563,12 +661,6 @@ h1:focus-visible {
   overflow-wrap: anywhere;
 }
 
-.resum__properament {
-  margin: 1.5rem 0 0;
-  color: var(--text-suau);
-  font-size: 0.9rem;
-  text-align: center;
-}
 
 @media (prefers-reduced-motion: reduce) {
   .progres__barra {

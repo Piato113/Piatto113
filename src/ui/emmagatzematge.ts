@@ -11,10 +11,69 @@ import {
   type RespostesQuestionari,
 } from '../domini';
 
-// Desa les respostes en aquest dispositiu fins que les dades vagin a Supabase.
+// Desa les dades en aquest dispositiu (localStorage). Amb sessió iniciada, també es copien al núvol
+// (vegeu nuvol.ts): aquí només s'avisa de cada canvi amb `quanEsDesi`.
 // El navegador pot no deixar guardar (navegació privada, dades esborrades): l'app funciona igualment.
 
+/** Dades que es desen al compte; cadascuna és una columna de la taula `dades_usuari`. */
+export type Columna = 'respostes' | 'graella' | 'menu' | 'compra';
+export const COLUMNES: readonly Columna[] = ['respostes', 'graella', 'menu', 'compra'];
+
 const CLAU = 'piatto113:respostes:v1';
+const CLAU_MENU = 'piatto113:menu:v1';
+const CLAU_GRAELLA = 'piatto113:graella:v1';
+const CLAU_COMPRA = 'piatto113:compra:v1';
+
+const CLAUS: Record<Columna, string> = { respostes: CLAU, graella: CLAU_GRAELLA, menu: CLAU_MENU, compra: CLAU_COMPRA };
+
+let enDesar: ((columna: Columna) => void) | null = null;
+
+/** Funció que es crida cada vegada que l'app desa una dada (per copiar-la al núvol). */
+export function quanEsDesi(f: ((columna: Columna) => void) | null): void {
+  enDesar = f;
+}
+
+function desar(columna: Columna, valor: unknown): void {
+  try {
+    window.localStorage.setItem(CLAUS[columna], JSON.stringify(valor));
+  } catch {
+    // Sense emmagatzematge: les dades només duren mentre la pàgina és oberta.
+  }
+  enDesar?.(columna);
+}
+
+/** Dades desades tal com són (sense validar), per enviar-les al núvol. Les que falten són `null`. */
+export function llegirDades(): Record<Columna, unknown> {
+  const dades = { respostes: null, graella: null, menu: null, compra: null } as Record<Columna, unknown>;
+  for (const c of COLUMNES) {
+    try {
+      const text = window.localStorage.getItem(CLAUS[c]);
+      dades[c] = text ? JSON.parse(text) : null;
+    } catch {
+      dades[c] = null;
+    }
+  }
+  return dades;
+}
+
+/** Desa dades que vénen del núvol, sense tornar-les a enviar. Les funcions `carregar…` les validen en llegir-les. */
+export function posarDades(dades: Partial<Record<Columna, unknown>>): void {
+  for (const c of COLUMNES) {
+    if (!(c in dades)) continue;
+    try {
+      const valor = dades[c];
+      if (valor === null || valor === undefined) window.localStorage.removeItem(CLAUS[c]);
+      else window.localStorage.setItem(CLAUS[c], JSON.stringify(valor));
+    } catch {
+      // Sense emmagatzematge.
+    }
+  }
+}
+
+/** Esborra les dades d'aquest dispositiu (en tancar la sessió). */
+export function esborrarDades(): void {
+  posarDades({ respostes: null, graella: null, menu: null, compra: null });
+}
 
 export function carregarRespostes(): RespostesQuestionari | null {
   try {
@@ -26,11 +85,7 @@ export function carregarRespostes(): RespostesQuestionari | null {
 }
 
 export function desarRespostes(respostes: RespostesQuestionari): void {
-  try {
-    window.localStorage.setItem(CLAU, JSON.stringify(respostes));
-  } catch {
-    // Sense emmagatzematge: les respostes només duren mentre la pàgina és oberta.
-  }
+  desar('respostes', respostes);
 }
 
 // ——— Menú de la setmana ———
@@ -44,9 +99,6 @@ export interface MenuDesat {
   apats: ApatPlanificat[];
   avisos: Avis[];
 }
-
-const CLAU_MENU = 'piatto113:menu:v1';
-const CLAU_GRAELLA = 'piatto113:graella:v1';
 
 function llegirGraella(valor: unknown): Graella | null {
   if (typeof valor !== 'object' || valor === null) return null;
@@ -73,11 +125,7 @@ export function carregarGraella(): Graella {
 }
 
 export function desarGraella(graella: Graella): void {
-  try {
-    window.localStorage.setItem(CLAU_GRAELLA, JSON.stringify(graella));
-  } catch {
-    // Sense emmagatzematge.
-  }
+  desar('graella', graella);
 }
 
 /** Menú desat, si és vàlid amb el catàleg actual (les receptes poden haver canviat entre versions). */
@@ -103,16 +151,10 @@ export function carregarMenu(cataleg: Cataleg): MenuDesat | null {
 }
 
 export function desarMenu(menu: MenuDesat): void {
-  try {
-    window.localStorage.setItem(CLAU_MENU, JSON.stringify(menu));
-  } catch {
-    // Sense emmagatzematge.
-  }
+  desar('menu', menu);
 }
 
 // ——— Productes marcats a la llista de la compra ———
-
-const CLAU_COMPRA = 'piatto113:compra:v1';
 
 /** Productes marcats, si són de la mateixa llista (`signatura`); si la llista ha canviat, cap. */
 export function carregarMarcats(signatura: string): Set<string> {
@@ -128,9 +170,5 @@ export function carregarMarcats(signatura: string): Set<string> {
 }
 
 export function desarMarcats(signatura: string, marcats: ReadonlySet<string>): void {
-  try {
-    window.localStorage.setItem(CLAU_COMPRA, JSON.stringify({ signatura, marcats: [...marcats] }));
-  } catch {
-    // Sense emmagatzematge.
-  }
+  desar('compra', { signatura, marcats: [...marcats] });
 }

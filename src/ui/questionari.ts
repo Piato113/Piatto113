@@ -483,6 +483,5 @@ export function pantallaResum(r: RespostesQuestionari, accions: AccionsQuestiona
         ),
       ),
     ),
-    h('p', { class: 'resum__properament' }, t.resum.properament),
   );
 }

@@ -27,6 +27,17 @@ import { pantallaMenu } from './ui/menu';
 import { pantallaPas, pantallaResum, PASSOS, type Pas } from './ui/questionari';
 import { pantallaCuinar, sortirDelModeCuinar } from './ui/cuinar';
 import { pantallaRecepta } from './ui/recepta';
+import { pantallaEntrada } from './ui/entrada';
+import {
+  aturarSincronitzacio,
+  hiHaPendents,
+  iniciarSincronitzacio,
+  nuvolActiu,
+  sincronitzar,
+  tancarSessio,
+  usuariActual,
+  type Usuari,
+} from './ui/nuvol';
 
 const arrel = document.querySelector<HTMLDivElement>('#app');
 if (!arrel) throw new Error("No s'ha trobat l'element #app");
@@ -55,6 +66,10 @@ let missatge: string | null = null;
 let graellaOberta = false;
 /** Neteja de la pantalla actual (p. ex. el mode cuinar deixa d'escoltar els cronòmetres). */
 let desmuntar: (() => void) | null = null;
+/** Usuari amb sessió iniciada (només si hi ha Supabase configurat). */
+let usuari: Usuari | null = null;
+/** Cal iniciar sessió abans de fer res. */
+const calEntrar = (): boolean => nuvolActiu && usuari === null;
 
 // ——— Adreces ———
 
@@ -145,7 +160,7 @@ function anar(nova: Pantalla, { substituirHistoria = false } = {}): void {
 }
 
 window.addEventListener('popstate', () => {
-  if (!desades) return;
+  if (!desades || calEntrar()) return;
   const nova: Pantalla = seccioDe(location.hash) ?? { tipus: 'menu' };
   if (pantalla.tipus === 'cuinar' && nova.tipus !== 'cuinar') sortirDelModeCuinar();
   pantalla = nova;
@@ -238,6 +253,74 @@ function accionsCompra(signatura: string, marcats: Set<string>) {
   };
 }
 
+// ——— Compte i dades al núvol ———
+
+/** Torna a llegir les dades desades (p. ex. quan arriben del compte). */
+function recarregarDades(): void {
+  desades = carregarRespostes();
+  menu = carregarMenu(catalegInicial);
+  // Si s'està editant el qüestionari, no es trepitja l'esborrany.
+  if (pantalla.tipus !== 'pas') esborrany = desades ? copia(desades) : respostesPerDefecte();
+}
+
+/** Han arribat dades d'un altre mòbil amb el mateix compte. */
+function quanArribinCanvis(): void {
+  recarregarDades();
+  // No es repinta mentre s'edita el qüestionari o es cuina: les dades noves surten a la pantalla següent.
+  if (pantalla.tipus === 'pas' || pantalla.tipus === 'cuinar') return;
+  if (pantalla.tipus === 'benvinguda' && desades) pantalla = { tipus: 'menu' };
+  const y = window.scrollY;
+  pintar();
+  window.scrollTo(0, y);
+}
+
+const textEstatCompte = (): string => (hiHaPendents() ? textos.compte.pendent : textos.compte.desat);
+
+/** Actualitza només el text de l'estat del compte, si és a la pantalla. */
+function pintarEstatCompte(): void {
+  const el = arrel!.querySelector<HTMLElement>('[data-estat-compte]');
+  if (el) el.textContent = textEstatCompte();
+}
+
+async function quanEntri(): Promise<void> {
+  usuari = await usuariActual();
+  if (!usuari) {
+    pintar();
+    return;
+  }
+  // Primer s'ajunten les dades del mòbil i les del compte, i després es mostra l'app.
+  await sincronitzar();
+  recarregarDades();
+  iniciarSincronitzacio(quanArribinCanvis, pintarEstatCompte);
+  anar(desades ? { tipus: 'menu' } : { tipus: 'benvinguda' }, { substituirHistoria: true });
+}
+
+async function sortirDelCompte(): Promise<void> {
+  if (!window.confirm(textos.compte.confirmarTancar)) return;
+  aturarSincronitzacio();
+  await tancarSessio();
+  usuari = null;
+  desades = null;
+  esborrany = respostesPerDefecte();
+  menu = null;
+  pantalla = { tipus: 'benvinguda' };
+  history.replaceState({ piatto: false }, '', '#/');
+  pintar();
+  enfocarTitol();
+}
+
+function seccioCompte(): HTMLElement | null {
+  if (!usuari) return null;
+  return h(
+    'section',
+    { class: 'compte', 'aria-labelledby': 'compte-titol' },
+    h('h2', { class: 'compte__titol', id: 'compte-titol' }, textos.compte.titol),
+    h('p', { class: 'compte__text' }, textos.compte.entratCom(usuari.correu)),
+    h('p', { class: 'compte__text', 'data-estat-compte': true, role: 'status' }, textEstatCompte()),
+    h('button', { type: 'button', class: 'boto boto--secundari', onclick: () => void sortirDelCompte() }, textos.compte.tancar),
+  );
+}
+
 // ——— Pantalles ———
 
 function navegacio(): HTMLElement {
@@ -301,7 +384,7 @@ function benvinguda(): HTMLElement {
       },
       textos.accions.comencar,
     ),
-    h('p', { class: 'benvinguda__nota' }, textos.benvinguda.desatLocal),
+    h('p', { class: 'benvinguda__nota' }, nuvolActiu ? textos.benvinguda.desatCompte : textos.benvinguda.desatLocal),
   );
 }
 
@@ -309,8 +392,12 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
   const configuracio = configuracioDesDeRespostes(respostes);
   const actual = menuActual(respostes);
   switch (seccio.tipus) {
-    case 'resum':
-      return pantallaResum(esborrany, accionsQuestionari);
+    case 'resum': {
+      const resum = pantallaResum(esborrany, accionsQuestionari);
+      const compte = seccioCompte();
+      if (compte) resum.append(compte);
+      return resum;
+    }
     case 'compra': {
       const signatura = signaturaCompra(actual);
       const marcats = carregarMarcats(signatura);
@@ -359,7 +446,11 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
 function pintar(): void {
   desmuntar?.();
   desmuntar = null;
-  if (pantalla.tipus === 'pas') {
+  if (calEntrar()) {
+    const entrada = pantallaEntrada(() => void quanEntri());
+    desmuntar = entrada.desmuntar;
+    substituir(arrel!, entrada.element);
+  } else if (pantalla.tipus === 'pas') {
     substituir(arrel!, pantallaPas(esborrany, pantalla.pas, pantalla.desDelResum, accionsQuestionari));
   } else if (pantalla.tipus === 'benvinguda' || !desades) {
     pantalla = { tipus: 'benvinguda' };
@@ -371,7 +462,16 @@ function pintar(): void {
   }
 }
 
-// Primera pantalla: fixa l'adreça sense afegir cap pas a l'historial.
-const adrecaInicial = adrecaDe(pantalla);
-if (adrecaInicial && adrecaInicial !== location.hash) history.replaceState({ piatto: false }, '', adrecaInicial);
-pintar();
+async function iniciar(): Promise<void> {
+  if (nuvolActiu) {
+    // La sessió es desa al mòbil: no cal connexió per saber si ja s'havia entrat.
+    usuari = await usuariActual();
+    if (usuari) iniciarSincronitzacio(quanArribinCanvis, pintarEstatCompte);
+  }
+  // Primera pantalla: fixa l'adreça sense afegir cap pas a l'historial.
+  const adrecaInicial = adrecaDe(pantalla);
+  if (adrecaInicial && adrecaInicial !== location.hash) history.replaceState({ piatto: false }, '', adrecaInicial);
+  pintar();
+}
+
+void iniciar();
