@@ -195,7 +195,7 @@ export const receptesCasolanesRapides: Recepta[] = [
       l('sal', 5),
       l('ou', 1),
       l('pa-torrat', 30),
-      l('pernil-serra', 60),
+      l('formatge-llesques', 80),
     ],
     passos: [
       p('Pela l’all ({all}) i tritura’l (amb un trinxador, ratllat o xafat al morter fins que sigui una pasta). Pica el julivert ({julivert}) ben fi.'),
@@ -223,7 +223,7 @@ export const receptesCasolanesRapides: Recepta[] = [
         'Coure cada banda',
       ),
       p(
-        'Si vols, l’últim minut posa una llesca de pernil ({pernil-serra}) sobre cada hamburguesa perquè se’n fongui el greix a sobre. ' +
+        'Si vols, l’últim minut posa una llesca de formatge ({formatge-llesques}) sobre cada hamburguesa i tapa-la (amb una tapa o un bol) perquè es fongui. ' +
           'Serveix-les amb l’acompanyament: patates fregides, adobades, arròs, puré o amanida.',
       ),
     ],
