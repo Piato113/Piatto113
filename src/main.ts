@@ -2,6 +2,8 @@ import './estils.css';
 import { catalegInicial } from './dades';
 import {
   avaluarMenu,
+  diesQueQueden,
+  esPeriodeNou,
   avui,
   canviarPlat,
   dillunsDe,
@@ -20,6 +22,7 @@ import {
   respostesPerDefecte,
   type Assistencia,
   type ConfiguracioFamilia,
+  type FiltreReceptari,
   type Graella,
   type RespostesQuestionari,
 } from './domini';
@@ -35,6 +38,7 @@ import {
   desarMarcats,
   desarMenu,
   desarRespostes,
+  type MenuAnterior,
   type MenuDesat,
   type PeriodeMenu,
 } from './ui/emmagatzematge';
@@ -62,12 +66,13 @@ if (!arrel) throw new Error("No s'ha trobat l'element #app");
 /** Pantalles amb adreça pròpia (es pot tornar enrere amb el botó del mòbil). */
 type Seccio =
   | { tipus: 'menu' }
+  | { tipus: 'anterior' }
   | { tipus: 'compra' }
   | { tipus: 'receptari' }
   | { tipus: 'resum' }
   | { tipus: 'triar'; index: number; receptaId?: string }
-  | { tipus: 'recepta'; receptaId: string; acompanyamentId?: string; apat?: number }
-  | { tipus: 'cuinar'; receptaId: string; acompanyamentId?: string; pas: number; apat?: number };
+  | { tipus: 'recepta'; receptaId: string; acompanyamentId?: string; apat?: number; anterior?: boolean }
+  | { tipus: 'cuinar'; receptaId: string; acompanyamentId?: string; pas: number; apat?: number; anterior?: boolean };
 
 type Pantalla = { tipus: 'benvinguda' } | { tipus: 'pas'; pas: Pas; desDelResum: boolean } | Seccio;
 
@@ -89,8 +94,12 @@ let assistenciaOberta: number | null = null;
 let graellaOberta = false;
 /** Setmana del menú mensual que es mostra; `null`: la d'avui (o la primera). */
 let setmanaVisible: number | null = null;
+/** Setmana que es mostra del menú anterior (si és mensual). */
+let setmanaVisibleAnterior: number | null = null;
 /** Cerca del receptari (es conserva en tornar d'una recepta). */
 let cercaReceptari = '';
+/** Filtre de cuina o dieta del receptari. */
+let filtreReceptari: FiltreReceptari | null = null;
 /** Neteja de la pantalla actual (p. ex. el mode cuinar deixa d'escoltar els cronòmetres). */
 let desmuntar: (() => void) | null = null;
 /** Usuari amb sessió iniciada (només si hi ha Supabase configurat). */
@@ -104,6 +113,8 @@ function adrecaDe(p: Pantalla): string | null {
   switch (p.tipus) {
     case 'menu':
       return '#/menu';
+    case 'anterior':
+      return '#/menu/anterior';
     case 'compra':
       return '#/compra';
     case 'receptari':
@@ -118,6 +129,7 @@ function adrecaDe(p: Pantalla): string | null {
       if (p.tipus === 'cuinar') params.set('pas', String(p.pas));
       if (p.acompanyamentId) params.set('amb', p.acompanyamentId);
       if (p.apat !== undefined) params.set('apat', String(p.apat));
+      if (p.anterior) params.set('ant', '1');
       const consulta = params.toString();
       return `#/${p.tipus}/${encodeURIComponent(p.receptaId)}${consulta ? `?${consulta}` : ''}`;
     }
@@ -129,6 +141,7 @@ function adrecaDe(p: Pantalla): string | null {
 function seccioDe(adreca: string): Seccio | null {
   const [cami = '', consulta = ''] = adreca.replace(/^#/, '').split('?');
   if (cami === '/menu') return { tipus: 'menu' };
+  if (cami === '/menu/anterior') return { tipus: 'anterior' };
   if (cami === '/compra') return { tipus: 'compra' };
   if (cami === '/receptari') return { tipus: 'receptari' };
   if (cami === '/configuracio') return { tipus: 'resum' };
@@ -149,6 +162,7 @@ function seccioDe(adreca: string): Seccio | null {
     const extra = {
       ...(amb && catalegInicial.receptes.has(amb) ? { acompanyamentId: amb } : {}),
       ...(Number.isInteger(apat) && apat >= 0 ? { apat } : {}),
+      ...(params.get('ant') === '1' ? { anterior: true } : {}),
     };
     if (plat[1] === 'recepta') return { tipus: 'recepta', receptaId, ...extra };
     const pas = Math.max(0, Number.parseInt(params.get('pas') ?? '0', 10) || 0);
@@ -189,15 +203,27 @@ function ferMenu(
   const pla = planificar({ cataleg: catalegInicial, configuracio, graella, llavor, ...(dies ? { dies } : {}) });
   // Els convidats i absències d'un dia no canvien perquè es torni a fer el menú.
   const apats = conservarAssistencia(configuracio.persones, pla.apats, menu?.apats ?? []);
-  const nou: MenuDesat = { signatura: JSON.stringify(respostes), llavor, graella, apats, avisos: pla.avisos };
+  const nou: MenuDesat = { signatura: JSON.stringify(respostes), llavor, graella, apats, avisos: pla.avisos, creat: avui() };
   if (mesTriat) Object.assign(nou, { periode: 'mes', mes: mesTriat });
+  // El menú d'un altre període passa a ser l'anterior (per seguir-lo mentre s'acaba); si és el mateix, es conserva el d'abans.
+  const anterior = menu && esPeriodeNou(menu, nou) ? senseAnterior(menu) : menu?.anterior;
+  if (anterior) nou.anterior = anterior;
   desarMenu(nou);
   return nou;
 }
 
+function senseAnterior(m: MenuDesat): MenuAnterior {
+  const { anterior: _anterior, ...resta } = m;
+  return resta;
+}
+
+/** Com es diu un menú guardat com a anterior. */
+const titolAnterior = (m: MenuAnterior): string =>
+  m.periode === 'mes' && m.mes ? textos.menu.titolMes(m.mes) : textos.menu.anterior.setmana;
+
 /** Setmana a mostrar del menú mensual: la triada o, si no, la que conté avui. */
-function setmanaAMostrar(m: MenuDesat): number {
-  if (setmanaVisible !== null) return setmanaVisible;
+function setmanaAMostrar(m: MenuAnterior, triada: number | null = setmanaVisible): number {
+  if (triada !== null) return triada;
   const dilluns = dillunsDe(avui());
   const index = setmanesDelMenu(m.apats).findIndex((s) => s.dilluns === dilluns);
   return Math.max(0, index);
@@ -216,8 +242,13 @@ const signaturaCompra = (m: MenuDesat): string =>
   JSON.stringify([m.signatura, m.apats.map((a) => [a.data ?? a.dia, a.apat, a.receptaId, a.acompanyamentId ?? null])]);
 
 /** Racions d'un plat obert des del menú (amb els convidats i absències d'aquell àpat), o de tota la família. */
-function racionsDePlat(configuracio: ConfiguracioFamilia, receptaId: string, index: number | undefined): { racions: number; persones: number } {
-  const apat = index === undefined ? undefined : menu?.apats[index];
+function racionsDePlat(
+  configuracio: ConfiguracioFamilia,
+  receptaId: string,
+  index: number | undefined,
+  anterior = false,
+): { racions: number; persones: number } {
+  const apat = index === undefined ? undefined : (anterior ? menu?.anterior : menu)?.apats[index];
   if (apat && (apat.receptaId === receptaId || apat.acompanyamentId === receptaId)) {
     return { racions: racionsApat(configuracio.persones, apat), persones: comensals(configuracio.persones, apat.assistencia) };
   }
@@ -324,6 +355,20 @@ function accionsTriar(index: number) {
   };
 }
 
+/** Obre la recepta d'un àpat del menú actual o de l'anterior. */
+function obrirReceptaDe(m: MenuAnterior | null | undefined, index: number, anterior: boolean): void {
+  const apat = m?.apats[index];
+  if (!apat) return;
+  enfocarEnTornar = null;
+  anar({
+    tipus: 'recepta',
+    receptaId: apat.receptaId,
+    apat: index,
+    ...(apat.acompanyamentId ? { acompanyamentId: apat.acompanyamentId } : {}),
+    ...(anterior ? { anterior: true } : {}),
+  });
+}
+
 const accionsMenu = {
   /** Obre el llistat de plats per triar el d'aquest àpat. */
   obrirTriar: (index: number): void => anar({ tipus: 'triar', index }),
@@ -372,15 +417,13 @@ const accionsMenu = {
     if (boto) arrel!.querySelector<HTMLElement>(`[data-setmana="${boto}"]`)?.focus();
     else arrel!.querySelector<HTMLElement>('.setmanes')?.scrollIntoView({ block: 'start' });
   },
-  obrirRecepta: (index: number): void => {
-    const apat = menu?.apats[index];
-    if (!apat) return;
-    anar(
-      apat.acompanyamentId
-        ? { tipus: 'recepta', receptaId: apat.receptaId, acompanyamentId: apat.acompanyamentId, apat: index }
-        : { tipus: 'recepta', receptaId: apat.receptaId, apat: index },
-    );
+  obrirRecepta: (index: number): void => obrirReceptaDe(menu, index, false),
+  veureAnterior: (): void => {
+    if (!menu?.anterior) return;
+    setmanaVisibleAnterior = null;
+    anar({ tipus: 'anterior' });
   },
+  tornarAlActual: (): void => anar({ tipus: 'menu' }),
   /** Obre o tanca el quadre «Qui hi ha a taula?» d'un àpat. */
   obrirAssistencia: (index: number): void => {
     assistenciaOberta = assistenciaOberta === index ? null : index;
@@ -500,7 +543,7 @@ function seccioCompte(): HTMLElement | null {
 function navegacio(): HTMLElement {
   // Una recepta oberta des d'un àpat és del menú; sense àpat, del receptari.
   const actiu =
-    pantalla.tipus === 'recepta' ? (pantalla.apat === undefined ? 'receptari' : 'menu') : pantalla.tipus === 'triar' ? 'menu' : pantalla.tipus;
+    pantalla.tipus === 'recepta' ? (pantalla.apat === undefined ? 'receptari' : 'menu') : pantalla.tipus === 'triar' || pantalla.tipus === 'anterior' ? 'menu' : pantalla.tipus;
   const pestanya = (tipus: 'menu' | 'compra' | 'receptari' | 'resum', icona: string, text: string): HTMLElement =>
     h(
       'button',
@@ -585,7 +628,7 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
     }
     case 'receptari':
       return pantallaReceptari(
-        { configuracio, racionsCentesimes: racionsApat(configuracio.persones, {}), cerca: cercaReceptari },
+        { configuracio, racionsCentesimes: racionsApat(configuracio.persones, {}), cerca: cercaReceptari, filtre: filtreReceptari },
         {
           obrir: (receptaId) => {
             enfocarEnTornar = `[data-plat="${CSS.escape(receptaId)}"]`;
@@ -594,10 +637,17 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
           cercar: (text) => {
             cercaReceptari = text;
           },
+          filtrar: (filtre) => {
+            filtreReceptari = filtre;
+            const y = window.scrollY;
+            pintar();
+            window.scrollTo(0, y);
+            arrel!.querySelector<HTMLElement>(`[data-filtre="${filtre ?? 'totes'}"]`)?.focus({ preventScroll: true });
+          },
         },
       );
     case 'recepta': {
-      const { racions, persones } = racionsDePlat(configuracio, seccio.receptaId, seccio.apat);
+      const { racions, persones } = racionsDePlat(configuracio, seccio.receptaId, seccio.apat, seccio.anterior);
       // Plat a la carta que demana acompanyament: es diu amb què va bé.
       const suggeriments =
         seccio.apat === undefined && !seccio.acompanyamentId
@@ -607,13 +657,18 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
         { ...seccio, racionsCentesimes: racions, persones, suggeriments },
         {
           tornar,
-          obrir: (receptaId) => anar(seccio.apat === undefined ? { tipus: 'recepta', receptaId } : { tipus: 'recepta', receptaId, apat: seccio.apat }),
+          obrir: (receptaId) =>
+            anar(
+              seccio.apat === undefined
+                ? { tipus: 'recepta', receptaId }
+                : { tipus: 'recepta', receptaId, apat: seccio.apat, ...(seccio.anterior ? { anterior: true } : {}) },
+            ),
           cuinar: () => anar({ ...seccio, tipus: 'cuinar', pas: 0 }),
         },
       );
     }
     case 'cuinar': {
-      const { racions } = racionsDePlat(configuracio, seccio.receptaId, seccio.apat);
+      const { racions } = racionsDePlat(configuracio, seccio.receptaId, seccio.apat, seccio.anterior);
       const anarAlPas = (pas: number): void => anar({ ...seccio, pas }, { substituirHistoria: true });
       const pantallaC = pantallaCuinar(
         { ...seccio, racionsCentesimes: racions },
@@ -625,7 +680,7 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
                 ? { ...seccio, pas }
                 : seccio.apat === undefined
                   ? { tipus: 'cuinar', receptaId, pas }
-                  : { tipus: 'cuinar', receptaId, pas, apat: seccio.apat },
+                  : { tipus: 'cuinar', receptaId, pas, apat: seccio.apat, ...(seccio.anterior ? { anterior: true } : {}) },
               { substituirHistoria: true },
             ),
           // Torna on era (normalment la recepta); si s'hi ha arribat per un enllaç directe, al menú.
@@ -664,8 +719,44 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
           ...(actual.mes ? { mes: actual.mes } : {}),
           mesos: mesosTriables(),
           setmanaVisible: setmanaAMostrar(actual),
+          ...(actual.anterior
+            ? { anterior: { titol: titolAnterior(actual.anterior), queden: diesQueQueden(actual.anterior.apats, avui()) } }
+            : {}),
         },
         accionsMenu,
+      );
+    }
+    case 'anterior': {
+      const ant = actual.anterior;
+      if (!ant) {
+        pantalla = { tipus: 'menu' };
+        history.replaceState({ piatto: false }, '', '#/menu');
+        return contingutSeccio(respostes, pantalla);
+      }
+      return pantallaMenu(
+        {
+          configuracio,
+          graella: ant.graella,
+          apats: ant.apats,
+          avisos: [],
+          periode: ant.periode ?? 'setmana',
+          ...(ant.mes ? { mes: ant.mes } : {}),
+          mesos: [],
+          setmanaVisible: setmanaAMostrar(ant, setmanaVisibleAnterior),
+          lectura: { titol: titolAnterior(ant) },
+        },
+        {
+          ...accionsMenu,
+          obrirRecepta: (index) => obrirReceptaDe(ant, index, true),
+          veureSetmana: (index) => {
+            if (index < 0 || index >= setmanesDelMenu(ant.apats).length) return;
+            const boto = (document.activeElement as HTMLElement | null)?.dataset['setmana'];
+            setmanaVisibleAnterior = index;
+            pintar();
+            if (boto) arrel!.querySelector<HTMLElement>(`[data-setmana="${boto}"]`)?.focus();
+            else arrel!.querySelector<HTMLElement>('.setmanes')?.scrollIntoView({ block: 'start' });
+          },
+        },
       );
     }
   }

@@ -42,6 +42,10 @@ export interface DadesMenu {
   mesos: { mes: string; resta: boolean }[];
   /** Setmana del menú mensual que es mostra (índex). */
   setmanaVisible: number;
+  /** Menú anterior guardat: com es diu i quants dies li queden (0 si ja ha passat). */
+  anterior?: { titol: string; queden: number };
+  /** Es mostra el menú anterior: només per consultar (sense «Canvia», graella ni període). */
+  lectura?: { titol: string };
 }
 
 export interface AccionsMenu {
@@ -56,6 +60,9 @@ export interface AccionsMenu {
   /** Canvia entre menú setmanal i mensual (i de quin mes). */
   canviarPeriode: (periode: PeriodeMenu, mes?: string) => void;
   veureSetmana: (index: number) => void;
+  /** Obre el menú anterior, o torna a l'actual des de l'anterior. */
+  veureAnterior: () => void;
+  tornarAlActual: () => void;
 }
 
 const tt = tm.taula;
@@ -286,7 +293,14 @@ const CATEGORIES_LLEGENDA = ['carn', 'peix', 'ou', 'llegums', 'pasta', 'arros', 
 
 let mensual = false;
 
-function targetaApat(a: ApatPlanificat, index: number, configuracio: ConfiguracioFamilia, oberta: boolean, accions: AccionsMenu): HTMLElement {
+function targetaApat(
+  a: ApatPlanificat,
+  index: number,
+  configuracio: ConfiguracioFamilia,
+  oberta: boolean,
+  accions: AccionsMenu,
+  lectura: boolean,
+): HTMLElement {
   const racions = racionsApat(configuracio.persones, a);
   const resum = resumTaula(configuracio, a);
   const principal = recepta(a.receptaId);
@@ -314,8 +328,10 @@ function targetaApat(a: ApatPlanificat, index: number, configuracio: Configuraci
       ),
       acompanyament ? h('p', { class: 'apat__acompanyament' }, tm.amb(acompanyament.nom)) : null,
       h('p', { class: 'apat__meta' }, [temps, formatEuros(cost)].filter(Boolean).join(' · ')),
-      mensual ? notaDescongelar([principal, acompanyament]) : null,
-      h(
+      mensual && !lectura ? notaDescongelar([principal, acompanyament]) : null,
+      lectura
+        ? h('p', { class: 'apat__meta' }, h('span', { 'aria-hidden': 'true' }, '👥 '), resum)
+        : h(
         'button',
         {
           type: 'button',
@@ -330,7 +346,9 @@ function targetaApat(a: ApatPlanificat, index: number, configuracio: Configuraci
         resum,
       ),
     ),
-    h(
+    lectura
+      ? null
+      : h(
       'button',
       {
         type: 'button',
@@ -341,12 +359,12 @@ function targetaApat(a: ApatPlanificat, index: number, configuracio: Configuraci
       },
       tm.canviar,
     ),
-    oberta ? quadreTaula(configuracio, a, index, accions) : null,
+    oberta && !lectura ? quadreTaula(configuracio, a, index, accions) : null,
   );
 }
 
 export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElement {
-  const { configuracio, graella, apats, avisos } = dades;
+  const { configuracio, graella, apats, avisos, lectura } = dades;
   const { llista, costConsumitCentims, racionsCentesimes, racionsMenuCentesimes } = avaluarMenu(catalegInicial, configuracio, apats);
   const perApat = apats.length > 0 ? Math.round(costConsumitCentims / apats.length) : 0;
   const pressupostApat =
@@ -401,7 +419,29 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
   return h(
     'main',
     { class: 'menu' },
-    h('h1', { class: 'menu__titol', tabindex: -1 }, mensual ? tm.titolMes(dades.mes!) : tm.titol),
+    lectura
+      ? h(
+          'div',
+          { class: 'menu__anterior' },
+          h('p', { class: 'menu__nota' }, tm.anterior.lectura),
+          h('button', { type: 'button', class: 'boto boto--petit boto--secundari', 'data-anterior': 'tornar', onclick: accions.tornarAlActual }, `← ${tm.anterior.tornar}`),
+        )
+      : null,
+    h('h1', { class: 'menu__titol', tabindex: -1 }, lectura ? lectura.titol : mensual ? tm.titolMes(dades.mes!) : tm.titol),
+    !lectura && dades.anterior
+      ? dades.anterior.queden > 0
+        ? h(
+            'div',
+            { class: 'avis menu__anterior', role: 'status' },
+            h('p', {}, tm.anterior.queden(dades.anterior.queden, dades.anterior.titol)),
+            h('button', { type: 'button', class: 'boto boto--petit boto--secundari', 'data-anterior': 'veure', onclick: accions.veureAnterior }, tm.anterior.veure),
+          )
+        : h(
+            'button',
+            { type: 'button', class: 'boto boto--petit boto--fantasma menu__veure-anterior', 'data-anterior': 'veure', onclick: accions.veureAnterior },
+            `← ${tm.anterior.boto(dades.anterior.titol)}`,
+          )
+      : null,
     apats.length > 0
       ? h(
           'section',
@@ -421,13 +461,13 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
             : h('p', { class: 'menu__nota' }, `${tm.compra(formatEuros(llista.totalCompraCentims))} ${tm.explicacioCompra}`),
         )
       : null,
-    dades.missatge ? h('p', { class: 'avis', role: 'status' }, dades.missatge) : null,
-    sobrePressupost ? h('p', { class: 'avis', role: 'status' }, tm.sobrePressupost) : null,
-    ...textosAvisos.map((text) => h('p', { class: 'avis', role: 'status' }, text)),
-    selectorPeriode(dades, accions),
-    graellaEditable(graella, dades.graellaOberta === true, accions.canviarGraella),
+    !lectura && dades.missatge ? h('p', { class: 'avis', role: 'status' }, dades.missatge) : null,
+    !lectura && sobrePressupost ? h('p', { class: 'avis', role: 'status' }, tm.sobrePressupost) : null,
+    ...(lectura ? [] : textosAvisos).map((text) => h('p', { class: 'avis', role: 'status' }, text)),
+    lectura ? null : selectorPeriode(dades, accions),
+    lectura ? null : graellaEditable(graella, dades.graellaOberta === true, accions.canviarGraella),
     apats.length === 0 ? h('p', { class: 'avis' }, tm.capApat) : null,
-    apats.length > 0
+    apats.length > 0 && !lectura
       ? h('button', { type: 'button', class: 'boto boto--secundari menu__refer', onclick: accions.tornarAFer }, `🔄 ${tm.tornarAFer}`)
       : null,
     mensual && apats.length > 0 ? calendariMes(dades.mes!, apats, setmanes, visible, accions) : null,
@@ -437,7 +477,7 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
         'section',
         { class: 'dia', 'aria-labelledby': `dia-${clau}` },
         h('h2', { class: 'dia__nom', id: `dia-${clau}` }, nom),
-        ...delDia.map(({ a, index }) => targetaApat(a, index, configuracio, dades.assistenciaOberta === index, accions)),
+        ...delDia.map(({ a, index }) => targetaApat(a, index, configuracio, dades.assistenciaOberta === index, accions, lectura !== undefined)),
       ),
     ),
   );

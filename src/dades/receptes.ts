@@ -1,5 +1,6 @@
 import type { LiniaRecepta, Recepta, Unitat } from '../domini';
 import { ambAparells } from './aparells';
+import { ambCuina } from './cuines';
 import { preparacio } from './preparacio';
 import { receptesAcompanyaments } from './receptes-acompanyaments';
 import { receptesCatalanes } from './receptes-catalanes';
@@ -362,4 +363,4 @@ const totes: Recepta[] = [
 ];
 
 /** Totes les receptes, amb els aparells que necessiten (dades/aparells.ts). */
-export const receptes: Recepta[] = totes.map(ambAparells);
+export const receptes: Recepta[] = totes.map(ambAparells).map(ambCuina);

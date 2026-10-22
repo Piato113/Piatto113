@@ -41,3 +41,35 @@ export function estalviCompraPeriode(
   );
   return { setmanalCentims, totCentims, estalviCentims: Math.max(0, setmanalCentims - totCentims) };
 }
+
+/** Dades d'un menú que diuen de quin període és. */
+export interface IdentitatMenu {
+  periode?: 'setmana' | 'mes';
+  /** «AAAA-MM» del menú mensual. */
+  mes?: string;
+  /** «AAAA-MM-DD» del dia que es va fer. */
+  creat?: string;
+}
+
+/**
+ * Període que cobreix un menú: el mes, en el mensual; la setmana en què es va fer, en el setmanal.
+ * `null` si no se sap (menús antics sense data).
+ */
+export function clauPeriode(m: IdentitatMenu): string | null {
+  if (m.periode === 'mes') return m.mes ? `mes:${m.mes}` : null;
+  return m.creat ? `setmana:${dillunsDe(m.creat)}` : null;
+}
+
+/**
+ * En fer un menú nou, l'actual passa a ser l'anterior només si és d'un altre període
+ * (tornar a fer el menú del mateix mes o de la mateixa setmana no esborra l'anterior de debò).
+ */
+export function esPeriodeNou(actual: IdentitatMenu, nou: IdentitatMenu): boolean {
+  const a = clauPeriode(actual);
+  return a === null || a !== clauPeriode(nou);
+}
+
+/** Dies (dates diferents) d'un menú amb data que encara no han passat, des d'avui inclòs. */
+export function diesQueQueden(apats: readonly ApatPlanificat[], avui: string): number {
+  return new Set(apats.flatMap((a) => (a.data && a.data >= avui ? [a.data] : []))).size;
+}

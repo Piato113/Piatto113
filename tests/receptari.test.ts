@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { catalegInicial } from '../src/dades';
-import { configuracioDesDeRespostes, generarLlista, receptari, respostesPerDefecte, type RespostesQuestionari } from '../src/domini';
+import { cuinesReceptes } from '../src/dades/cuines';
+import { configuracioDesDeRespostes, filtrarReceptari, filtresReceptari, generarLlista, receptari, respostesPerDefecte, type RespostesQuestionari } from '../src/domini';
 
 const config = (canvis: Partial<RespostesQuestionari> = {}) => configuracioDesDeRespostes({ ...respostesPerDefecte(), ...canvis });
 const ids = (canvis: Partial<RespostesQuestionari> = {}) => receptari(catalegInicial, config(canvis)).flatMap((s) => s.receptes.map((r) => r.id));
@@ -38,5 +39,34 @@ describe('llista de la compra d’un sol plat', () => {
     expect(llista.elements.length).toBeGreaterThan(0);
     expect(llista.totalCompraCentims).toBeGreaterThan(0);
     expect(llista.elements.every((e) => e.receptes.length === 1 && e.receptes[0] === r.id)).toBe(true);
+  });
+});
+
+describe('filtres del receptari', () => {
+  const seccions = receptari(catalegInicial, config());
+  const totes = seccions.flatMap((s) => s.receptes);
+
+  it('cada recepta té cuina i les de cuines.ts existeixen', () => {
+    for (const id of Object.keys(cuinesReceptes)) expect(catalegInicial.receptes.has(id), id).toBe(true);
+    expect([...catalegInicial.receptes.values()].every((r) => r.cuina !== undefined)).toBe(true);
+  });
+
+  it('filtra per cuina i per dieta', () => {
+    const italianes = filtrarReceptari(catalegInicial, seccions, 'italiana').flatMap((s) => s.receptes);
+    expect(italianes.length).toBeGreaterThan(20);
+    expect(italianes.every((r) => r.cuina === 'italiana')).toBe(true);
+    const veganes = filtrarReceptari(catalegInicial, seccions, 'vegana').flatMap((s) => s.receptes.map((r) => r.id));
+    expect(veganes).toContain('falafel');
+    expect(veganes).not.toContain('truita-carbasso');
+    const vegetarianes = filtrarReceptari(catalegInicial, seccions, 'vegetariana').flatMap((s) => s.receptes.map((r) => r.id));
+    expect(vegetarianes).toContain('truita-carbasso');
+    expect(vegetarianes).not.toContain('paella');
+    expect(filtrarReceptari(catalegInicial, seccions, null).flatMap((s) => s.receptes)).toHaveLength(totes.length);
+  });
+
+  it('només ofereix filtres útils', () => {
+    expect(filtresReceptari(catalegInicial, seccions)).toEqual(expect.arrayContaining(['catalana', 'italiana', 'mexicana', 'vegana']));
+    const vegans = receptari(catalegInicial, config({ dieta: 'vegana' }));
+    expect(filtresReceptari(catalegInicial, vegans)).not.toContain('vegana');
   });
 });

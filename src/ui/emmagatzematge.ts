@@ -104,7 +104,13 @@ export interface MenuDesat {
   periode?: PeriodeMenu;
   /** Mes del menú mensual, «AAAA-MM». */
   mes?: string;
+  /** Dia que es va fer, «AAAA-MM-DD» (els menús antics no en tenen). */
+  creat?: string;
+  /** Menú del període anterior, per poder-lo seguir mentre s'acaba (sense el seu propi anterior). */
+  anterior?: MenuAnterior;
 }
+
+export type MenuAnterior = Omit<MenuDesat, 'anterior'>;
 
 export type PeriodeMenu = 'setmana' | 'mes';
 
@@ -142,6 +148,18 @@ export function carregarMenu(cataleg: Cataleg): MenuDesat | null {
     const text = window.localStorage.getItem(CLAU_MENU);
     if (!text) return null;
     const v = JSON.parse(text) as Partial<MenuDesat>;
+    const menu = llegirMenu(v, cataleg);
+    if (!menu) return null;
+    // Si el menú anterior ja no és vàlid (p. ex. una recepta que ja no hi és), es perd només l'anterior.
+    const anterior = typeof v.anterior === 'object' && v.anterior !== null ? llegirMenu(v.anterior, cataleg) : null;
+    return anterior ? { ...menu, anterior } : menu;
+  } catch {
+    return null;
+  }
+}
+
+function llegirMenu(v: Partial<MenuDesat>, cataleg: Cataleg): MenuAnterior | null {
+  try {
     const graella = llegirGraella(v.graella);
     if (typeof v.signatura !== 'string' || typeof v.llavor !== 'number' || !graella || !Array.isArray(v.apats)) return null;
     const valids = v.apats.every(
@@ -164,7 +182,8 @@ export function carregarMenu(cataleg: Cataleg): MenuDesat | null {
         Number.isInteger(assistencia.convidats);
       return valida ? { ...sense, assistencia: { absents: [...assistencia.absents], convidats: assistencia.convidats } } : sense;
     });
-    const menu: MenuDesat = { signatura: v.signatura, llavor: v.llavor, graella, apats, avisos: Array.isArray(v.avisos) ? v.avisos : [] };
+    const menu: MenuAnterior = { signatura: v.signatura, llavor: v.llavor, graella, apats, avisos: Array.isArray(v.avisos) ? v.avisos : [] };
+    if (typeof v.creat === 'string' && esData(v.creat)) menu.creat = v.creat;
     // Menú mensual: cal el mes i que tots els àpats tinguin data; si no, es tracta com un de setmanal nou.
     if (v.periode === 'mes') {
       if (typeof v.mes !== 'string' || !llegirMes(v.mes) || !apats.every((a) => a.data !== undefined)) return null;

@@ -87,6 +87,10 @@ export interface Pas {
 
 export type TipusRecepta = 'principal' | 'acompanyament' | 'ambdos';
 
+/** Cuines del receptari. «mon»: altres cuines del món (àrab, francesa, americana…). */
+export const CUINES = ['catalana', 'espanyola', 'casolana', 'italiana', 'mexicana', 'asiatica', 'mon'] as const;
+export type Cuina = (typeof CUINES)[number];
+
 export interface Recepta {
   id: string;
   nom: string;
@@ -119,6 +123,8 @@ export interface Recepta {
    * (n'hi ha prou amb un): `['batedora', ['forn', 'fregidora-aire']]`.
    */
   aparells?: (Aparell | Aparell[])[];
+  /** Cuina del plat, per filtrar el receptari (sense valor: casolana). */
+  cuina?: Cuina;
 }
 
 /** Preu orientatiu i editable d'un paquet de compra. */

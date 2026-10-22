@@ -5,7 +5,7 @@ import { racionsApat, racionsEfectives } from './escalat';
 import type { DiaCalendari } from './calendari';
 import { apatsMarcats, DIES, esCapDeSetmana } from './graella';
 import { generarLlista, type LlistaCompra } from './llista';
-import type { Aparell, Apat, ApatPlanificat, Avis, ConfiguracioFamilia, Dia, Graella, Recepta } from './tipus';
+import { CUINES, type Aparell, type Apat, type ApatPlanificat, type Avis, type ConfiguracioFamilia, type Cuina, type Dia, type Graella, type Recepta } from './tipus';
 
 export interface EntradaPlanificador {
   cataleg: Cataleg;
@@ -589,4 +589,35 @@ export function receptari(cataleg: Cataleg, configuracio: ConfiguracioFamilia): 
   }));
   grups.push({ grup: 'acompanyament', receptes: permeses.filter(potSerAcompanyament) });
   return grups.filter((g) => g.receptes.length > 0);
+}
+
+/** Filtre del receptari: una cuina o una dieta (vegana: cap ingredient d'origen animal; vegetariana: ni carn ni peix). */
+export type FiltreReceptari = Cuina | 'vegana' | 'vegetariana';
+
+export function compleixFiltre(cataleg: Cataleg, r: Recepta, filtre: FiltreReceptari): boolean {
+  if (filtre === 'vegana' || filtre === 'vegetariana') {
+    return r.ingredients.every((l) => {
+      const origen = cataleg.ingredients.get(l.ingredientId)?.origen;
+      return origen === undefined || (filtre === 'vegetariana' && origen === 'derivat');
+    });
+  }
+  return (r.cuina ?? 'casolana') === filtre;
+}
+
+/** Filtres que tenen sentit per a aquest receptari: els que deixen alguna recepta i no les deixen totes. */
+export function filtresReceptari(cataleg: Cataleg, seccions: readonly SeccioReceptari[]): FiltreReceptari[] {
+  const totes = seccions.flatMap((s) => s.receptes);
+  const candidats: FiltreReceptari[] = [...CUINES, 'vegetariana', 'vegana'];
+  return candidats.filter((f) => {
+    const n = totes.filter((r) => compleixFiltre(cataleg, r, f)).length;
+    return n > 0 && n < totes.length;
+  });
+}
+
+/** Aplica un filtre al receptari i treu els grups que queden buits. */
+export function filtrarReceptari(cataleg: Cataleg, seccions: readonly SeccioReceptari[], filtre: FiltreReceptari | null): SeccioReceptari[] {
+  if (!filtre) return [...seccions];
+  return seccions
+    .map((s) => ({ ...s, receptes: s.receptes.filter((r) => compleixFiltre(cataleg, r, filtre)) }))
+    .filter((s) => s.receptes.length > 0);
 }
