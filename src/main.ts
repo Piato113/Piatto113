@@ -862,3 +862,8 @@ async function iniciar(): Promise<void> {
 }
 
 void iniciar();
+
+// Funcionament sense connexió: només a la versió publicada (el service worker el genera el build).
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => void navigator.serviceWorker.register('/sw.js').catch(() => undefined));
+}
