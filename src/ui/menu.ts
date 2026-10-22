@@ -410,17 +410,18 @@ function valoracioApat(receptaId: string, nomPlat: string, index: number, config
         'data-valorar': `${index}-${v}`,
         'aria-pressed': actual === v ? 'true' : 'false',
         'aria-label': etiqueta,
-        title: text,
         onclick: () => accions.valorar(receptaId, actual === v ? null : v, index),
       },
-      h('span', { 'aria-hidden': 'true' }, icona),
+      // De dalt a baix: «Ens ha encantat», 👍, 👎, «No ha triomfat».
+      ...(v === 'agrada'
+        ? [h('span', { class: 'apat__polze-text' }, text), h('span', { class: 'apat__polze-icona', 'aria-hidden': 'true' }, icona)]
+        : [h('span', { class: 'apat__polze-icona', 'aria-hidden': 'true' }, icona), h('span', { class: 'apat__polze-text' }, text)]),
     );
   return h(
     'div',
     { class: 'apat__valoracio', role: 'group', 'aria-label': tv.pregunta },
     boto('agrada', '👍', tv.agrada, tv.agradaEtiqueta(nomPlat)),
     boto('no-agrada', '👎', tv.noAgrada, tv.noAgradaEtiqueta(nomPlat)),
-    actual ? h('span', { class: 'apat__valoracio-text' }, actual === 'agrada' ? tv.agrada : tv.noAgrada) : null,
   );
 }
 

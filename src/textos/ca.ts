@@ -104,11 +104,11 @@ export const textos = {
     valoracio: {
       pregunta: 'Què tal?',
       agrada: 'Ens ha encantat',
-      noAgrada: 'No ens ha agradat',
+      noAgrada: 'No ha triomfat',
       agradaEtiqueta: (plat: string) => `${plat}: ens ha encantat (sortirà més sovint)`,
-      noAgradaEtiqueta: (plat: string) => `${plat}: no ens ha agradat (no sortirà sol al menú)`,
+      noAgradaEtiqueta: (plat: string) => `${plat}: no ha triomfat (no sortirà sol al menú)`,
       marcaAgrada: '👍 Us encanta',
-      marcaNoAgrada: '👎 No us va agradar',
+      marcaNoAgrada: '👎 No va triomfar',
     },
     confirmarTornarAFer: (fixats: number) =>
       fixats > 0
@@ -329,7 +329,7 @@ export const textos = {
     ajuda: 'Els 👍 surten més sovint al menú; els 👎 no hi surten sols (però els podeu triar a mà). Es valoren al menú, als àpats que ja han passat.',
     cap: 'Encara no heu valorat cap plat.',
     agraden: '👍 Us encanten',
-    noAgraden: '👎 No us van agradar',
+    noAgraden: '👎 No van triomfar',
     treu: 'Treu',
     treuEtiqueta: (plat: string) => `Treu la valoració de ${plat}`,
   },

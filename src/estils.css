@@ -1881,34 +1881,43 @@ h1:focus-visible {
   margin-top: 0.75rem;
 }
 
-/* 👍 / 👎 dels àpats que ja han passat */
+/* 👍 / 👎 dels àpats que ja han passat: «Ens ha encantat», 👍, 👎, «No ha triomfat» (de dalt a baix) */
 .apat__valoracio {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.3rem;
   flex: none;
+  width: 7rem;
 }
 
 .apat__polze {
-  min-width: 2.75rem;
-  font-size: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  min-height: 3.25rem;
+  padding: 0.3rem 0.4rem;
+  line-height: 1.2;
 }
 
-.apat__polze:not(.apat__polze--actiu) {
+.apat__polze-icona {
+  font-size: 1.3rem;
+}
+
+.apat__polze-text {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.apat__polze:not(.apat__polze--actiu) .apat__polze-icona {
   opacity: 0.6;
 }
 
 .apat__polze--actiu {
   border: 1px solid var(--taronja);
   background: rgb(244 115 24 / 0.15);
-}
-
-.apat__valoracio-text {
-  flex-basis: 100%;
-  color: var(--text-suau);
-  font-size: 0.8rem;
-  text-align: center;
+  color: var(--text);
 }
 
 /* Plats valorats (Configuració) */

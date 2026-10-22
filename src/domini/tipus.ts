@@ -186,7 +186,7 @@ export interface ConfiguracioFamilia {
   valoracions?: Readonly<Record<string, Valoracio>>;
 }
 
-/** 👍 «Ens ha encantat» (surt més sovint) o 👎 «No ens ha agradat» (no surt sol al menú). */
+/** 👍 «Ens ha encantat» (surt més sovint) o 👎 «No ha triomfat» (no surt sol al menú). */
 export type Valoracio = 'agrada' | 'no-agrada';
 export const VALORACIONS: readonly Valoracio[] = ['agrada', 'no-agrada'];
 
