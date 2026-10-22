@@ -1,6 +1,12 @@
 import './estils.css';
 import { catalegInicial } from './dades';
+import { NOVETATS } from './dades/novetats';
 import {
+  clauNovetat,
+  llegirEstadistiques,
+  novetatsPerMostrar,
+  xifresCataleg,
+  type Estadistiques,
   avaluarMenu,
   diesQueQueden,
   esPeriodeNou,
@@ -63,8 +69,11 @@ import {
   sincronitzar,
   tancarSessio,
   usuariActual,
+  comptarMenu,
+  demanarEstadistiques,
   type Usuari,
 } from './ui/nuvol';
+import { rotol } from './ui/rotol';
 
 const arrel = document.querySelector<HTMLDivElement>('#app');
 if (!arrel) throw new Error("No s'ha trobat l'element #app");
@@ -119,6 +128,41 @@ let filtreReceptari: FiltreReceptari | null = null;
 let desmuntar: (() => void) | null = null;
 /** Usuari amb sessió iniciada (només si hi ha Supabase configurat). */
 let usuari: Usuari | null = null;
+
+// ——— Rètol de xifres i novetats ———
+const CLAU_ESTADISTIQUES = 'piatto113:estadistiques:v1';
+const CLAU_NOVETAT_VISTA = 'piatto113:novetat-vista:v1';
+/** Cada quant es tornen a demanar les xifres al compte. */
+const CONSULTA_ESTADISTIQUES_MS = 5 * 60 * 1000;
+
+function llegirLocal(clau: string): string | null {
+  try {
+    return window.localStorage.getItem(clau);
+  } catch {
+    return null;
+  }
+}
+
+function desarLocal(clau: string, valor: string): void {
+  try {
+    window.localStorage.setItem(clau, valor);
+  } catch {
+    // Sense emmagatzematge: només es perd el record.
+  }
+}
+
+/** Últimes xifres rebudes (es guarden per mostrar-les també sense connexió). */
+let estadistiques: Estadistiques | null = (() => {
+  try {
+    return llegirEstadistiques(JSON.parse(llegirLocal(CLAU_ESTADISTIQUES) ?? 'null'));
+  } catch {
+    return null;
+  }
+})();
+let darreraConsultaEstadistiques = 0;
+/** La llista de novetats és oberta. */
+let novetatsObertes = false;
+const XIFRES_CATALEG = xifresCataleg(catalegInicial);
 /** Cal iniciar sessió abans de fer res. */
 const calEntrar = (): boolean => nuvolActiu && usuari === null;
 
@@ -229,6 +273,7 @@ function ferMenu(
   const anterior = menu && esPeriodeNou(menu, nou) ? senseAnterior(menu) : menu?.anterior;
   if (anterior) nou.anterior = anterior;
   desarMenu(nou);
+  void comptarMenu();
   return nou;
 }
 
@@ -764,6 +809,69 @@ function avisSenseConfigurar(): HTMLElement | null {
   );
 }
 
+/** Xifres del rètol: usuaris (si se saben), receptes i menús fets (si se saben). */
+function xifresRotol(): string[] {
+  const t = textos.rotol;
+  const x = XIFRES_CATALEG;
+  return [
+    ...(estadistiques && estadistiques.usuaris > 0 ? [t.usuaris(estadistiques.usuaris)] : []),
+    t.receptes(x.plats, x.acompanyaments, x.salses),
+    ...(estadistiques && estadistiques.menus > 0 ? [t.menus(estadistiques.menus)] : []),
+  ];
+}
+
+function elementRotol(): HTMLElement | null {
+  const noves = novetatsPerMostrar(NOVETATS, llegirLocal(CLAU_NOVETAT_VISTA), avui());
+  return rotol(
+    {
+      elements: [...xifresRotol(), ...noves.map((n) => textos.rotol.nou(n.text))],
+      novetats: NOVETATS,
+      xifres: xifresRotol(),
+      obert: novetatsObertes,
+    },
+    {
+      obrir: () => {
+        novetatsObertes = true;
+        // Les novetats que hi ha ara ja s'han vist: deixen de passar pel rètol.
+        if (NOVETATS[0]) desarLocal(CLAU_NOVETAT_VISTA, clauNovetat(NOVETATS[0]));
+        const y = window.scrollY;
+        pintar();
+        window.scrollTo(0, y);
+        arrel!.querySelector<HTMLElement>('#novetats-titol')?.focus({ preventScroll: true });
+      },
+      tancar: () => {
+        novetatsObertes = false;
+        const y = window.scrollY;
+        pintar();
+        window.scrollTo(0, y);
+        arrel!.querySelector<HTMLElement>('.rotol')?.focus({ preventScroll: true });
+      },
+    },
+  );
+}
+
+/** El rètol només surt al menú, i no mentre el menú és d'exemple (ja hi ha l'avís de configurar). */
+function seccioRotol(): HTMLElement | null {
+  if (pantalla.tipus !== 'menu' || !desades) return null;
+  actualitzarEstadistiques();
+  return elementRotol();
+}
+
+/** Demana les xifres al compte (com a molt cada pocs minuts) i, si han canviat, refà només el rètol. */
+function actualitzarEstadistiques(): void {
+  if (!usuari || Date.now() - darreraConsultaEstadistiques < CONSULTA_ESTADISTIQUES_MS) return;
+  darreraConsultaEstadistiques = Date.now();
+  void demanarEstadistiques().then((noves) => {
+    if (!noves || JSON.stringify(noves) === JSON.stringify(estadistiques)) return;
+    estadistiques = noves;
+    desarLocal(CLAU_ESTADISTIQUES, JSON.stringify(noves));
+    if (novetatsObertes) return;
+    const actual = arrel!.querySelector('.rotol');
+    const nou = elementRotol();
+    if (actual && nou && document.activeElement !== actual) actual.replaceWith(nou);
+  });
+}
+
 function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLElement {
   const configuracio = configuracioDe(respostes);
   const actual = menuActual(respostes);
@@ -938,7 +1046,7 @@ function pintar(): void {
   } else if (pantalla.tipus === 'cuinar') {
     substituir(arrel!, contingutSeccio(respostesActives(), pantalla));
   } else {
-    substituir(arrel!, capcalera(), avisSenseConfigurar(), contingutSeccio(respostesActives(), pantalla), navegacio());
+    substituir(arrel!, capcalera(), avisSenseConfigurar(), seccioRotol(), contingutSeccio(respostesActives(), pantalla), navegacio());
   }
 }
 

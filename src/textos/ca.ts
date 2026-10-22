@@ -1,6 +1,6 @@
 import type { OpcioDieta, OpcioPressupost, OpcioQuantitat, OpcioReceptari, OpcioTemps } from '../domini/questionari';
 import type { Alergen, Aparell, Avis, Dia } from '../domini/tipus';
-import { formatEuros } from '../domini/format';
+import { formatEuros, formatNombre } from '../domini/format';
 
 // Tots els textos de la interfície en català.
 // Afegir aquí qualsevol text nou en lloc d'escriure'l directament a les pantalles.
@@ -280,6 +280,21 @@ export const textos = {
     tornarMenu: 'Torna al menú',
     tornarRecepta: 'Torna a la recepta',
     pantallaEncesa: 'La pantalla es mantindrà encesa mentre cuines.',
+  },
+  rotol: {
+    usuaris: (n: number) => `🍽 Ja som ${formatNombre(n, 0)} a taula!`,
+    receptes: (plats: number, acompanyaments: number, salses: number) =>
+      `📖 ${formatNombre(plats, 0)} plats, ${acompanyaments} acompanyaments i ${salses} salses al receptari`,
+    menus: (n: number) => (n === 1 ? '🗓 1 menú fet' : `🗓 ${formatNombre(n, 0)} menús fets`),
+    nou: (text: string) => `✨ Nou: ${text}`,
+    etiqueta: (resum: string) => `${resum}. Toca per veure totes les novetats.`,
+    titol: 'Novetats de l’app',
+    xifres: 'En xifres',
+    data: (data: string) => {
+      const mes = nomMes(data.slice(0, 7));
+      return `${Number(data.slice(8, 10))} ${/^[aeiou]/.test(mes) ? 'd’' : 'de '}${mes}`;
+    },
+    tanca: 'Tanca',
   },
   senseConfigurar: {
     titol: 'Aquest menú és d’exemple.',

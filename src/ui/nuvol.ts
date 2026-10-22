@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { fusionar } from '../domini';
+import { fusionar, llegirEstadistiques, type Estadistiques } from '../domini';
 import { COLUMNES, esborrarDades, llegirDades, posarDades, quanEsDesi, type Columna } from './emmagatzematge';
 
 // Inici de sessió amb correu i contrasenya i còpia de les dades al compte (Supabase, taula `dades_usuari`).
@@ -265,6 +265,30 @@ function escoltarCanvisDeConnexio(): void {
   window.addEventListener('online', () => {
     if (avisarCanvis) void sincronitzarIAvisar();
   });
+}
+
+// ——— Xifres del rètol (supabase/004_estadistiques.sql) ———
+// Mentre no s'hagin creat les funcions a la base de dades, no es mostren ni es compten: cap error a la pantalla.
+
+/** Usuaris i menús fets de tota l'app, o `null` si no es poden saber (sense sessió, sense connexió o sense l'SQL). */
+export async function demanarEstadistiques(): Promise<Estadistiques | null> {
+  if (!client || !(await usuariActual())) return null;
+  try {
+    const { data, error } = await client.rpc('estadistiques_app');
+    return error ? null : llegirEstadistiques(data);
+  } catch {
+    return null;
+  }
+}
+
+/** Suma un menú fet al comptador. Si no es pot (sense connexió o sense l'SQL), no passa res. */
+export async function comptarMenu(): Promise<void> {
+  if (!client || !(await usuariActual())) return;
+  try {
+    await client.rpc('sumar_menu');
+  } catch {
+    // No importa: és només una xifra.
+  }
 }
 
 /** Deixa de copiar dades (en tancar la sessió). */

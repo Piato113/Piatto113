@@ -7,6 +7,7 @@ Fitxers SQL de la base de dades. No es connecten sols: s'executen a mà a l'**SQ
 | `001_esquema.sql` | Crea les taules `dades_usuari` i `productes` i les regles de seguretat (RLS) | Una vegada; es pot repetir sense perdre dades |
 | `002_productes.sql` | Carrega els productes i preus del Mercadona (generat, no s'edita a mà) | Després de l'esquema i cada vegada que hi hagi un llistat nou |
 | `003_valoracions.sql` | Afegeix la columna `valoracions` (plats amb 👍 / 👎) a `dades_usuari` | Una vegada; es pot repetir sense perdre dades |
+| `004_estadistiques.sql` | Comptador de menús fets i funcions per mostrar al rètol quants usuaris i menús hi ha (només números) | Una vegada; es pot repetir sense perdre dades |
 | `comprovacions.sql` | Comprova que tot és al seu lloc; no canvia res | Després dels altres dos |
 
 ## Com s'executa un fitxer
@@ -21,6 +22,10 @@ Fitxers SQL de la base de dades. No es connecten sols: s'executen a mà a l'**SQ
   `menu`, `compra` (productes marcats i «ja ho tinc») i `valoracions` (plats amb 👍 / 👎, des de `003_valoracions.sql`). Són JSON amb el mateix format que fa servir l'app.
   Cada usuari només veu, crea, canvia i esborra la seva fila; sense sessió, res. Si s'esborra l'usuari, s'esborren les seves dades.
 - **`productes`**: llistat del Mercadona (Girona, 17003), diners en cèntims. Tothom el pot llegir; només es canvia des de l'SQL Editor.
+
+- **`comptadors`** (des de `004_estadistiques.sql`): nombre de menús fets de tota l'app. Ningú hi accedeix directament:
+  l'app crida `sumar_menu()` en fer un menú i `estadistiques_app()` per llegir usuaris i menús (totes dues amb sessió iniciada).
+  Si un usuari cridés `sumar_menu()` moltes vegades seguides, inflaria la xifra; no toca cap dada de ningú.
 
 Els cronòmetres de cuina no es desen a Supabase: són d'aquell mòbil.
 

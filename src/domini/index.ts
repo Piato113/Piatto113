@@ -15,3 +15,4 @@ export * from './cronometres';
 export * from './sincronitzacio';
 export * from './calendari';
 export * from './periode';
+export * from './estadistiques';
