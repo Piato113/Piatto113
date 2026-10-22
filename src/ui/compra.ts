@@ -25,22 +25,25 @@ function dataCurta(data: string): string {
 }
 
 /** Quantitat a comprar; si l'ingredient es compta també en peces, ho afegeix: «450 g (3 u)». */
-function quantitat(e: ElementLlista): string {
+export function quantitatCompra(e: ElementLlista): string {
   const base = formatQuantitat(e.quantitat, e.unitat);
   const peca = catalegInicial.ingredients.get(e.ingredientId)?.conversions?.u;
   if (e.unitat === 'g' && peca) return `${base} (${Math.max(1, Math.ceil(e.quantitat / peca))} u)`;
   return base;
 }
 
+/** Paquets a comprar: «2 × Llet semidesnatada Hacendado (1 l)»; `null` per al rebost o sense preu. */
+export function detallCompra(e: ElementLlista): string | null {
+  if (e.rebost || !e.cost) return null;
+  const producte = catalegInicial.preus.get(e.ingredientId)?.producte;
+  return producte
+    ? tc.paquetsProducte(e.cost.paquets, producte.nom, formatQuantitat(e.cost.midaPaquet, e.unitat))
+    : `${tc.paquets(e.cost.paquets, formatQuantitat(e.cost.midaPaquet, e.unitat))} · ${tc.estimat}`;
+}
+
 function element(e: ElementLlista, marcat: boolean, accions: AccionsCompra, mensual: boolean): HTMLElement {
   const plats = e.receptes.map((id) => catalegInicial.receptes.get(id)?.nom ?? id).join(', ');
-  const producte = catalegInicial.preus.get(e.ingredientId)?.producte;
-  const detall =
-    e.rebost || !e.cost
-      ? null
-      : producte
-        ? tc.paquetsProducte(e.cost.paquets, producte.nom, formatQuantitat(e.cost.midaPaquet, e.unitat))
-        : `${tc.paquets(e.cost.paquets, formatQuantitat(e.cost.midaPaquet, e.unitat))} · ${tc.estimat}`;
+  const detall = detallCompra(e);
   return h(
     'li',
     { class: `producte${marcat ? ' producte--fet' : ''}` },
@@ -59,7 +62,7 @@ function element(e: ElementLlista, marcat: boolean, accions: AccionsCompra, mens
         { class: 'producte__text' },
         h('span', { class: 'producte__nom' }, e.nom),
         mensual && esPerCongelar(e.ingredientId) ? h('span', { class: 'producte__congelar' }, tc.congelar) : null,
-        h('span', { class: 'producte__quantitat' }, [quantitat(e), detall].filter(Boolean).join(' · ')),
+        h('span', { class: 'producte__quantitat' }, [quantitatCompra(e), detall].filter(Boolean).join(' · ')),
         h('span', { class: 'producte__plats' }, tc.perA(plats)),
       ),
       e.rebost

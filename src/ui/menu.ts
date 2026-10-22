@@ -427,6 +427,9 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
     selectorPeriode(dades, accions),
     graellaEditable(graella, dades.graellaOberta === true, accions.canviarGraella),
     apats.length === 0 ? h('p', { class: 'avis' }, tm.capApat) : null,
+    apats.length > 0
+      ? h('button', { type: 'button', class: 'boto boto--secundari menu__refer', onclick: accions.tornarAFer }, `🔄 ${tm.tornarAFer}`)
+      : null,
     mensual && apats.length > 0 ? calendariMes(dades.mes!, apats, setmanes, visible, accions) : null,
     navegacioSetmanes,
     ...dies.map(({ clau, nom, apats: delDia }) =>
@@ -437,8 +440,5 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
         ...delDia.map(({ a, index }) => targetaApat(a, index, configuracio, dades.assistenciaOberta === index, accions)),
       ),
     ),
-    apats.length > 0
-      ? h('button', { type: 'button', class: 'boto boto--secundari menu__refer', onclick: accions.tornarAFer }, tm.tornarAFer)
-      : null,
   );
 }

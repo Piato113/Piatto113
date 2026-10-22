@@ -14,6 +14,7 @@ import {
   conservarAssistencia,
   normalitzarAssistencia,
   racionsApat,
+  acompanyamentsDePlat,
   triarPlat,
   planificar,
   respostesPerDefecte,
@@ -42,6 +43,7 @@ import { pantallaPas, pantallaResum, PASSOS, type Pas } from './ui/questionari';
 import { pantallaCuinar, sortirDelModeCuinar } from './ui/cuinar';
 import { pantallaRecepta } from './ui/recepta';
 import { pantallaTriar } from './ui/triar';
+import { pantallaReceptari } from './ui/receptari';
 import { pantallaEntrada } from './ui/entrada';
 import {
   aturarSincronitzacio,
@@ -61,6 +63,7 @@ if (!arrel) throw new Error("No s'ha trobat l'element #app");
 type Seccio =
   | { tipus: 'menu' }
   | { tipus: 'compra' }
+  | { tipus: 'receptari' }
   | { tipus: 'resum' }
   | { tipus: 'triar'; index: number; receptaId?: string }
   | { tipus: 'recepta'; receptaId: string; acompanyamentId?: string; apat?: number }
@@ -86,6 +89,8 @@ let assistenciaOberta: number | null = null;
 let graellaOberta = false;
 /** Setmana del menú mensual que es mostra; `null`: la d'avui (o la primera). */
 let setmanaVisible: number | null = null;
+/** Cerca del receptari (es conserva en tornar d'una recepta). */
+let cercaReceptari = '';
 /** Neteja de la pantalla actual (p. ex. el mode cuinar deixa d'escoltar els cronòmetres). */
 let desmuntar: (() => void) | null = null;
 /** Usuari amb sessió iniciada (només si hi ha Supabase configurat). */
@@ -101,6 +106,8 @@ function adrecaDe(p: Pantalla): string | null {
       return '#/menu';
     case 'compra':
       return '#/compra';
+    case 'receptari':
+      return '#/receptari';
     case 'resum':
       return '#/configuracio';
     case 'triar':
@@ -123,6 +130,7 @@ function seccioDe(adreca: string): Seccio | null {
   const [cami = '', consulta = ''] = adreca.replace(/^#/, '').split('?');
   if (cami === '/menu') return { tipus: 'menu' };
   if (cami === '/compra') return { tipus: 'compra' };
+  if (cami === '/receptari') return { tipus: 'receptari' };
   if (cami === '/configuracio') return { tipus: 'resum' };
   const triar = /^\/triar\/(\d+)(?:\/([^/]+))?$/.exec(cami);
   if (triar) {
@@ -490,8 +498,10 @@ function seccioCompte(): HTMLElement | null {
 // ——— Pantalles ———
 
 function navegacio(): HTMLElement {
-  const actiu = pantalla.tipus === 'recepta' || pantalla.tipus === 'triar' ? 'menu' : pantalla.tipus;
-  const pestanya = (tipus: 'menu' | 'compra' | 'resum', icona: string, text: string): HTMLElement =>
+  // Una recepta oberta des d'un àpat és del menú; sense àpat, del receptari.
+  const actiu =
+    pantalla.tipus === 'recepta' ? (pantalla.apat === undefined ? 'receptari' : 'menu') : pantalla.tipus === 'triar' ? 'menu' : pantalla.tipus;
+  const pestanya = (tipus: 'menu' | 'compra' | 'receptari' | 'resum', icona: string, text: string): HTMLElement =>
     h(
       'button',
       {
@@ -510,6 +520,7 @@ function navegacio(): HTMLElement {
     { class: 'navegacio', 'aria-label': textos.navegacio.principal },
     pestanya('menu', '🍽', textos.navegacio.menu),
     pestanya('compra', '🛒', textos.navegacio.compra),
+    pestanya('receptari', '📖', textos.navegacio.receptari),
     pestanya('resum', '⚙', textos.navegacio.configuracio),
   );
 }
@@ -572,10 +583,28 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
       const estalviCentims = mensual ? estalviCompraPeriode(catalegInicial, configuracio, actual.apats).estalviCentims : 0;
       return pantallaCompra(llista, marcats, accionsCompra(signatura, marcats), mensual ? { mes: mensual, estalviCentims } : undefined);
     }
+    case 'receptari':
+      return pantallaReceptari(
+        { configuracio, racionsCentesimes: racionsApat(configuracio.persones, {}), cerca: cercaReceptari },
+        {
+          obrir: (receptaId) => {
+            enfocarEnTornar = `[data-plat="${CSS.escape(receptaId)}"]`;
+            anar({ tipus: 'recepta', receptaId });
+          },
+          cercar: (text) => {
+            cercaReceptari = text;
+          },
+        },
+      );
     case 'recepta': {
       const { racions, persones } = racionsDePlat(configuracio, seccio.receptaId, seccio.apat);
+      // Plat a la carta que demana acompanyament: es diu amb què va bé.
+      const suggeriments =
+        seccio.apat === undefined && !seccio.acompanyamentId
+          ? acompanyamentsDePlat(catalegInicial, configuracio, seccio.receptaId).map((r) => r.id)
+          : [];
       return pantallaRecepta(
-        { ...seccio, racionsCentesimes: racions, persones },
+        { ...seccio, racionsCentesimes: racions, persones, suggeriments },
         {
           tornar,
           obrir: (receptaId) => anar(seccio.apat === undefined ? { tipus: 'recepta', receptaId } : { tipus: 'recepta', receptaId, apat: seccio.apat }),

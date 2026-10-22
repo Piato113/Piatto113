@@ -562,3 +562,31 @@ export function triarPlat(
   if (actual.assistencia) nou.assistencia = actual.assistencia;
   return apats.map((a, i) => (i === index ? nou : a));
 }
+
+// ——— Receptari complet ———
+
+/** Grups del receptari: les categories dels plats i, al final, els acompanyaments. */
+export type GrupReceptari = CategoriaPlat | 'acompanyament';
+
+export interface SeccioReceptari {
+  grup: GrupReceptari;
+  receptes: Recepta[];
+}
+
+/**
+ * Receptari per fer un plat a la carta: totes les receptes que la família pot menjar i fer
+ * (dieta, al·lèrgies, aliments exclosos, etiquetes excloses i aparells), sense límit de temps ni pressupost.
+ * Les principals van per categories; els acompanyaments, a part (la truita, de doble ús, surt als dos llocs).
+ * Ordenades per nom; els grups buits no hi surten.
+ */
+export function receptari(cataleg: Cataleg, configuracio: ConfiguracioFamilia): SeccioReceptari[] {
+  const permeses = [...cataleg.receptes.values()]
+    .filter((r) => permesa(cataleg, r, configuracio))
+    .sort((a, b) => a.nom.localeCompare(b.nom, 'ca'));
+  const grups: SeccioReceptari[] = CATEGORIES_PLAT.map((grup) => ({
+    grup,
+    receptes: permeses.filter((r) => potSerPrincipal(r) && categoriaPlat(r) === grup),
+  }));
+  grups.push({ grup: 'acompanyament', receptes: permeses.filter(potSerAcompanyament) });
+  return grups.filter((g) => g.receptes.length > 0);
+}

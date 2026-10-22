@@ -59,6 +59,7 @@ export const textos = {
   navegacio: {
     menu: 'Menú',
     compra: 'Compra',
+    receptari: 'Receptari',
     configuracio: 'Configuració',
     principal: 'Seccions',
   },
@@ -140,6 +141,15 @@ export const textos = {
     plat: (nom: string) => `Per a: ${nom}`,
     triat: (plat: string) => `Fet: ${plat}.`,
   },
+  receptari: {
+    titol: 'Receptari',
+    explicacio: (n: number) =>
+      `${n} plats per fer a la carta. Només hi surten els que podeu menjar i fer amb els aparells que teniu.`,
+    cercar: 'Busca una recepta',
+    capResultat: 'Cap recepta no coincideix amb la cerca.',
+    acompanyaments: 'Acompanyaments',
+    ambAcompanyament: 'va amb acompanyament',
+  },
   compra: {
     titol: 'Llista de la compra',
     titolMes: (mes: string) => `Compra ${deMes(mes)}`,
@@ -171,6 +181,10 @@ export const textos = {
     acompanyament: 'Acompanyament',
     ambPlat: 'S’acompanya amb',
     rebost: 'del rebost',
+    compra: (total: string) => `Llista de la compra · ${total}`,
+    compraAjuda: 'Paquets del Mercadona que cal comprar només per a aquest plat.',
+    compraRebost: (ingredients: string) => `Del rebost (comprova que en tens): ${ingredients}.`,
+    vaBeAmb: 'Va bé amb',
     noTrobada: 'No s’ha trobat aquesta recepta.',
   },
   cuinar: {

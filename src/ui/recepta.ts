@@ -1,7 +1,8 @@
 import { catalegInicial } from '../dades';
-import { costRecepta, formatNombre, prepararRecepta, textQuantitat } from '../domini';
+import { costRecepta, formatNombre, generarLlista, prepararRecepta, textQuantitat } from '../domini';
 import { textos } from '../textos/ca';
 import { h } from './dom';
+import { detallCompra, quantitatCompra } from './compra';
 import { iconaAparell } from './icones';
 import { durada, euros } from './format';
 
@@ -13,12 +14,45 @@ export interface DadesRecepta {
   persones: number;
   /** Acompanyament amb què es serveix aquest plat al menú, si en té. */
   acompanyamentId?: string;
+  /** Acompanyaments que hi van bé, quan el plat en demana i no se n'ha triat cap (receptari). */
+  suggeriments?: string[];
 }
 
 export interface AccionsRecepta {
   tornar: () => void;
   obrir: (receptaId: string) => void;
   cuinar: () => void;
+}
+
+/** Què cal comprar per fer només aquest plat: paquets, preu i el que ha de ser al rebost. */
+function compraDelPlat(receptaId: string, racionsCentesimes: number): HTMLElement {
+  const llista = generarLlista(catalegInicial, [receptaId], racionsCentesimes);
+  const aComprar = llista.elements.filter((e) => !e.rebost);
+  const rebost = llista.elements.filter((e) => e.rebost);
+  return h(
+    'details',
+    { class: 'compra-plat' },
+    h('summary', { class: 'compra-plat__titol' }, `🛒 ${tr.compra(euros(llista.totalCompraCentims))}`),
+    h('p', { class: 'menu__nota' }, tr.compraAjuda),
+    h(
+      'ul',
+      { class: 'compra-plat__llista' },
+      ...aComprar.map((e) =>
+        h(
+          'li',
+          { class: 'compra-plat__producte' },
+          h(
+            'span',
+            { class: 'producte__text' },
+            h('span', { class: 'producte__nom' }, e.nom),
+            h('span', { class: 'producte__quantitat' }, [quantitatCompra(e), detallCompra(e)].filter(Boolean).join(' · ')),
+          ),
+          h('span', { class: 'producte__preu' }, e.cost ? euros(e.cost.costCompraCentims) : textos.compra.senseCost),
+        ),
+      ),
+    ),
+    rebost.length > 0 ? h('p', { class: 'menu__nota' }, tr.compraRebost(rebost.map((e) => e.nom.toLowerCase()).join(', '))) : null,
+  );
 }
 
 export function pantallaRecepta(dades: DadesRecepta, accions: AccionsRecepta): HTMLElement {
@@ -68,6 +102,21 @@ export function pantallaRecepta(dades: DadesRecepta, accions: AccionsRecepta): H
           ),
         )
       : null,
+    !acompanyament && dades.suggeriments && dades.suggeriments.length > 0
+      ? h(
+          'p',
+          { class: 'recepta__acompanyament' },
+          `${tr.vaBeAmb}: `,
+          ...dades.suggeriments.flatMap((id, i) => {
+            const a = catalegInicial.receptes.get(id);
+            if (!a) return [];
+            return [
+              i > 0 ? ', ' : null,
+              h('button', { type: 'button', class: 'enllac', onclick: () => accions.obrir(a.id) }, a.nom.toLowerCase()),
+            ];
+          }),
+        )
+      : null,
 
     h('h2', { class: 'recepta__seccio' }, tr.ingredients),
     h(
@@ -88,6 +137,8 @@ export function pantallaRecepta(dades: DadesRecepta, accions: AccionsRecepta): H
         );
       }),
     ),
+
+    compraDelPlat(recepta.id, dades.racionsCentesimes),
 
     h('h2', { class: 'recepta__seccio' }, tr.preparacio),
     h(
