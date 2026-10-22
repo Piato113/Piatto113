@@ -57,6 +57,19 @@ export const aparellsReceptes: Record<string, (Aparell | Aparell[])[]> = {
   'pizza-verdures': FORN,
   'coliflor-gratinada': FORN,
   'macarrons-formatge': FORN,
+  // Econòmiques (octubre de 2026)
+  'cuixes-pollastre-forn': FORN,
+  'ales-pollastre-forn': FORN,
+  'pastis-patata-tonyina': FORN,
+  'sardines-forn-patates': FORN,
+  'seitons-forn': FORN,
+  'pizza-tonyina-ceba': FORN,
+  'carbasso-farcit': FORN,
+  'ous-gratinats-espinacs': FORN,
+  'sopa-ceba': FORN, // gratinador
+  'crema-pesols': ['batedora'],
+  'crema-pastanaga': ['batedora'],
+  'crema-porro': ['batedora'],
 };
 
 /** Afegeix a cada recepta els aparells que necessita. */

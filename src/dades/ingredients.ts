@@ -40,6 +40,7 @@ const ingredientsBase: Ingredient[] = [
   { id: 'faves', nom: 'Faves congelades', unitat: 'g', seccio: FRUITA },
   { id: 'carxofes', nom: 'Carxofes a trossos congelades', unitat: 'g', seccio: FRUITA },
   { id: 'coliflor', nom: 'Coliflor', unitat: 'g', seccio: FRUITA, conversions: { u: 1000 } },
+  { id: 'bledes', nom: 'Bledes tallades', unitat: 'g', seccio: FRUITA },
 
   // Carn
   { id: 'carn-picada', nom: 'Carn picada mixta (vedella i porc)', unitat: 'g', seccio: CARN },
@@ -64,6 +65,10 @@ const ingredientsBase: Ingredient[] = [
   { id: 'os-blanc-salat', nom: 'Os blanc de porc salat', unitat: 'g', seccio: CARN },
   { id: 'espinada-porc', nom: 'Espinada de porc', unitat: 'g', seccio: CARN },
   { id: 'conill', nom: 'Conill a trossos', unitat: 'g', seccio: CARN },
+  { id: 'cuixes-pollastre', nom: 'Contracuixes de pollastre sense pell', unitat: 'g', seccio: CARN },
+  { id: 'ales-pollastre', nom: 'Ales de pollastre', unitat: 'g', seccio: CARN },
+  { id: 'costelles-coll', nom: 'Costelles de coll de porc', unitat: 'g', seccio: CARN },
+  { id: 'frankfurts', nom: 'Salsitxes de Frankfurt de pollastre', unitat: 'g', seccio: CARN },
   { id: 'costelles-xai', nom: 'Costelles de xai', unitat: 'g', seccio: CARN },
   { id: 'botifarra-negra', nom: 'Botifarra negra (morcilla de ceba)', unitat: 'g', seccio: CARN },
   { id: 'pernil-serra', nom: 'Pernil serrà a llesques', unitat: 'g', seccio: CARN },
@@ -81,6 +86,8 @@ const ingredientsBase: Ingredient[] = [
   { id: 'calamar', nom: 'Calamar net a trossos (congelat)', unitat: 'g', seccio: PEIX },
   { id: 'pop', nom: 'Potes de pop cuit', unitat: 'g', seccio: PEIX },
   { id: 'seitons', nom: 'Seitons nets', unitat: 'g', seccio: PEIX },
+  { id: 'sardines', nom: 'Sardines netes', unitat: 'g', seccio: PEIX },
+  { id: 'pescadilla', nom: 'Pescadilla de lluç (congelada)', unitat: 'g', seccio: PEIX },
 
   // Ous i làctics
   { id: 'ou', nom: 'Ous', unitat: 'u', seccio: FRESCOS, indivisible: true },
@@ -249,6 +256,8 @@ const ALERGENS_INGREDIENT: Record<string, Alergen[]> = {
   'tinta-sipia': ['molluscs'],
   salmo: ['peix'],
   seitons: ['peix'],
+  sardines: ['peix'],
+  pescadilla: ['peix'],
   musclos: ['molluscs'],
   cloisses: ['molluscs'],
   calamar: ['molluscs'],

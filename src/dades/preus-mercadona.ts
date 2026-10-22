@@ -158,4 +158,11 @@ export const preusMercadona: (Preu & { unitat: Unitat })[] = [
   { ingredientId: "tahini", midaPaquet: 200, preuCentims: 295, unitat: 'g', producte: { id: "17441", nom: "Pasta de sésamo Tahini Hacendado" } },
   { ingredientId: "tomaquet-sec", midaPaquet: 190, preuCentims: 220, unitat: 'g', producte: { id: "16046", nom: "Tomate seco Hacendado en aceite de oliva" } },
   { ingredientId: "massa-quebrada", midaPaquet: 1, preuCentims: 220, unitat: 'u', producte: { id: "63464", nom: "Masa fresca quebrada brisa Hacendado" } },
+  { ingredientId: "bledes", midaPaquet: 300, preuCentims: 135, unitat: 'g', producte: { id: "69725", nom: "Acelgas cortadas y lavadas" } },
+  { ingredientId: "cuixes-pollastre", midaPaquet: 810, preuCentims: 340, unitat: 'g', producte: { id: "2777", nom: "Contramuslos de pollo sin piel" } },
+  { ingredientId: "ales-pollastre", midaPaquet: 1000, preuCentims: 370, unitat: 'g', producte: { id: "25184", nom: "Alas de pollo congeladas" } },
+  { ingredientId: "costelles-coll", midaPaquet: 750, preuCentims: 386, unitat: 'g', producte: { id: "4900", nom: "Chuletas aguja de cerdo" } },
+  { ingredientId: "frankfurts", midaPaquet: 400, preuCentims: 150, unitat: 'g', producte: { id: "53056", nom: "Salchichas cocidas Hacendado de pollo y pavo sabor ahumado" } },
+  { ingredientId: "sardines", midaPaquet: 200, preuCentims: 119, unitat: 'g', producte: { id: "81100.2", nom: "Sardina limpia sin cabeza" } },
+  { ingredientId: "pescadilla", midaPaquet: 1000, preuCentims: 525, unitat: 'g', producte: { id: "62176", nom: "Pescadilla de merluza sin cabeza Hacendado ultracongelada" } },
 ];

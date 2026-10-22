@@ -150,5 +150,12 @@
   "llet-coco": { "producte": "17174" },
   "tahini": { "producte": "17441" },
   "tomaquet-sec": { "producte": "16046" },
-  "massa-quebrada": { "producte": "63464", "peces": 1, "nota": "Una làmina per paquet (per confirmar)" }
+  "massa-quebrada": { "producte": "63464", "peces": 1, "nota": "Una làmina per paquet (per confirmar)" },
+  "bledes": { "producte": "69725" },
+  "cuixes-pollastre": { "producte": "2777" },
+  "ales-pollastre": { "producte": "25184" },
+  "costelles-coll": { "producte": "4900" },
+  "frankfurts": { "producte": "53056" },
+  "sardines": { "producte": "81100.2" },
+  "pescadilla": { "producte": "62176" }
 }
