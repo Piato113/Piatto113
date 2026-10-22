@@ -74,13 +74,15 @@ type Seccio =
   | { tipus: 'recepta'; receptaId: string; acompanyamentId?: string; apat?: number; anterior?: boolean }
   | { tipus: 'cuinar'; receptaId: string; acompanyamentId?: string; pas: number; apat?: number; anterior?: boolean };
 
-type Pantalla = { tipus: 'benvinguda' } | { tipus: 'pas'; pas: Pas; desDelResum: boolean } | Seccio;
+type Pantalla = { tipus: 'pas'; pas: Pas; desDelResum: boolean } | Seccio;
 
 const copia = (r: RespostesQuestionari): RespostesQuestionari => structuredClone(r);
 const llavorNova = (): number => Math.floor(Math.random() * 2 ** 31);
 
 /** Respostes desades; `null` si encara no s'ha fet el qüestionari. */
 let desades = carregarRespostes();
+/** Respostes amb què es fa el menú: les desades o, si encara no s'ha configurat res, les per defecte (menú d'exemple). */
+const respostesActives = (): RespostesQuestionari => desades ?? respostesPerDefecte();
 /** Esborrany que editen les pantalles; només es desa en acabar. */
 let esborrany = desades ? copia(desades) : respostesPerDefecte();
 let menu: MenuDesat | null = carregarMenu(catalegInicial);
@@ -90,8 +92,6 @@ let missatge: string | null = null;
 let enfocarEnTornar: string | null = null;
 /** Àpat del menú amb el quadre «Qui hi ha a taula?» obert. */
 let assistenciaOberta: number | null = null;
-/** Manté oberta la graella després de tocar-la. */
-let graellaOberta = false;
 /** Setmana del menú mensual que es mostra; `null`: la d'avui (o la primera). */
 let setmanaVisible: number | null = null;
 /** Setmana que es mostra del menú anterior (si és mensual). */
@@ -171,7 +171,7 @@ function seccioDe(adreca: string): Seccio | null {
   return null;
 }
 
-let pantalla: Pantalla = desades ? (seccioDe(location.hash) ?? { tipus: 'menu' }) : { tipus: 'benvinguda' };
+let pantalla: Pantalla = seccioDe(location.hash) ?? { tipus: 'menu' };
 
 // ——— Menú ———
 
@@ -265,7 +265,6 @@ function enfocarTitol(): void {
 function anar(nova: Pantalla, { substituirHistoria = false } = {}): void {
   if (pantalla.tipus === 'cuinar' && nova.tipus !== 'cuinar') sortirDelModeCuinar();
   pantalla = nova;
-  graellaOberta = false;
   assistenciaOberta = null;
   const adreca = adrecaDe(nova);
   if (adreca && adreca !== location.hash) {
@@ -277,11 +276,10 @@ function anar(nova: Pantalla, { substituirHistoria = false } = {}): void {
 }
 
 window.addEventListener('popstate', () => {
-  if (!desades || calEntrar()) return;
+  if (calEntrar()) return;
   const nova: Pantalla = seccioDe(location.hash) ?? { tipus: 'menu' };
   if (pantalla.tipus === 'cuinar' && nova.tipus !== 'cuinar') sortirDelModeCuinar();
   pantalla = nova;
-  graellaOberta = false;
   assistenciaOberta = null;
   pintar();
   const enfocar = enfocarEnTornar ? arrel!.querySelector<HTMLElement>(enfocarEnTornar) : null;
@@ -319,6 +317,10 @@ const accionsQuestionari = {
     desarRespostes(desades);
     anar({ tipus: primeraVegada ? 'menu' : 'resum' }, { substituirHistoria: true });
   },
+  sortir: (): void => {
+    esborrany = desades ? copia(desades) : respostesPerDefecte();
+    anar({ tipus: 'menu' }, { substituirHistoria: true });
+  },
 };
 
 /** Torna al menú des del selector de plats, traient-lo de l'historial, i enfoca l'àpat canviat. */
@@ -339,8 +341,8 @@ function accionsTriar(index: number) {
   return {
     tornar,
     triar: (receptaId: string, acompanyamentId?: string): void => {
-      if (!desades || !menu) return;
-      const apats = triarPlat(catalegInicial, configuracioDesDeRespostes(desades), menu.apats, index, receptaId, acompanyamentId);
+      if (!menu) return;
+      const apats = triarPlat(catalegInicial, configuracioDesDeRespostes(respostesActives()), menu.apats, index, receptaId, acompanyamentId);
       if (apats !== menu.apats && JSON.stringify(apats) !== JSON.stringify(menu.apats)) {
         menu = { ...menu, apats };
         desarMenu(menu);
@@ -374,8 +376,8 @@ const accionsMenu = {
   obrirTriar: (index: number): void => anar({ tipus: 'triar', index }),
   /** Canvia el plat per un altre a l'atzar. */
   canviarPlat: (index: number, { pintar: repintar = true } = {}): void => {
-    if (!desades || !menu) return;
-    const apats = canviarPlat(catalegInicial, configuracioDesDeRespostes(desades), menu.apats, index, llavorNova());
+    if (!menu) return;
+    const apats = canviarPlat(catalegInicial, configuracioDesDeRespostes(respostesActives()), menu.apats, index, llavorNova());
     if (apats[index]?.receptaId === menu.apats[index]?.receptaId) {
       missatge = textos.menu.senseAlternativa;
     } else {
@@ -387,24 +389,23 @@ const accionsMenu = {
     arrel!.querySelector<HTMLElement>(`[data-canviar="${index}"]`)?.focus();
   },
   canviarGraella: (graella: Graella, clau: string): void => {
-    if (!desades || !menu) return;
+    if (!menu) return;
     desarGraella(graella);
-    menu = ferMenu(desades, graella, menu.llavor);
-    graellaOberta = true;
+    menu = ferMenu(respostesActives(), graella, menu.llavor);
     pintar();
     arrel!.querySelector<HTMLElement>(`[data-graella="${clau}"]`)?.focus();
   },
   tornarAFer: (): void => {
-    if (!desades || !menu) return;
-    menu = ferMenu(desades, menu.graella, llavorNova());
+    if (!menu) return;
+    menu = ferMenu(respostesActives(), menu.graella, llavorNova());
     pintar();
     enfocarTitol();
   },
   canviarPeriode: (periode: PeriodeMenu, mes?: string): void => {
-    if (!desades || !menu) return;
+    if (!menu) return;
     const mesNou = periode === 'mes' ? (mes ?? menu.mes ?? mesPerDefecte()) : undefined;
     if ((menu.periode ?? 'setmana') === periode && menu.mes === mesNou) return;
-    menu = ferMenu(desades, menu.graella, llavorNova(), periode, mesNou);
+    menu = ferMenu(respostesActives(), menu.graella, llavorNova(), periode, mesNou);
     setmanaVisible = null;
     pintar();
     arrel!.querySelector<HTMLElement>(`[data-periode="${mesNou ?? periode}"]`)?.focus();
@@ -433,8 +434,8 @@ const accionsMenu = {
     arrel!.querySelector<HTMLElement>(`[data-assistencia="${index}"]`)?.focus({ preventScroll: true });
   },
   canviarAssistencia: (index: number, assistencia: Assistencia, enfocar: string): void => {
-    if (!desades || !menu?.apats[index]) return;
-    const persones = configuracioDesDeRespostes(desades).persones;
+    if (!menu?.apats[index]) return;
+    const persones = configuracioDesDeRespostes(respostesActives()).persones;
     const normal = normalitzarAssistencia(persones, assistencia);
     menu = {
       ...menu,
@@ -485,7 +486,6 @@ function quanArribinCanvis(): void {
   recarregarDades();
   // No es repinta mentre s'edita el qüestionari o es cuina: les dades noves surten a la pantalla següent.
   if (pantalla.tipus === 'pas' || pantalla.tipus === 'cuinar') return;
-  if (pantalla.tipus === 'benvinguda' && desades) pantalla = { tipus: 'menu' };
   const y = window.scrollY;
   pintar();
   window.scrollTo(0, y);
@@ -509,7 +509,7 @@ async function quanEntri(): Promise<void> {
   await sincronitzar();
   recarregarDades();
   iniciarSincronitzacio(quanArribinCanvis, pintarEstatCompte);
-  anar(desades ? { tipus: 'menu' } : { tipus: 'benvinguda' }, { substituirHistoria: true });
+  anar({ tipus: 'menu' }, { substituirHistoria: true });
 }
 
 async function sortirDelCompte(): Promise<void> {
@@ -520,8 +520,8 @@ async function sortirDelCompte(): Promise<void> {
   desades = null;
   esborrany = respostesPerDefecte();
   menu = null;
-  pantalla = { tipus: 'benvinguda' };
-  history.replaceState({ piatto: false }, '', '#/');
+  pantalla = { tipus: 'menu' };
+  history.replaceState({ piatto: false }, '', '#/menu');
   pintar();
   enfocarTitol();
 }
@@ -581,30 +581,20 @@ function capcalera(): HTMLElement {
   );
 }
 
-function benvinguda(): HTMLElement {
-  const { nomParts, lema } = textos.app;
+/** Avís fix a dalt mentre no s'ha fet la configuració: el menú és d'exemple i no té en compte al·lèrgies. */
+function avisSenseConfigurar(): HTMLElement | null {
+  if (desades) return null;
+  const t = textos.senseConfigurar;
   return h(
-    'main',
-    { class: 'benvinguda' },
-    h('img', { class: 'benvinguda__icona', src: '/icons/icona-512.png', alt: '', width: 160, height: 160 }),
-    h(
-      'h1',
-      { class: 'marca', tabindex: -1 },
-      h('span', { class: 'marca__paraula' }, nomParts.paraula),
-      h('span', { class: 'marca__numero' }, nomParts.numero),
-    ),
-    h('p', { class: 'benvinguda__lema' }, lema),
-    h('p', { class: 'benvinguda__estat' }, textos.benvinguda.explicacio),
+    'section',
+    { class: 'sense-configurar', role: 'status', 'aria-labelledby': 'sense-configurar-titol' },
+    h('p', { class: 'sense-configurar__titol', id: 'sense-configurar-titol' }, t.titol),
+    h('p', {}, t.text),
     h(
       'button',
-      {
-        type: 'button',
-        class: 'boto boto--principal boto--gran',
-        onclick: () => accionsQuestionari.anar(PASSOS[0]),
-      },
-      textos.accions.comencar,
+      { type: 'button', class: 'boto boto--principal', onclick: () => accionsQuestionari.anar(PASSOS[0]) },
+      t.boto,
     ),
-    h('p', { class: 'benvinguda__nota' }, nuvolActiu ? textos.benvinguda.desatCompte : textos.benvinguda.desatLocal),
   );
 }
 
@@ -713,7 +703,7 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
           apats: actual.apats,
           avisos: actual.avisos,
           missatge: avisPuntual,
-          graellaOberta,
+          ...(actual.periode !== 'mes' && actual.creat ? { dilluns: dillunsDe(actual.creat) } : {}),
           assistenciaOberta,
           periode: actual.periode ?? 'setmana',
           ...(actual.mes ? { mes: actual.mes } : {}),
@@ -771,13 +761,10 @@ function pintar(): void {
     substituir(arrel!, entrada.element);
   } else if (pantalla.tipus === 'pas') {
     substituir(arrel!, pantallaPas(esborrany, pantalla.pas, pantalla.desDelResum, accionsQuestionari));
-  } else if (pantalla.tipus === 'benvinguda' || !desades) {
-    pantalla = { tipus: 'benvinguda' };
-    substituir(arrel!, benvinguda());
   } else if (pantalla.tipus === 'cuinar') {
-    substituir(arrel!, contingutSeccio(desades, pantalla));
+    substituir(arrel!, contingutSeccio(respostesActives(), pantalla));
   } else {
-    substituir(arrel!, capcalera(), contingutSeccio(desades, pantalla), navegacio());
+    substituir(arrel!, capcalera(), avisSenseConfigurar(), contingutSeccio(respostesActives(), pantalla), navegacio());
   }
 }
 

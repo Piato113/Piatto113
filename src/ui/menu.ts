@@ -6,6 +6,7 @@ import {
   diesDelMes,
   estalviCompraPeriode,
   setmanesDelMenu,
+  sumarDies,
   comensals,
   costRecepta,
   DIES,
@@ -32,7 +33,8 @@ export interface DadesMenu {
   avisos: Avis[];
   /** Missatge puntual (p. ex. no hi ha cap altre plat possible). */
   missatge?: string | null;
-  graellaOberta?: boolean;
+  /** Menú setmanal: dilluns de la setmana del menú («AAAA-MM-DD»), per posar data als dies. */
+  dilluns?: string;
   /** Àpat amb el quadre «Qui hi ha a taula?» obert. */
   assistenciaOberta?: number | null;
   periode: PeriodeMenu;
@@ -162,11 +164,11 @@ function quadreTaula(configuracio: ConfiguracioFamilia, a: ApatPlanificat, index
 const nomIngredient = (id: string): string => catalegInicial.ingredients.get(id)?.nom ?? id;
 const recepta = (id: string) => catalegInicial.receptes.get(id);
 
-function graellaEditable(graella: Graella, oberta: boolean, canviar: (g: Graella, clau: string) => void): HTMLElement {
+function graellaEditable(graella: Graella, canviar: (g: Graella, clau: string) => void): HTMLElement {
   return h(
-    'details',
-    { class: 'graella', open: oberta },
-    h('summary', { class: 'graella__titol' }, tm.graella),
+    'section',
+    { class: 'graella', 'aria-labelledby': 'graella-titol' },
+    h('h2', { class: 'graella__titol', id: 'graella-titol' }, tm.graella),
     h('p', { class: 'grup__ajuda' }, tm.ajudaGraella),
     h(
       'div',
@@ -396,7 +398,8 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
   const dies = claus.map((clau) => {
     const delDia = indexsVisibles.map((index) => ({ a: apats[index]!, index })).filter(({ a }) => (mensual ? a.data === clau : a.dia === clau));
     const dia = delDia[0]!.a.dia;
-    return { clau, nom: mensual ? tm.diaAmbData(textos.dies[dia], clau) : textos.dies[dia], apats: delDia };
+    const data = mensual ? clau : dades.dilluns ? sumarDies(dades.dilluns, DIES.indexOf(dia)) : undefined;
+    return { clau, nom: data ? tm.diaAmbData(textos.dies[dia], data) : textos.dies[dia], apats: delDia };
   });
   const estalvi = mensual && apats.length > 0 ? estalviCompraPeriode(catalegInicial, configuracio, apats).estalviCentims : 0;
   const setmanaActual = setmanes[visible];
@@ -465,7 +468,7 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
     !lectura && sobrePressupost ? h('p', { class: 'avis', role: 'status' }, tm.sobrePressupost) : null,
     ...(lectura ? [] : textosAvisos).map((text) => h('p', { class: 'avis', role: 'status' }, text)),
     lectura ? null : selectorPeriode(dades, accions),
-    lectura ? null : graellaEditable(graella, dades.graellaOberta === true, accions.canviarGraella),
+    lectura ? null : graellaEditable(graella, accions.canviarGraella),
     apats.length === 0 ? h('p', { class: 'avis' }, tm.capApat) : null,
     apats.length > 0 && !lectura
       ? h('button', { type: 'button', class: 'boto boto--secundari menu__refer', onclick: accions.tornarAFer }, `🔄 ${tm.tornarAFer}`)

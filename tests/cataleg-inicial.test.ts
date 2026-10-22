@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { catalegInicial, errorsCatalegInicial, ingredients, preus, receptes } from '../src/dades';
 import { costRecepta, graellaPerDefecte, planificar, type ConfiguracioFamilia } from '../src/domini';
+import { graellaNouApats } from './dades-prova';
 
 const familia: ConfiguracioFamilia = {
   persones: [
@@ -54,9 +55,18 @@ describe('catàleg inicial', () => {
     }
   });
 
-  it('planifica una setmana per defecte sense repetir ni avisos', () => {
+  it('planifica la setmana sencera per defecte (14 àpats) sense repetir ni avisos', () => {
     for (let llavor = 0; llavor < 20; llavor++) {
       const pla = planificar({ cataleg: catalegInicial, configuracio: familia, graella: graellaPerDefecte(), llavor });
+      expect(pla.apats).toHaveLength(14);
+      expect(new Set(pla.apats.map((a) => a.receptaId)).size).toBe(14);
+      expect(pla.avisos).toEqual([]);
+    }
+  });
+
+  it('planifica una setmana de 9 àpats sense repetir ni avisos', () => {
+    for (let llavor = 0; llavor < 20; llavor++) {
+      const pla = planificar({ cataleg: catalegInicial, configuracio: familia, graella: graellaNouApats(), llavor });
       expect(pla.apats).toHaveLength(9);
       expect(new Set(pla.apats.map((a) => a.receptaId)).size).toBe(9);
       expect(pla.avisos).toEqual([]);

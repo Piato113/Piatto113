@@ -89,6 +89,14 @@ export function dillunsDe(data: string): string {
   return textData(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate());
 }
 
+/** Data `n` dies després (o abans, si és negatiu). */
+export function sumarDies(data: string, n: number): string {
+  const d = llegirData(data);
+  if (!d) throw new Error(`Data no vàlida: ${data}`);
+  const t = new Date(Date.UTC(d.any, d.mes - 1, d.dia + n));
+  return textData(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate());
+}
+
 /** Data d'avui al dispositiu, «AAAA-MM-DD». */
 export function avui(ara: Date = new Date()): string {
   return textData(ara.getFullYear(), ara.getMonth() + 1, ara.getDate());

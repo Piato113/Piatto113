@@ -1,5 +1,6 @@
 // Dades petites i inventades, només per als tests (no és el catàleg de l'app).
-import type { ConfiguracioFamilia, Ingredient, Preu, Recepta } from '../src/domini';
+import { canviarApat, DIES, graellaPerDefecte } from '../src/domini';
+import type { ConfiguracioFamilia, Graella, Ingredient, Preu, Recepta } from '../src/domini';
 
 export const ingredients: Ingredient[] = [
   { id: 'arros', nom: 'Arròs', unitat: 'g', seccio: 'secs' },
@@ -116,4 +117,11 @@ export function receptesSintetiques(quantes: number): Recepta[] {
     etiquetes: [],
     ingredients: [{ ingredientId: 'arros', quantitat: 100 + i }],
   }));
+}
+
+/** Graella de 9 àpats (sopar entre setmana; dinar i sopar el cap de setmana), la de les proves d'abans del canvi de graella per defecte. */
+export function graellaNouApats(): Graella {
+  let g = graellaPerDefecte();
+  for (const dia of DIES.slice(0, 5)) g = canviarApat(g, dia, 'dinar', false);
+  return g;
 }

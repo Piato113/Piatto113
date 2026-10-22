@@ -8,11 +8,11 @@ const CAP_DE_SETMANA: ReadonlySet<Dia> = new Set(['ds', 'dg']);
 /** Dissabte i diumenge. */
 export const esCapDeSetmana = (dia: Dia): boolean => CAP_DE_SETMANA.has(dia);
 
-/** Per defecte: només sopar de dilluns a divendres; dinar i sopar dissabte i diumenge. */
+/** Per defecte: dinar i sopar tots els dies (cadascú desmarca els que no fa a casa). */
 export function graellaPerDefecte(): Graella {
   const graella = {} as Graella;
   for (const dia of DIES) {
-    graella[dia] = { dinar: CAP_DE_SETMANA.has(dia), sopar: true };
+    graella[dia] = { dinar: true, sopar: true };
   }
   return graella;
 }

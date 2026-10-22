@@ -243,10 +243,10 @@ export const textos = {
     tornarRecepta: 'Torna a la recepta',
     pantallaEncesa: 'La pantalla es mantindrà encesa mentre cuines.',
   },
-  benvinguda: {
-    explicacio: 'Respon sis preguntes i et proposarem el menú de la setmana, amb la llista de la compra.',
-    desatLocal: 'De moment, les respostes es guarden en aquest dispositiu.',
-    desatCompte: 'Les respostes es desen al teu compte.',
+  senseConfigurar: {
+    titol: 'Aquest menú és d’exemple.',
+    text: 'Encara no heu configurat la família ni les preferències: quantes persones sou, què no mengeu, les al·lèrgies, el temps i el pressupost. Fins aleshores, els plats no tenen en compte cap al·lèrgia.',
+    boto: 'Configura-ho (2 min)',
   },
   entrada: {
     titol: 'Entra',

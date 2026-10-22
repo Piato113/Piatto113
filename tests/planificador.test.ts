@@ -15,6 +15,13 @@ import { configuracio, ingredients, preus, receptes, receptesSintetiques, temps 
 
 const cataleg = crearCataleg(ingredients, receptes, preus);
 
+/** Graella de 9 àpats: sopar entre setmana; dinar i sopar el cap de setmana. */
+function nouApats(): Graella {
+  let g = graellaPerDefecte();
+  for (const dia of DIES.slice(0, 5)) g = canviarApat(g, dia, 'dinar', false);
+  return g;
+}
+
 /** Graella amb només el sopar de dilluns, dimarts i dimecres. */
 function tresSopars(): Graella {
   let g = graellaPerDefecte();
@@ -26,24 +33,21 @@ function tresSopars(): Graella {
 }
 
 describe('graella', () => {
-  it('per defecte: sopar entre setmana; dinar i sopar el cap de setmana', () => {
+  it('per defecte: dinar i sopar tots els dies', () => {
     const marcats = apatsMarcats(graellaPerDefecte());
-    expect(marcats).toHaveLength(9);
-    expect(marcats.slice(0, 5).every((m) => m.apat === 'sopar')).toBe(true);
-    expect(marcats.slice(5)).toEqual([
-      { dia: 'ds', apat: 'dinar' },
-      { dia: 'ds', apat: 'sopar' },
-      { dia: 'dg', apat: 'dinar' },
-      { dia: 'dg', apat: 'sopar' },
+    expect(marcats).toHaveLength(14);
+    expect(marcats.slice(0, 2)).toEqual([
+      { dia: 'dl', apat: 'dinar' },
+      { dia: 'dl', apat: 'sopar' },
     ]);
   });
 
   it('canviar un àpat no modifica la graella original', () => {
     const original = graellaPerDefecte();
-    const festiu = canviarApat(original, 'dc', 'dinar', true);
-    expect(original.dc.dinar).toBe(false);
-    expect(festiu.dc.dinar).toBe(true);
-    expect(apatsMarcats(festiu)).toHaveLength(10);
+    const festiu = canviarApat(original, 'dc', 'dinar', false);
+    expect(original.dc.dinar).toBe(true);
+    expect(festiu.dc.dinar).toBe(false);
+    expect(apatsMarcats(festiu)).toHaveLength(13);
   });
 });
 
@@ -102,13 +106,13 @@ describe('planificador', () => {
 
   it('no repeteix en una setmana completa si hi ha prou receptes', () => {
     const gran = crearCataleg(ingredients, receptesSintetiques(12), preus);
-    const pla = planificar({ ...base, cataleg: gran, graella: graellaPerDefecte() });
+    const pla = planificar({ ...base, cataleg: gran, graella: nouApats() });
     expect(pla.apats).toHaveLength(9);
     expect(new Set(pla.apats.map((a) => a.receptaId)).size).toBe(9);
   });
 
   it('avisa si ha de repetir receptes', () => {
-    const pla = planificar({ ...base, graella: graellaPerDefecte() });
+    const pla = planificar({ ...base, graella: nouApats() });
     expect(pla.apats).toHaveLength(9);
     expect(pla.avisos).toContainEqual({ codi: 'receptes-repetides', disponibles: 4, necessaries: 9 });
     // Cap recepta surt més de tres vegades: es reparteixen per torns.
@@ -119,7 +123,7 @@ describe('planificador', () => {
 
   it('en repetir, no posa la mateixa recepta en dos àpats seguits', () => {
     for (let llavor = 0; llavor < 50; llavor++) {
-      const ids = planificar({ ...base, llavor, graella: graellaPerDefecte() }).apats.map((a) => a.receptaId);
+      const ids = planificar({ ...base, llavor, graella: nouApats() }).apats.map((a) => a.receptaId);
       ids.slice(1).forEach((id, i) => expect(id).not.toBe(ids[i]));
     }
   });

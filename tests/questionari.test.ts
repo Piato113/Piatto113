@@ -8,7 +8,6 @@ import {
   DIES,
   esCapDeSetmana,
   filtrarReceptes,
-  graellaPerDefecte,
   llegirRespostes,
   planificar,
   PRESSUPOST_RACIO,
@@ -19,17 +18,17 @@ import {
   type Recepta,
 } from '../src/domini';
 import { textos } from '../src/textos/ca';
-import { configuracio, ingredients, preus, receptes } from './dades-prova';
+import { configuracio, graellaNouApats, ingredients, preus, receptes } from './dades-prova';
 
 const cataleg = crearCataleg(ingredients, receptes, preus);
 
 function nomesDilluns(): Graella {
-  let g = graellaPerDefecte();
+  let g = graellaNouApats();
   for (const dia of DIES) g = canviarApat(canviarApat(g, dia, 'dinar', false), dia, 'sopar', dia === 'dl');
   return g;
 }
 
-const plans = (config: ConfiguracioFamilia, graella: Graella = graellaPerDefecte(), quants = 40, cat = cataleg) =>
+const plans = (config: ConfiguracioFamilia, graella: Graella = graellaNouApats(), quants = 40, cat = cataleg) =>
   Array.from({ length: quants }, (_, llavor) => planificar({ cataleg: cat, configuracio: config, graella, llavor }));
 
 /** Quantes vegades surt una recepta al sopar de dilluns en 400 llavors. */
@@ -52,7 +51,7 @@ describe('temps per tipus de dia', () => {
     const pla = planificar({
       cataleg,
       configuracio: configuracio({ tempsMaximMinuts: { feiners: 10, capDeSetmana: null } }),
-      graella: graellaPerDefecte(),
+      graella: graellaNouApats(),
       llavor: 1,
     });
     expect(pla.avisos).toEqual([{ codi: 'cap-recepta-valida' }]);
@@ -102,7 +101,7 @@ describe('al·lèrgens', () => {
   it('cap recepta amb un al·lergen de la família, tampoc als acompanyaments', () => {
     const config = configuracio({ alergens: ['ou', 'peix'] });
     expect(filtrarReceptes(cat, config).map((r) => r.id)).toEqual(['arros-pollastre', 'llenties', 'pollastre']);
-    for (const a of plans(config, graellaPerDefecte(), 30, cat).flatMap((p) => p.apats)) {
+    for (const a of plans(config, graellaNouApats(), 30, cat).flatMap((p) => p.apats)) {
       if (a.acompanyamentId) expect(a.acompanyamentId).toBe('arros-blanc');
     }
   });
@@ -129,12 +128,12 @@ describe('receptari variat i equilibrat', () => {
   const cat = crearCataleg(ingredients, receptari, preus);
   const grup = (id: string) => id.split('-')[0];
   const seguitsIguals = (config: ConfiguracioFamilia) =>
-    plans(config, graellaPerDefecte(), 40, cat).reduce((total, p) => {
+    plans(config, graellaNouApats(), 40, cat).reduce((total, p) => {
       const ids = p.apats.map((a) => a.receptaId);
       return total + ids.slice(1).filter((id, i) => grup(id) === grup(ids[i]!)).length;
     }, 0);
   const carnPerSetmana = (config: ConfiguracioFamilia) =>
-    plans(config, graellaPerDefecte(), 40, cat).flatMap((p) => p.apats).filter((a) => grup(a.receptaId) === 'carn')
+    plans(config, graellaNouApats(), 40, cat).flatMap((p) => p.apats).filter((a) => grup(a.receptaId) === 'carn')
       .length / 40;
 
   it('no posa el mateix grup dos àpats seguits', () => {
@@ -207,7 +206,7 @@ describe('catàleg inicial amb el qüestionari', () => {
 
   it('amb les respostes per defecte, la setmana surt sense avisos i dins del pressupost', () => {
     const config = configuracioDesDeRespostes(respostesPerDefecte());
-    for (const pla of plans(config, graellaPerDefecte(), 20, catalegInicial)) {
+    for (const pla of plans(config, graellaNouApats(), 20, catalegInicial)) {
       expect(pla.avisos).toEqual([]);
       expect(pla.costConsumitCentims).toBeLessThanOrEqual(350 * 4 * 9);
       for (const a of pla.apats.filter((a) => !esCapDeSetmana(a.dia))) {
@@ -218,7 +217,7 @@ describe('catàleg inicial amb el qüestionari', () => {
 
   it('el pressupost econòmic (8 € per àpat de quatre) és assolible', () => {
     const config = configuracioDesDeRespostes({ ...respostesPerDefecte(), pressupost: 'economic' });
-    for (const pla of plans(config, graellaPerDefecte(), 20, catalegInicial)) {
+    for (const pla of plans(config, graellaNouApats(), 20, catalegInicial)) {
       expect(pla.avisos).toEqual([]);
       expect(pla.costConsumitCentims).toBeLessThanOrEqual(200 * 4 * 9);
     }
@@ -226,7 +225,7 @@ describe('catàleg inicial amb el qüestionari', () => {
 
   it('sense gluten, cap ingredient del menú en porta', () => {
     const config = configuracioDesDeRespostes({ ...respostesPerDefecte(), alergens: ['gluten'] });
-    for (const pla of plans(config, graellaPerDefecte(), 20, catalegInicial)) {
+    for (const pla of plans(config, graellaNouApats(), 20, catalegInicial)) {
       for (const e of pla.llista.elements) {
         expect(catalegInicial.ingredients.get(e.ingredientId)?.alergens ?? [], e.ingredientId).not.toContain('gluten');
       }
@@ -312,7 +311,7 @@ describe('dieta', () => {
   ] as const) {
     it(`menú ${dieta}: cap ingredient de ${prohibits.join(', ')}`, () => {
       const config = amb({ dieta });
-      for (const pla of plans(config, graellaPerDefecte(), 10, catalegInicial)) {
+      for (const pla of plans(config, graellaNouApats(), 10, catalegInicial)) {
         for (const e of pla.llista.elements) {
           const origen = catalegInicial.ingredients.get(e.ingredientId)?.origen;
           if (origen) expect(prohibits as readonly string[], e.ingredientId).not.toContain(origen);

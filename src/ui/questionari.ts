@@ -33,6 +33,8 @@ export interface AccionsQuestionari {
   anar: (pas: Pas | null) => void;
   /** Desa les respostes i va al resum. */
   acabar: () => void;
+  /** Surt del qüestionari sense desar (des del primer pas, quan s'hi ha entrat des de l'avís del menú). */
+  sortir?: () => void;
 }
 
 /** Element `<label>` amb una opció de ràdio o casella, presentat com una targeta. */
@@ -410,6 +412,7 @@ export function pantallaPas(
   const enrere = (): void => {
     if (desDelResum) accions.anar(null);
     else if (index > 0) accions.anar(PASSOS[index - 1]!);
+    else accions.sortir?.();
   };
 
   return h(
@@ -447,7 +450,7 @@ export function pantallaPas(
       h(
         'footer',
         { class: 'peu' },
-        index > 0 || desDelResum
+        index > 0 || desDelResum || accions.sortir
           ? h('button', { type: 'button', class: 'boto boto--secundari', onclick: enrere }, a.enrere)
           : h('span'),
         h('button', { type: 'submit', class: 'boto boto--principal' }, desDelResum ? a.desar : darrer ? a.acabar : a.seguent),

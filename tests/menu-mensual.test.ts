@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { catalegInicial } from '../src/dades';
+import { graellaNouApats } from './dades-prova';
 import {
   configuracioDesDeRespostes,
   DIES_SENSE_REPETIR,
@@ -7,7 +8,6 @@ import {
   diesEntre,
   dillunsDe,
   estalviCompraPeriode,
-  graellaPerDefecte,
   mesSeguent,
   planificar,
   respostesPerDefecte,
@@ -45,7 +45,7 @@ describe('menú mensual', () => {
   const dies = diesDelMes('2026-11');
 
   it('un àpat per cada àpat marcat de cada dia, amb la data', () => {
-    const pla = planificar({ cataleg: catalegInicial, configuracio, graella: graellaPerDefecte(), llavor: 1, dies });
+    const pla = planificar({ cataleg: catalegInicial, configuracio, graella: graellaNouApats(), llavor: 1, dies });
     // Novembre de 2026: 21 dies feiners (sopar) i 9 de cap de setmana (dinar i sopar).
     expect(pla.apats).toHaveLength(21 + 9 * 2);
     expect(pla.apats[0]).toMatchObject({ data: '2026-11-01', dia: 'dg', apat: 'dinar' });
@@ -54,7 +54,7 @@ describe('menú mensual', () => {
 
   it('cap plat no es repeteix a menys de tres dies, i no hi ha avisos', () => {
     for (let llavor = 0; llavor < 20; llavor++) {
-      const pla = planificar({ cataleg: catalegInicial, configuracio, graella: graellaPerDefecte(), llavor, dies });
+      const pla = planificar({ cataleg: catalegInicial, configuracio, graella: graellaNouApats(), llavor, dies });
       expect(pla.avisos, `llavor ${llavor}`).toEqual([]);
       pla.apats.forEach((a, i) => {
         pla.apats.slice(i + 1).forEach((b) => {
@@ -66,7 +66,7 @@ describe('menú mensual', () => {
 
   it('també amb dieta vegana i dinar i sopar cada dia (amb repeticions separades)', () => {
     const vega = configuracioDesDeRespostes({ ...respostesPerDefecte(), dieta: 'vegana' });
-    const tot = graellaPerDefecte();
+    const tot = graellaNouApats();
     for (const d of Object.values(tot)) {
       d.dinar = true;
       d.sopar = true;
@@ -77,7 +77,7 @@ describe('menú mensual', () => {
   });
 
   it('agrupa per setmanes i comprar-ho tot d’un cop surt més barat', () => {
-    const pla = planificar({ cataleg: catalegInicial, configuracio, graella: graellaPerDefecte(), llavor: 5, dies });
+    const pla = planificar({ cataleg: catalegInicial, configuracio, graella: graellaNouApats(), llavor: 5, dies });
     const setmanes = setmanesDelMenu(pla.apats);
     expect(setmanes.map((s) => s.dilluns)).toEqual(['2026-10-26', '2026-11-02', '2026-11-09', '2026-11-16', '2026-11-23', '2026-11-30']);
     expect(setmanes.flatMap((s) => s.indexs)).toEqual(pla.apats.map((_, i) => i));
@@ -87,7 +87,7 @@ describe('menú mensual', () => {
   });
 
   it('el menú setmanal no porta dates', () => {
-    const pla = planificar({ cataleg: catalegInicial, configuracio, graella: graellaPerDefecte(), llavor: 1 });
+    const pla = planificar({ cataleg: catalegInicial, configuracio, graella: graellaNouApats(), llavor: 1 });
     expect(pla.apats.every((a) => a.data === undefined)).toBe(true);
     expect(setmanesDelMenu(pla.apats)).toHaveLength(1);
   });

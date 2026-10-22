@@ -1012,11 +1012,10 @@ h1:focus-visible {
 }
 
 .graella__titol {
-  min-height: 3rem;
-  padding: 0.85rem 1rem;
+  margin: 0;
+  padding: 1rem 1rem 0.25rem;
+  font-size: 1rem;
   font-weight: 700;
-  cursor: pointer;
-  list-style-position: inside;
 }
 
 .graella > .grup__ajuda {
@@ -1793,4 +1792,29 @@ h1:focus-visible {
 
 .avis-registre__caixa .boto {
   margin-top: 0.5rem;
+}
+
+/* Avís fix mentre la família no ha fet la configuració */
+.sense-configurar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  box-sizing: border-box;
+  width: calc(100% - 2rem);
+  max-width: 34rem;
+  margin: 0.75rem auto 0;
+  padding: 1rem;
+  border: 2px solid var(--taronja);
+  border-radius: var(--radi);
+  background: rgb(244 115 24 / 0.1);
+}
+
+.sense-configurar p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.sense-configurar__titol {
+  font-weight: 800;
 }
