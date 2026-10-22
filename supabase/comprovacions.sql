@@ -1,4 +1,4 @@
--- Piatto113 — Comprovacions després d'executar 001_esquema.sql i 002_productes.sql.
+-- Piatto113 — Comprovacions després d'executar 001_esquema.sql, 002_productes.sql i 003_valoracions.sql.
 -- Supabase → SQL Editor → New query → enganxa-ho → Run. No canvia res: només consulta.
 -- Resultat esperat: una fila per comprovació i totes amb «correcte» = true.
 
@@ -33,4 +33,10 @@ select 'Ningú pot canviar els productes des de l''app',
 union all
 select 'Productes carregats (1.693 al llistat del 21/10/2026)',
        count(*) > 0
-from public.productes;
+from public.productes
+
+union all
+select 'Columna valoracions a dades_usuari (003_valoracions.sql)',
+       count(*) = 1
+from information_schema.columns
+where table_schema = 'public' and table_name = 'dades_usuari' and column_name = 'valoracions';

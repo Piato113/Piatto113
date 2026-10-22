@@ -101,6 +101,15 @@ export const textos = {
     canviarEtiqueta: (apat: string, dia: string, plat: string) => `Canvia el ${apat.toLowerCase()} de ${dia.toLowerCase()} (${plat})`,
     senseAlternativa: 'No hi ha cap altre plat possible per a aquest àpat.',
     tornarAFer: 'Fes un altre menú',
+    valoracio: {
+      pregunta: 'Què tal?',
+      agrada: 'Ens ha encantat',
+      noAgrada: 'No ens ha agradat',
+      agradaEtiqueta: (plat: string) => `${plat}: ens ha encantat (sortirà més sovint)`,
+      noAgradaEtiqueta: (plat: string) => `${plat}: no ens ha agradat (no sortirà sol al menú)`,
+      marcaAgrada: '👍 Us encanta',
+      marcaNoAgrada: '👎 No us va agradar',
+    },
     confirmarTornarAFer: (fixats: number) =>
       fixats > 0
         ? `Vols fer un menú nou? Es mantindran ${fixats === 1 ? 'el plat fixat' : `els ${fixats} plats fixats`} (📌).`
@@ -174,6 +183,7 @@ export const textos = {
     filtres: 'Filtra per cuina',
     totes: 'Totes',
     filtre: {
+      agrada: '👍 Els que ens encanten',
       brasa: '🔥 A la brasa',
       catalana: 'Catalana',
       espanyola: 'D’arreu de l’Estat',
@@ -313,6 +323,15 @@ export const textos = {
       ],
       entesos: 'Ho entenc',
     },
+  },
+  valorats: {
+    titol: 'Plats valorats',
+    ajuda: 'Els 👍 surten més sovint al menú; els 👎 no hi surten sols (però els podeu triar a mà). Es valoren al menú, als àpats que ja han passat.',
+    cap: 'Encara no heu valorat cap plat.',
+    agraden: '👍 Us encanten',
+    noAgraden: '👎 No us van agradar',
+    treu: 'Treu',
+    treuEtiqueta: (plat: string) => `Treu la valoració de ${plat}`,
   },
   compte: {
     titol: 'Compte',

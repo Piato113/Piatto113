@@ -5,7 +5,7 @@ import { racionsApat, racionsEfectives } from './escalat';
 import { diesEntre, type DiaCalendari } from './calendari';
 import { apatsMarcats, DIES, esCapDeSetmana } from './graella';
 import { generarLlista, type LlistaCompra } from './llista';
-import { CUINES, type Aparell, type Apat, type ApatPlanificat, type Avis, type ConfiguracioFamilia, type Cuina, type Dia, type Graella, type Recepta } from './tipus';
+import { CUINES, type Aparell, type Apat, type ApatPlanificat, type Avis, type ConfiguracioFamilia, type Cuina, type Dia, type Graella, type Recepta, type Valoracio } from './tipus';
 
 export interface EntradaPlanificador {
   cataleg: Cataleg;
@@ -33,6 +33,12 @@ export interface PlaSetmanal {
 const PES_PREFERIDA = 2;
 /** Multiplicador del pes d'una recepta amb alguna etiqueta evitada («poc peix»). */
 const PES_EVITADA = 0.25;
+/** Els plats amb 👍 surten el doble de sovint. */
+export const PES_AGRADA = 2;
+
+/** Plat amb 👎: no es posa sol al menú (però es pot triar a mà). */
+export const noAgrada = (configuracio: ConfiguracioFamilia, receptaId: string): boolean =>
+  configuracio.valoracions?.[receptaId] === 'no-agrada';
 /** Límits del multiplicador del mode econòmic (cost mitjà ÷ cost del plat). */
 const ECONOMIC_MIN = 0.5;
 const ECONOMIC_MAX = 3;
@@ -260,9 +266,12 @@ export function planificar({ cataleg, configuracio, graella, llavor, dies }: Ent
     return buit();
   }
 
-  const candidates = filtrarReceptes(cataleg, configuracio);
+  const permeses = filtrarReceptes(cataleg, configuracio);
   const acompanyaments = filtrarAcompanyaments(cataleg, configuracio);
   const aptaPer = (r: Recepta, forat: Forat): boolean => diaAdient(r, forat.dia) && apta(r, acompanyaments, forat.limit);
+  // Els plats amb 👎 no surten sols, tret que sense ells algun àpat es quedés sense cap opció.
+  const sensePerdre = permeses.filter((r) => !noAgrada(configuracio, r.id));
+  const candidates = forats.every((f) => sensePerdre.some((r) => aptaPer(r, f))) ? sensePerdre : permeses;
   const aptesPer = (forat: Forat): Recepta[] => candidates.filter((r) => aptaPer(r, forat));
   if (forats.some((f) => aptesPer(f).length === 0)) {
     avisos.push({ codi: 'cap-recepta-valida' });
@@ -293,6 +302,7 @@ export function planificar({ cataleg, configuracio, graella, llavor, dies }: Ent
   const pesBase = (r: Recepta): number => {
     let pes = 1 + PES_PREFERIDA * r.etiquetes.filter((e) => configuracio.etiquetesPreferides.includes(e)).length;
     if (r.etiquetes.some((e) => configuracio.etiquetesEvitades.includes(e))) pes *= PES_EVITADA;
+    if (configuracio.valoracions?.[r.id] === 'agrada') pes *= PES_AGRADA;
     if (configuracio.economic) {
       const c = costosOpcio.get(r.id) ?? 0;
       const factor = c > 0 ? costMitja / c : ECONOMIC_MAX;
@@ -440,6 +450,7 @@ export function canviarPlat(
     const restants = opcions.filter(filtre);
     if (restants.length > 0) opcions = restants;
   };
+  preferir((r) => !noAgrada(configuracio, r.id));
   preferir((r) => !usats.has(r.id));
   if (configuracio.equilibrat) preferir((r) => !grups(r).some((g) => grupsVeins.has(g)));
   if (opcions.length === 0) return [...apats];
@@ -642,9 +653,16 @@ export function receptari(cataleg: Cataleg, configuracio: ConfiguracioFamilia): 
  * Filtre del receptari: plats de barbacoa, una cuina o una dieta
  * (vegana: cap ingredient d'origen animal; vegetariana: ni carn ni peix).
  */
-export type FiltreReceptari = 'brasa' | Cuina | 'vegana' | 'vegetariana';
+export type FiltreReceptari = 'agrada' | 'brasa' | Cuina | 'vegana' | 'vegetariana';
 
-export function compleixFiltre(cataleg: Cataleg, r: Recepta, filtre: FiltreReceptari): boolean {
+export function compleixFiltre(
+  cataleg: Cataleg,
+  r: Recepta,
+  filtre: FiltreReceptari,
+  valoracions: Readonly<Record<string, Valoracio>> = {},
+): boolean {
+  // 👍 Els que ens encanten.
+  if (filtre === 'agrada') return valoracions[r.id] === 'agrada';
   // A la brasa: els plats i acompanyaments de barbacoa i les salses que hi van bé.
   if (filtre === 'brasa') return calBarbacoa(r) || esSalsa(r);
   if (filtre === 'vegana' || filtre === 'vegetariana') {
@@ -657,19 +675,28 @@ export function compleixFiltre(cataleg: Cataleg, r: Recepta, filtre: FiltreRecep
 }
 
 /** Filtres que tenen sentit per a aquest receptari: els que deixen alguna recepta i no les deixen totes. */
-export function filtresReceptari(cataleg: Cataleg, seccions: readonly SeccioReceptari[]): FiltreReceptari[] {
+export function filtresReceptari(
+  cataleg: Cataleg,
+  seccions: readonly SeccioReceptari[],
+  valoracions: Readonly<Record<string, Valoracio>> = {},
+): FiltreReceptari[] {
   const totes = seccions.flatMap((s) => s.receptes);
-  const candidats: FiltreReceptari[] = ['brasa', ...CUINES, 'vegetariana', 'vegana'];
+  const candidats: FiltreReceptari[] = ['agrada', 'brasa', ...CUINES, 'vegetariana', 'vegana'];
   return candidats.filter((f) => {
-    const n = totes.filter((r) => compleixFiltre(cataleg, r, f)).length;
+    const n = totes.filter((r) => compleixFiltre(cataleg, r, f, valoracions)).length;
     return n > 0 && n < totes.length;
   });
 }
 
 /** Aplica un filtre al receptari i treu els grups que queden buits. */
-export function filtrarReceptari(cataleg: Cataleg, seccions: readonly SeccioReceptari[], filtre: FiltreReceptari | null): SeccioReceptari[] {
+export function filtrarReceptari(
+  cataleg: Cataleg,
+  seccions: readonly SeccioReceptari[],
+  filtre: FiltreReceptari | null,
+  valoracions: Readonly<Record<string, Valoracio>> = {},
+): SeccioReceptari[] {
   if (!filtre) return [...seccions];
   return seccions
-    .map((s) => ({ ...s, receptes: s.receptes.filter((r) => compleixFiltre(cataleg, r, filtre)) }))
+    .map((s) => ({ ...s, receptes: s.receptes.filter((r) => compleixFiltre(cataleg, r, filtre, valoracions)) }))
     .filter((s) => s.receptes.length > 0);
 }

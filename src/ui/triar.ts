@@ -63,6 +63,11 @@ function opcio(o: OpcioPlat, dades: DadesTriar, accions: AccionsTriar): HTMLElem
     o.usatA.length > 0 ? t.jaSurt(o.usatA.map((i) => nomApat(dades.apats[i]!).toLowerCase()).join(', ')) : null,
     !o.dinsTemps && limit !== null ? t.passaTemps(limit) : null,
     o.barbacoaEntreSetmana ? t.barbacoa : null,
+    dades.configuracio.valoracions?.[r.id] === 'agrada'
+      ? textos.menu.valoracio.marcaAgrada
+      : dades.configuracio.valoracions?.[r.id] === 'no-agrada'
+        ? textos.menu.valoracio.marcaNoAgrada
+        : null,
   ].filter((x): x is string => x !== null);
   return h(
     'li',

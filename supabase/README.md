@@ -6,6 +6,7 @@ Fitxers SQL de la base de dades. No es connecten sols: s'executen a mà a l'**SQ
 |---|---|---|
 | `001_esquema.sql` | Crea les taules `dades_usuari` i `productes` i les regles de seguretat (RLS) | Una vegada; es pot repetir sense perdre dades |
 | `002_productes.sql` | Carrega els productes i preus del Mercadona (generat, no s'edita a mà) | Després de l'esquema i cada vegada que hi hagi un llistat nou |
+| `003_valoracions.sql` | Afegeix la columna `valoracions` (plats amb 👍 / 👎) a `dades_usuari` | Una vegada; es pot repetir sense perdre dades |
 | `comprovacions.sql` | Comprova que tot és al seu lloc; no canvia res | Després dels altres dos |
 
 ## Com s'executa un fitxer
@@ -17,7 +18,7 @@ Fitxers SQL de la base de dades. No es connecten sols: s'executen a mà a l'**SQ
 ## Taules
 
 - **`dades_usuari`**: una fila per usuari amb el que ara es desa al mòbil: `respostes` del qüestionari, `graella`,
-  `menu` i `compra` (productes marcats). Són JSON amb el mateix format que fa servir l'app.
+  `menu`, `compra` (productes marcats i «ja ho tinc») i `valoracions` (plats amb 👍 / 👎, des de `003_valoracions.sql`). Són JSON amb el mateix format que fa servir l'app.
   Cada usuari només veu, crea, canvia i esborra la seva fila; sense sessió, res. Si s'esborra l'usuari, s'esborren les seves dades.
 - **`productes`**: llistat del Mercadona (Girona, 17003), diners en cèntims. Tothom el pot llegir; només es canvia des de l'SQL Editor.
 

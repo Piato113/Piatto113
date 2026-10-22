@@ -11,6 +11,8 @@ import {
   type Cataleg,
   type Graella,
   type RespostesQuestionari,
+  type Valoracio,
+  VALORACIONS,
 } from '../domini';
 
 // Desa les dades en aquest dispositiu (localStorage). Amb sessió iniciada, també es copien al núvol
@@ -18,15 +20,22 @@ import {
 // El navegador pot no deixar guardar (navegació privada, dades esborrades): l'app funciona igualment.
 
 /** Dades que es desen al compte; cadascuna és una columna de la taula `dades_usuari`. */
-export type Columna = 'respostes' | 'graella' | 'menu' | 'compra';
-export const COLUMNES: readonly Columna[] = ['respostes', 'graella', 'menu', 'compra'];
+export type Columna = 'respostes' | 'graella' | 'menu' | 'compra' | 'valoracions';
+export const COLUMNES: readonly Columna[] = ['respostes', 'graella', 'menu', 'compra', 'valoracions'];
 
 const CLAU = 'piatto113:respostes:v1';
 const CLAU_MENU = 'piatto113:menu:v1';
 const CLAU_GRAELLA = 'piatto113:graella:v1';
 const CLAU_COMPRA = 'piatto113:compra:v1';
+const CLAU_VALORACIONS = 'piatto113:valoracions:v1';
 
-const CLAUS: Record<Columna, string> = { respostes: CLAU, graella: CLAU_GRAELLA, menu: CLAU_MENU, compra: CLAU_COMPRA };
+const CLAUS: Record<Columna, string> = {
+  respostes: CLAU,
+  graella: CLAU_GRAELLA,
+  menu: CLAU_MENU,
+  compra: CLAU_COMPRA,
+  valoracions: CLAU_VALORACIONS,
+};
 
 let enDesar: ((columna: Columna) => void) | null = null;
 
@@ -46,7 +55,7 @@ function desar(columna: Columna, valor: unknown): void {
 
 /** Dades desades tal com són (sense validar), per enviar-les al núvol. Les que falten són `null`. */
 export function llegirDades(): Record<Columna, unknown> {
-  const dades = { respostes: null, graella: null, menu: null, compra: null } as Record<Columna, unknown>;
+  const dades = { respostes: null, graella: null, menu: null, compra: null, valoracions: null } as Record<Columna, unknown>;
   for (const c of COLUMNES) {
     try {
       const text = window.localStorage.getItem(CLAUS[c]);
@@ -74,7 +83,7 @@ export function posarDades(dades: Partial<Record<Columna, unknown>>): void {
 
 /** Esborra les dades d'aquest dispositiu (en tancar la sessió). */
 export function esborrarDades(): void {
-  posarDades({ respostes: null, graella: null, menu: null, compra: null });
+  posarDades({ respostes: null, graella: null, menu: null, compra: null, valoracions: null });
 }
 
 export function carregarRespostes(): RespostesQuestionari | null {
@@ -226,4 +235,26 @@ export function carregarCompra(signatura: string): EstatCompra {
 
 export function desarCompra(signatura: string, estat: EstatCompra): void {
   desar('compra', { signatura, marcats: [...estat.marcats], tinc: [...estat.tinc] });
+}
+
+// ——— Plats valorats (👍 / 👎) ———
+
+/** Valoracions desades, per identificador de recepta (només les vàlides i de receptes que existeixen). */
+export function carregarValoracions(cataleg: Cataleg): Record<string, Valoracio> {
+  try {
+    const text = window.localStorage.getItem(CLAU_VALORACIONS);
+    const v = text ? (JSON.parse(text) as unknown) : null;
+    if (typeof v !== 'object' || v === null || Array.isArray(v)) return {};
+    const resultat: Record<string, Valoracio> = {};
+    for (const [id, valor] of Object.entries(v as Record<string, unknown>)) {
+      if (cataleg.receptes.has(id) && VALORACIONS.includes(valor as Valoracio)) resultat[id] = valor as Valoracio;
+    }
+    return resultat;
+  } catch {
+    return {};
+  }
+}
+
+export function desarValoracions(valoracions: Readonly<Record<string, Valoracio>>): void {
+  desar('valoracions', valoracions);
 }

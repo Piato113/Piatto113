@@ -7,6 +7,7 @@ import {
   type ConfiguracioFamilia,
   type FiltreReceptari,
   type Recepta,
+  type Valoracio,
 } from '../domini';
 import { textos } from '../textos/ca';
 import { h, substituir } from './dom';
@@ -38,7 +39,7 @@ const normalitzar = (s: string): string =>
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase();
 
-function element(r: Recepta, racions: number, obrir: (id: string) => void): HTMLElement {
+function element(r: Recepta, racions: number, obrir: (id: string) => void, valoracio?: Valoracio): HTMLElement {
   const meta = [
     textos.menu.minuts(r.tempsMinuts),
     euros(costRecepta(catalegInicial, r, racions)),
@@ -54,6 +55,7 @@ function element(r: Recepta, racions: number, obrir: (id: string) => void): HTML
       { type: 'button', class: 'opcio-plat', 'data-plat': r.id, onclick: () => obrir(r.id) },
       h('span', { class: 'opcio-plat__nom' }, r.nom),
       h('span', { class: 'opcio-plat__meta' }, meta),
+      valoracio ? h('span', { class: 'opcio-plat__nota' }, valoracio === 'agrada' ? textos.menu.valoracio.marcaAgrada : textos.menu.valoracio.marcaNoAgrada) : null,
     ),
   );
 }
@@ -61,9 +63,10 @@ function element(r: Recepta, racions: number, obrir: (id: string) => void): HTML
 export function pantallaReceptari(dades: DadesReceptari, accions: AccionsReceptari): HTMLElement {
   const complet = receptari(catalegInicial, dades.configuracio);
   const total = new Set(complet.flatMap((s) => s.receptes.map((r) => r.id))).size;
-  const disponibles = filtresReceptari(catalegInicial, complet);
+  const valoracions = dades.configuracio.valoracions ?? {};
+  const disponibles = filtresReceptari(catalegInicial, complet, valoracions);
   const triat = dades.filtre && disponibles.includes(dades.filtre) ? dades.filtre : null;
-  const seccions = filtrarReceptari(catalegInicial, complet, triat);
+  const seccions = filtrarReceptari(catalegInicial, complet, triat, valoracions);
   const llista = h('div', { class: 'triar__llista' });
   const compte = h('p', { class: 'menu__nota', role: 'status' });
   let cerca = dades.cerca;
@@ -100,7 +103,7 @@ export function pantallaReceptari(dades: DadesReceptari, accions: AccionsRecepta
             `${s.grup === 'acompanyament' ? tr.acompanyaments : s.grup === 'salsa' ? tr.salses : textos.triar.categories[s.grup]} `,
             h('span', { class: 'triar__compte' }, `(${s.receptes.length})`),
           ),
-          h('ul', { class: 'triar__plats' }, ...s.receptes.map((r) => element(r, dades.racionsCentesimes, accions.obrir))),
+          h('ul', { class: 'triar__plats' }, ...s.receptes.map((r) => element(r, dades.racionsCentesimes, accions.obrir, valoracions[r.id]))),
         ),
       ),
     );

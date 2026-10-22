@@ -182,7 +182,13 @@ export interface ConfiguracioFamilia {
   pressupostRacioCentims: number | null;
   /** Aparells que té la família. Sense indicar-ho, es consideren tots. */
   aparells?: Aparell[];
+  /** Plats valorats per la família (👍 / 👎), per identificador de recepta. */
+  valoracions?: Readonly<Record<string, Valoracio>>;
 }
+
+/** 👍 «Ens ha encantat» (surt més sovint) o 👎 «No ens ha agradat» (no surt sol al menú). */
+export type Valoracio = 'agrada' | 'no-agrada';
+export const VALORACIONS: readonly Valoracio[] = ['agrada', 'no-agrada'];
 
 export type Dia = 'dl' | 'dt' | 'dc' | 'dj' | 'dv' | 'ds' | 'dg';
 export type Apat = 'dinar' | 'sopar';

@@ -145,23 +145,38 @@ function aturarEnviament(): void {
   temporitzador = null;
 }
 
+/**
+ * La columna `valoracions` és nova (supabase/003_valoracions.sql). Mentre no s'hagi afegit a la base de dades,
+ * les valoracions es queden al mòbil (pendents d'enviar) i la resta se sincronitza com sempre.
+ */
+let ambValoracions = true;
+const columnesNuvol = (): Columna[] => COLUMNES.filter((c) => ambValoracions || c !== 'valoracions');
+const faltaValoracions = (error: { message?: string } | null): boolean =>
+  ambValoracions && error !== null && /valoracions/i.test(error.message ?? '');
+
 /** Hi ha canvis del mòbil per enviar (p. ex. sense connexió). */
-export const hiHaPendents = (): boolean => carregarPendents().length > 0;
+export const hiHaPendents = (): boolean => carregarPendents().some((c) => columnesNuvol().includes(c));
 
 /** Envia al compte les dades indicades. Retorna si ha anat bé. */
 async function pujar(usuari: Usuari, columnes: readonly Columna[]): Promise<boolean> {
-  if (!client || columnes.length === 0) return true;
+  const disponibles = columnesNuvol();
+  const aEnviar = columnes.filter((c) => disponibles.includes(c));
+  if (!client || aEnviar.length === 0) return true;
   const local = llegirDades();
   const fila: Record<string, unknown> = { usuari_id: usuari.id };
-  for (const c of columnes) fila[c] = local[c];
+  for (const c of aEnviar) fila[c] = local[c];
   try {
     const { error } = await client.from(TAULA).upsert(fila, { onConflict: 'usuari_id' });
-    if (error) return false;
+    if (error) {
+      if (!faltaValoracions(error)) return false;
+      ambValoracions = false;
+      return pujar(usuari, columnes);
+    }
   } catch {
     return false; // Sense connexió: queden pendents.
   }
   // Només es treuen de pendents les que s'han enviat (n'hi pot haver de noves mentrestant).
-  const enviades = new Set(columnes);
+  const enviades = new Set(aEnviar);
   const ara = llegirDades();
   desarPendents(carregarPendents().filter((c) => !enviades.has(c) || JSON.stringify(ara[c]) !== JSON.stringify(local[c])));
   return true;
@@ -180,10 +195,15 @@ export function sincronitzar(): Promise<boolean> {
       aturarEnviament();
       // Primer s'envia el que estava pendent, perquè no el trepitgi el que hi ha al núvol.
       await pujar(usuari, carregarPendents());
-      const { data, error } = await client.from(TAULA).select(COLUMNES.join(',')).eq('usuari_id', usuari.id).maybeSingle();
+      const llegir = () => client!.from(TAULA).select(columnesNuvol().join(',')).eq('usuari_id', usuari.id).maybeSingle();
+      let { data, error } = await llegir();
+      if (error && faltaValoracions(error)) {
+        ambValoracions = false;
+        ({ data, error } = await llegir());
+      }
       if (error) return false;
       const remot = (data as Record<Columna, unknown> | null) ?? null;
-      const { aplicar, pujar: perPujar } = fusionar(COLUMNES, llegirDades(), remot, carregarPendents());
+      const { aplicar, pujar: perPujar } = fusionar(columnesNuvol(), llegirDades(), remot, carregarPendents());
       const canvis = Object.keys(aplicar).length > 0;
       if (canvis) posarDades(aplicar);
       if (perPujar.length > 0) {

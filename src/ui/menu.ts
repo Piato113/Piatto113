@@ -18,6 +18,7 @@ import {
   type Avis,
   type ConfiguracioFamilia,
   type Graella,
+  type Valoracio,
 } from '../domini';
 import type { PeriodeMenu } from './emmagatzematge';
 import { textAvis, textos } from '../textos/ca';
@@ -35,6 +36,8 @@ export interface DadesMenu {
   missatge?: string | null;
   /** Text de l'avís amb «Desfés» després de tornar a fer el menú; `null` si no es pot desfer. */
   desfer?: string | null;
+  /** Data d'avui («AAAA-MM-DD»): els àpats d'abans es poden valorar (👍 / 👎) en lloc de canviar-los. */
+  avui: string;
   /** Menú setmanal: dilluns de la setmana del menú («AAAA-MM-DD»), per posar data als dies. */
   dilluns?: string;
   /** Àpat amb el quadre «Qui hi ha a taula?» obert. */
@@ -61,6 +64,8 @@ export interface AccionsMenu {
   desfer: () => void;
   /** Fixa o deixa de fixar el plat d'un àpat. */
   fixar: (index: number) => void;
+  /** Valora un plat (👍 / 👎); `null` treu la valoració. `index`: àpat des d'on es valora (per tornar-hi el focus). */
+  valorar: (receptaId: string, valoracio: Valoracio | null, index: number) => void;
   obrirRecepta: (index: number) => void;
   obrirAssistencia: (index: number) => void;
   /** `enfocar`: selector de l'element que ha de tenir el focus després de tornar a pintar. */
@@ -308,6 +313,7 @@ function targetaApat(
   oberta: boolean,
   accions: AccionsMenu,
   lectura: boolean,
+  passat = false,
 ): HTMLElement {
   const racions = racionsApat(configuracio.persones, a);
   const resum = resumTaula(configuracio, a);
@@ -355,7 +361,9 @@ function targetaApat(
         resum,
       ),
     ),
-    lectura
+    passat
+      ? valoracioApat(a.receptaId, nomPlat, index, configuracio, accions)
+      : lectura
       ? null
       : h(
           'div',
@@ -386,6 +394,33 @@ function targetaApat(
           ),
         ),
     oberta && !lectura ? quadreTaula(configuracio, a, index, accions) : null,
+  );
+}
+
+/** 👍 / 👎 d'un àpat que ja ha passat (es valora el plat, no l'àpat). */
+function valoracioApat(receptaId: string, nomPlat: string, index: number, configuracio: ConfiguracioFamilia, accions: AccionsMenu): HTMLElement {
+  const tv = tm.valoracio;
+  const actual = configuracio.valoracions?.[receptaId];
+  const boto = (v: Valoracio, icona: string, text: string, etiqueta: string): HTMLElement =>
+    h(
+      'button',
+      {
+        type: 'button',
+        class: `boto boto--petit apat__polze${actual === v ? ' apat__polze--actiu' : ' boto--fantasma'}`,
+        'data-valorar': `${index}-${v}`,
+        'aria-pressed': actual === v ? 'true' : 'false',
+        'aria-label': etiqueta,
+        title: text,
+        onclick: () => accions.valorar(receptaId, actual === v ? null : v, index),
+      },
+      h('span', { 'aria-hidden': 'true' }, icona),
+    );
+  return h(
+    'div',
+    { class: 'apat__valoracio', role: 'group', 'aria-label': tv.pregunta },
+    boto('agrada', '👍', tv.agrada, tv.agradaEtiqueta(nomPlat)),
+    boto('no-agrada', '👎', tv.noAgrada, tv.noAgradaEtiqueta(nomPlat)),
+    actual ? h('span', { class: 'apat__valoracio-text' }, actual === 'agrada' ? tv.agrada : tv.noAgrada) : null,
   );
 }
 
@@ -512,7 +547,11 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
         'section',
         { class: 'dia', 'aria-labelledby': `dia-${clau}` },
         h('h2', { class: 'dia__nom', id: `dia-${clau}` }, nom),
-        ...delDia.map(({ a, index }) => targetaApat(a, index, configuracio, dades.assistenciaOberta === index, accions, lectura !== undefined)),
+        ...delDia.map(({ a, index }) => {
+          const data = a.data ?? (dades.dilluns ? sumarDies(dades.dilluns, DIES.indexOf(a.dia)) : undefined);
+          const passat = data !== undefined && data < dades.avui;
+          return targetaApat(a, index, configuracio, dades.assistenciaOberta === index, accions, lectura !== undefined, passat);
+        }),
       ),
     ),
   );

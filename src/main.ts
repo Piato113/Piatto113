@@ -22,6 +22,7 @@ import {
   planificar,
   respostesPerDefecte,
   type Assistencia,
+  type Valoracio,
   type ConfiguracioFamilia,
   type FiltreReceptari,
   type Graella,
@@ -35,10 +36,12 @@ import {
   carregarCompra,
   carregarMenu,
   carregarRespostes,
+  carregarValoracions,
   desarGraella,
   desarCompra,
   desarMenu,
   desarRespostes,
+  desarValoracions,
   type MenuAnterior,
   type MenuDesat,
   type EstatCompra,
@@ -85,6 +88,13 @@ const llavorNova = (): number => Math.floor(Math.random() * 2 ** 31);
 let desades = carregarRespostes();
 /** Respostes amb què es fa el menú: les desades o, si encara no s'ha configurat res, les per defecte (menú d'exemple). */
 const respostesActives = (): RespostesQuestionari => desades ?? respostesPerDefecte();
+/** Plats valorats (👍 / 👎) per la família. */
+let valoracions = carregarValoracions(catalegInicial);
+/** Configuració de la família: la de les respostes més les valoracions dels plats. */
+const configuracioDe = (respostes: RespostesQuestionari): ConfiguracioFamilia => ({
+  ...configuracioDesDeRespostes(respostes),
+  valoracions,
+});
 /** Esborrany que editen les pantalles; només es desa en acabar. */
 let esborrany = desades ? copia(desades) : respostesPerDefecte();
 let menu: MenuDesat | null = carregarMenu(catalegInicial);
@@ -200,7 +210,7 @@ function ferMenu(
   mes: string | undefined = menu?.mes,
   mantenirFixats = false,
 ): MenuDesat {
-  const configuracio = configuracioDesDeRespostes(respostes);
+  const configuracio = configuracioDe(respostes);
   // Un mes que ja ha passat (o sense dies que quedin) passa al mes per defecte.
   let mesTriat = periode === 'mes' ? (mes ?? mesPerDefecte()) : undefined;
   if (mesTriat && diesDelMes(mesTriat, avui()).filter((d) => d.data >= avui()).length === 0) mesTriat = mesPerDefecte();
@@ -350,7 +360,7 @@ function accionsTriar(index: number) {
     tornar,
     triar: (receptaId: string, acompanyamentId?: string): void => {
       if (!menu) return;
-      const apats = triarPlat(catalegInicial, configuracioDesDeRespostes(respostesActives()), menu.apats, index, receptaId, acompanyamentId);
+      const apats = triarPlat(catalegInicial, configuracioDe(respostesActives()), menu.apats, index, receptaId, acompanyamentId);
       if (apats !== menu.apats && JSON.stringify(apats) !== JSON.stringify(menu.apats)) {
         menu = { ...menu, apats };
         desarMenu(menu);
@@ -385,7 +395,7 @@ const accionsMenu = {
   /** Canvia el plat per un altre a l'atzar. */
   canviarPlat: (index: number, { pintar: repintar = true } = {}): void => {
     if (!menu) return;
-    const apats = canviarPlat(catalegInicial, configuracioDesDeRespostes(respostesActives()), menu.apats, index, llavorNova());
+    const apats = canviarPlat(catalegInicial, configuracioDe(respostesActives()), menu.apats, index, llavorNova());
     if (apats[index]?.receptaId === menu.apats[index]?.receptaId) {
       missatge = textos.menu.senseAlternativa;
     } else {
@@ -421,6 +431,17 @@ const accionsMenu = {
     desarGraella(menu.graella);
     pintar();
     enfocarTitol();
+  },
+  valorar: (receptaId: string, valoracio: Valoracio | null, index: number): void => {
+    const noves = { ...valoracions };
+    if (valoracio) noves[receptaId] = valoracio;
+    else delete noves[receptaId];
+    valoracions = noves;
+    desarValoracions(valoracions);
+    const y = window.scrollY;
+    pintar();
+    window.scrollTo(0, y);
+    arrel!.querySelector<HTMLElement>(`[data-valorar="${index}-${valoracio ?? 'agrada'}"]`)?.focus({ preventScroll: true });
   },
   fixar: (index: number): void => {
     if (!menu?.apats[index]) return;
@@ -473,7 +494,7 @@ const accionsMenu = {
   },
   canviarAssistencia: (index: number, assistencia: Assistencia, enfocar: string): void => {
     if (!menu?.apats[index]) return;
-    const persones = configuracioDesDeRespostes(respostesActives()).persones;
+    const persones = configuracioDe(respostesActives()).persones;
     const normal = normalitzarAssistencia(persones, assistencia);
     menuDesfer = null;
     menu = {
@@ -560,6 +581,7 @@ function accionsCompra(signatura: string, estat: EstatCompra) {
 function recarregarDades(): void {
   desades = carregarRespostes();
   menu = carregarMenu(catalegInicial);
+  valoracions = carregarValoracions(catalegInicial);
   // Si s'està editant el qüestionari, no es trepitja l'esborrany.
   if (pantalla.tipus !== 'pas') esborrany = desades ? copia(desades) : respostesPerDefecte();
 }
@@ -603,6 +625,7 @@ async function sortirDelCompte(): Promise<void> {
   desades = null;
   esborrany = respostesPerDefecte();
   menu = null;
+  valoracions = {};
   pantalla = { tipus: 'menu' };
   history.replaceState({ piatto: false }, '', '#/menu');
   pintar();
@@ -618,6 +641,63 @@ function seccioCompte(): HTMLElement | null {
     h('p', { class: 'compte__text' }, textos.compte.entratCom(usuari.correu)),
     h('p', { class: 'compte__text', 'data-estat-compte': true, role: 'status' }, textEstatCompte()),
     h('button', { type: 'button', class: 'boto boto--secundari', onclick: () => void sortirDelCompte() }, textos.compte.tancar),
+  );
+}
+
+/** Llista dels plats valorats (a Configuració), per poder treure una valoració. */
+function seccioValorats(): HTMLElement {
+  const tv = textos.valorats;
+  const llista = (valor: Valoracio, titol: string): HTMLElement | null => {
+    const ids = Object.keys(valoracions)
+      .filter((id) => valoracions[id] === valor)
+      .sort((a, b) => (catalegInicial.receptes.get(a)?.nom ?? a).localeCompare(catalegInicial.receptes.get(b)?.nom ?? b, 'ca'));
+    if (ids.length === 0) return null;
+    return h(
+      'div',
+      { class: 'valorats__grup' },
+      h('h3', { class: 'valorats__titol' }, titol),
+      h(
+        'ul',
+        { class: 'productes' },
+        ...ids.map((id) => {
+          const nom = catalegInicial.receptes.get(id)?.nom ?? id;
+          return h(
+            'li',
+            { class: 'producte valorats__plat' },
+            h('span', { class: 'producte__nom' }, nom),
+            h(
+              'button',
+              {
+                type: 'button',
+                class: 'boto boto--petit boto--secundari',
+                'data-treure': id,
+                'aria-label': tv.treuEtiqueta(nom),
+                onclick: () => {
+                  const noves = { ...valoracions };
+                  delete noves[id];
+                  valoracions = noves;
+                  desarValoracions(valoracions);
+                  pintar();
+                  arrel!.querySelector<HTMLElement>('#valorats-titol')?.focus();
+                },
+              },
+              tv.treu,
+            ),
+          );
+        }),
+      ),
+    );
+  };
+  const agraden = llista('agrada', tv.agraden);
+  const noAgraden = llista('no-agrada', tv.noAgraden);
+  return h(
+    'section',
+    { class: 'compte valorats', 'aria-labelledby': 'valorats-titol' },
+    h('h2', { class: 'compte__titol', id: 'valorats-titol', tabindex: -1 }, tv.titol),
+    h('p', { class: 'compte__text' }, tv.ajuda),
+    !agraden && !noAgraden ? h('p', { class: 'compte__text' }, tv.cap) : null,
+    agraden,
+    noAgraden,
   );
 }
 
@@ -682,11 +762,12 @@ function avisSenseConfigurar(): HTMLElement | null {
 }
 
 function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLElement {
-  const configuracio = configuracioDesDeRespostes(respostes);
+  const configuracio = configuracioDe(respostes);
   const actual = menuActual(respostes);
   switch (seccio.tipus) {
     case 'resum': {
       const resum = pantallaResum(esborrany, accionsQuestionari);
+      resum.append(seccioValorats());
       const compte = seccioCompte();
       if (compte) resum.append(compte);
       return resum;
@@ -790,6 +871,7 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
           avisos: actual.avisos,
           missatge: avisPuntual,
           desfer: menuDesfer?.text ?? null,
+          avui: avui(),
           ...(actual.periode !== 'mes' && actual.creat ? { dilluns: dillunsDe(actual.creat) } : {}),
           assistenciaOberta,
           periode: actual.periode ?? 'setmana',
@@ -816,6 +898,8 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
           graella: ant.graella,
           apats: ant.apats,
           avisos: [],
+          avui: avui(),
+          ...(ant.periode !== 'mes' && ant.creat ? { dilluns: dillunsDe(ant.creat) } : {}),
           periode: ant.periode ?? 'setmana',
           ...(ant.mes ? { mes: ant.mes } : {}),
           mesos: [],
