@@ -208,6 +208,8 @@ export interface ApatPlanificat {
   acompanyamentId?: string;
   /** Sense assistència, hi és tota la família. */
   assistencia?: Assistencia;
+  /** Plat fixat: es manté quan es torna a fer el menú. */
+  fixat?: boolean;
 }
 
 /** Avisos amb codi; el text en català és a `src/textos/ca.ts`. */

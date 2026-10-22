@@ -1818,3 +1818,34 @@ h1:focus-visible {
 .sense-configurar__titol {
   font-weight: 800;
 }
+
+/* Plats fixats i «Desfés» */
+.apat__botons {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+  flex: none;
+}
+
+.apat__fixa--actiu {
+  border: 1px solid var(--taronja);
+  background: rgb(244 115 24 / 0.15);
+  color: var(--text);
+}
+
+.apat--fixat {
+  border-color: var(--taronja);
+}
+
+.menu__desfer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.menu__desfer p {
+  margin: 0;
+}

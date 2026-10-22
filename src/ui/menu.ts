@@ -33,6 +33,8 @@ export interface DadesMenu {
   avisos: Avis[];
   /** Missatge puntual (p. ex. no hi ha cap altre plat possible). */
   missatge?: string | null;
+  /** Text de l'avís amb «Desfés» després de tornar a fer el menú; `null` si no es pot desfer. */
+  desfer?: string | null;
   /** Menú setmanal: dilluns de la setmana del menú («AAAA-MM-DD»), per posar data als dies. */
   dilluns?: string;
   /** Àpat amb el quadre «Qui hi ha a taula?» obert. */
@@ -55,6 +57,10 @@ export interface AccionsMenu {
   obrirTriar: (index: number) => void;
   canviarGraella: (graella: Graella, clau: string) => void;
   tornarAFer: () => void;
+  /** Torna al menú d'abans de l'últim «Fes un altre menú» o canvi de graella. */
+  desfer: () => void;
+  /** Fixa o deixa de fixar el plat d'un àpat. */
+  fixar: (index: number) => void;
   obrirRecepta: (index: number) => void;
   obrirAssistencia: (index: number) => void;
   /** `enfocar`: selector de l'element que ha de tenir el focus després de tornar a pintar. */
@@ -312,9 +318,10 @@ function targetaApat(
     (acompanyament ? costRecepta(catalegInicial, acompanyament, racions) : 0);
   const temps = principal ? tm.minuts(principal.tempsMinuts) : '';
   const nomPlat = principal?.nom ?? a.receptaId;
+  const fixat = a.fixat === true;
   return h(
     'article',
-    { class: 'apat' },
+    { class: `apat${fixat ? ' apat--fixat' : ''}` },
     h(
       'div',
       { class: 'apat__text' },
@@ -351,16 +358,33 @@ function targetaApat(
     lectura
       ? null
       : h(
-      'button',
-      {
-        type: 'button',
-        class: 'boto boto--petit boto--secundari',
-        'data-canviar': index,
-        'aria-label': tm.canviarEtiqueta(textos.apats[a.apat], textos.dies[a.dia], nomPlat),
-        onclick: () => accions.obrirTriar(index),
-      },
-      tm.canviar,
-    ),
+          'div',
+          { class: 'apat__botons' },
+          h(
+            'button',
+            {
+              type: 'button',
+              class: 'boto boto--petit boto--secundari',
+              'data-canviar': index,
+              'aria-label': tm.canviarEtiqueta(textos.apats[a.apat], textos.dies[a.dia], nomPlat),
+              onclick: () => accions.obrirTriar(index),
+            },
+            tm.canviar,
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              class: `boto boto--petit apat__fixa${fixat ? ' apat__fixa--actiu' : ' boto--fantasma'}`,
+              'data-fixar': index,
+              'aria-pressed': fixat ? 'true' : 'false',
+              'aria-label': (fixat ? tm.desfixaEtiqueta : tm.fixaEtiqueta)(textos.apats[a.apat], textos.dies[a.dia], nomPlat),
+              onclick: () => accions.fixar(index),
+            },
+            h('span', { 'aria-hidden': 'true' }, '📌 '),
+            fixat ? tm.fixat : tm.fixa,
+          ),
+        ),
     oberta && !lectura ? quadreTaula(configuracio, a, index, accions) : null,
   );
 }
@@ -470,6 +494,14 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
     lectura ? null : selectorPeriode(dades, accions),
     lectura ? null : graellaEditable(graella, accions.canviarGraella),
     apats.length === 0 ? h('p', { class: 'avis' }, tm.capApat) : null,
+    !lectura && dades.desfer
+      ? h(
+          'div',
+          { class: 'avis menu__desfer', role: 'status' },
+          h('p', {}, dades.desfer),
+          h('button', { type: 'button', class: 'boto boto--petit boto--secundari', 'data-desfer': true, onclick: accions.desfer }, `↩ ${tm.desfer}`),
+        )
+      : null,
     apats.length > 0 && !lectura
       ? h('button', { type: 'button', class: 'boto boto--secundari menu__refer', onclick: accions.tornarAFer }, `🔄 ${tm.tornarAFer}`)
       : null,

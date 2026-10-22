@@ -2,7 +2,7 @@ import { generadorAleatori } from './aleatori';
 import { acompanyamentsAdmesos, calBarbacoa, esSalsa, potSerAcompanyament, potSerPrincipal, type Cataleg } from './cataleg';
 import { costRecepta } from './cost';
 import { racionsApat, racionsEfectives } from './escalat';
-import type { DiaCalendari } from './calendari';
+import { diesEntre, type DiaCalendari } from './calendari';
 import { apatsMarcats, DIES, esCapDeSetmana } from './graella';
 import { generarLlista, type LlistaCompra } from './llista';
 import { CUINES, type Aparell, type Apat, type ApatPlanificat, type Avis, type ConfiguracioFamilia, type Cuina, type Dia, type Graella, type Recepta } from './tipus';
@@ -459,7 +459,45 @@ export function canviarPlat(
     : { dia: actual.dia, apat: actual.apat, receptaId: principal.id };
   if (actual.data) nou.data = actual.data;
   if (actual.assistencia) nou.assistencia = actual.assistencia;
+  if (actual.fixat) nou.fixat = true;
   return apats.map((a, i) => (i === index ? nou : a));
+}
+
+// ——— Plats fixats ———
+
+/**
+ * Torna a posar els plats fixats d'un menú anterior als mateixos àpats (mateix dia, àpat i data) del menú nou.
+ * Els altres àpats que repeteixen un plat fixat massa a prop (en el setmanal, a qualsevol dia) es canvien per un altre.
+ * Els fixats d'àpats que ja no hi són (p. ex. s'han desmarcat de la graella) es perden.
+ */
+export function conservarFixats(
+  cataleg: Cataleg,
+  configuracio: ConfiguracioFamilia,
+  nous: readonly ApatPlanificat[],
+  anteriors: readonly ApatPlanificat[],
+  llavor: number,
+): ApatPlanificat[] {
+  const fixats = anteriors.filter((a) => a.fixat);
+  if (fixats.length === 0) return [...nous];
+  let apats = nous.map((a) => {
+    const f = fixats.find((x) => x.dia === a.dia && x.apat === a.apat && x.data === a.data);
+    if (!f) return a;
+    const nou: ApatPlanificat = { dia: a.dia, apat: a.apat, receptaId: f.receptaId, fixat: true };
+    if (f.acompanyamentId) nou.acompanyamentId = f.acompanyamentId;
+    if (a.data) nou.data = a.data;
+    if (a.assistencia) nou.assistencia = a.assistencia;
+    return nou;
+  });
+  const aProp = (a: ApatPlanificat, b: ApatPlanificat): boolean =>
+    a.data && b.data ? Math.abs(diesEntre(a.data, b.data)) <= DIES_SENSE_REPETIR : true;
+  for (let i = 0; i < apats.length; i++) {
+    const a = apats[i]!;
+    if (a.fixat) continue;
+    if (apats.some((b) => b.fixat && b.receptaId === a.receptaId && aProp(a, b))) {
+      apats = canviarPlat(cataleg, configuracio, apats, i, llavor + i);
+    }
+  }
+  return apats;
 }
 
 // ——— Triar el plat d'un àpat a mà ———
@@ -567,6 +605,7 @@ export function triarPlat(
     : { dia: actual.dia, apat: actual.apat, receptaId };
   if (actual.data) nou.data = actual.data;
   if (actual.assistencia) nou.assistencia = actual.assistencia;
+  if (actual.fixat) nou.fixat = true;
   return apats.map((a, i) => (i === index ? nou : a));
 }
 

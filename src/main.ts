@@ -14,6 +14,7 @@ import {
   comensals,
   configuracioDesDeRespostes,
   conservarAssistencia,
+  conservarFixats,
   normalitzarAssistencia,
   racionsApat,
   acompanyamentsDePlat,
@@ -92,6 +93,8 @@ let missatge: string | null = null;
 let enfocarEnTornar: string | null = null;
 /** Àpat del menú amb el quadre «Qui hi ha a taula?» obert. */
 let assistenciaOberta: number | null = null;
+/** Menú d'abans de l'últim «Fes un altre menú» o canvi de graella, per poder-lo desfer; i el text de l'avís. */
+let menuDesfer: { menu: MenuDesat; text: string } | null = null;
 /** Setmana del menú mensual que es mostra; `null`: la d'avui (o la primera). */
 let setmanaVisible: number | null = null;
 /** Setmana que es mostra del menú anterior (si és mensual). */
@@ -194,6 +197,7 @@ function ferMenu(
   llavor: number,
   periode: PeriodeMenu = menu?.periode ?? 'setmana',
   mes: string | undefined = menu?.mes,
+  mantenirFixats = false,
 ): MenuDesat {
   const configuracio = configuracioDesDeRespostes(respostes);
   // Un mes que ja ha passat (o sense dies que quedin) passa al mes per defecte.
@@ -202,7 +206,9 @@ function ferMenu(
   const dies = mesTriat ? diesDelMes(mesTriat, avui()) : undefined;
   const pla = planificar({ cataleg: catalegInicial, configuracio, graella, llavor, ...(dies ? { dies } : {}) });
   // Els convidats i absències d'un dia no canvien perquè es torni a fer el menú.
-  const apats = conservarAssistencia(configuracio.persones, pla.apats, menu?.apats ?? []);
+  const ambGent = conservarAssistencia(configuracio.persones, pla.apats, menu?.apats ?? []);
+  // Els plats fixats es mantenen quan es torna a fer el menú amb les mateixes respostes.
+  const apats = mantenirFixats && menu ? conservarFixats(catalegInicial, configuracio, ambGent, menu.apats, llavor) : ambGent;
   const nou: MenuDesat = { signatura: JSON.stringify(respostes), llavor, graella, apats, avisos: pla.avisos, creat: avui() };
   if (mesTriat) Object.assign(nou, { periode: 'mes', mes: mesTriat });
   // El menú d'un altre període passa a ser l'anterior (per seguir-lo mentre s'acaba); si és el mateix, es conserva el d'abans.
@@ -266,6 +272,7 @@ function anar(nova: Pantalla, { substituirHistoria = false } = {}): void {
   if (pantalla.tipus === 'cuinar' && nova.tipus !== 'cuinar') sortirDelModeCuinar();
   pantalla = nova;
   assistenciaOberta = null;
+  menuDesfer = null;
   const adreca = adrecaDe(nova);
   if (adreca && adreca !== location.hash) {
     if (substituirHistoria) history.replaceState({ piatto: true }, '', adreca);
@@ -391,15 +398,45 @@ const accionsMenu = {
   canviarGraella: (graella: Graella, clau: string): void => {
     if (!menu) return;
     desarGraella(graella);
-    menu = ferMenu(respostesActives(), graella, menu.llavor);
+    menuDesfer = { menu, text: textos.menu.graellaCanviada };
+    menu = ferMenu(respostesActives(), graella, menu.llavor, menu.periode ?? 'setmana', menu.mes, true);
     pintar();
     arrel!.querySelector<HTMLElement>(`[data-graella="${clau}"]`)?.focus();
   },
   tornarAFer: (): void => {
     if (!menu) return;
-    menu = ferMenu(respostesActives(), menu.graella, llavorNova());
+    const fixats = menu.apats.filter((a) => a.fixat).length;
+    if (!window.confirm(textos.menu.confirmarTornarAFer(fixats))) return;
+    menuDesfer = { menu, text: textos.menu.menuNou };
+    menu = ferMenu(respostesActives(), menu.graella, llavorNova(), menu.periode ?? 'setmana', menu.mes, true);
+    pintar();
+    arrel!.querySelector<HTMLElement>('[data-desfer]')?.focus();
+  },
+  desfer: (): void => {
+    if (!menuDesfer) return;
+    menu = menuDesfer.menu;
+    menuDesfer = null;
+    desarMenu(menu);
+    desarGraella(menu.graella);
     pintar();
     enfocarTitol();
+  },
+  fixar: (index: number): void => {
+    if (!menu?.apats[index]) return;
+    menuDesfer = null;
+    menu = {
+      ...menu,
+      apats: menu.apats.map((a, i) => {
+        if (i !== index) return a;
+        const { fixat, ...sense } = a;
+        return fixat ? sense : { ...sense, fixat: true };
+      }),
+    };
+    desarMenu(menu);
+    const y = window.scrollY;
+    pintar();
+    window.scrollTo(0, y);
+    arrel!.querySelector<HTMLElement>(`[data-fixar="${index}"]`)?.focus({ preventScroll: true });
   },
   canviarPeriode: (periode: PeriodeMenu, mes?: string): void => {
     if (!menu) return;
@@ -437,6 +474,7 @@ const accionsMenu = {
     if (!menu?.apats[index]) return;
     const persones = configuracioDesDeRespostes(respostesActives()).persones;
     const normal = normalitzarAssistencia(persones, assistencia);
+    menuDesfer = null;
     menu = {
       ...menu,
       apats: menu.apats.map((a, i) => {
@@ -703,6 +741,7 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
           apats: actual.apats,
           avisos: actual.avisos,
           missatge: avisPuntual,
+          desfer: menuDesfer?.text ?? null,
           ...(actual.periode !== 'mes' && actual.creat ? { dilluns: dillunsDe(actual.creat) } : {}),
           assistenciaOberta,
           periode: actual.periode ?? 'setmana',

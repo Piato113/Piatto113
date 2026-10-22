@@ -180,7 +180,9 @@ function llegirMenu(v: Partial<MenuDesat>, cataleg: Cataleg): MenuAnterior | nul
         Array.isArray(assistencia.absents) &&
         assistencia.absents.every((i) => Number.isInteger(i)) &&
         Number.isInteger(assistencia.convidats);
-      return valida ? { ...sense, assistencia: { absents: [...assistencia.absents], convidats: assistencia.convidats } } : sense;
+      const { fixat, ...net } = sense;
+      const base = fixat === true ? { ...net, fixat: true } : net;
+      return valida ? { ...base, assistencia: { absents: [...assistencia.absents], convidats: assistencia.convidats } } : base;
     });
     const menu: MenuAnterior = { signatura: v.signatura, llavor: v.llavor, graella, apats, avisos: Array.isArray(v.avisos) ? v.avisos : [] };
     if (typeof v.creat === 'string' && esData(v.creat)) menu.creat = v.creat;

@@ -101,6 +101,17 @@ export const textos = {
     canviarEtiqueta: (apat: string, dia: string, plat: string) => `Canvia el ${apat.toLowerCase()} de ${dia.toLowerCase()} (${plat})`,
     senseAlternativa: 'No hi ha cap altre plat possible per a aquest àpat.',
     tornarAFer: 'Fes un altre menú',
+    confirmarTornarAFer: (fixats: number) =>
+      fixats > 0
+        ? `Vols fer un menú nou? Es mantindran ${fixats === 1 ? 'el plat fixat' : `els ${fixats} plats fixats`} (📌).`
+        : 'Vols fer un menú nou? Si vols conservar algun plat, fixa’l abans amb 📌.',
+    menuNou: 'Menú nou fet.',
+    graellaCanviada: 'Menú refet amb els àpats nous.',
+    desfer: 'Desfés',
+    fixa: 'Fixa',
+    fixat: 'Fixat',
+    fixaEtiqueta: (apat: string, dia: string, plat: string) => `Fixa el ${apat.toLowerCase()} de ${dia.toLowerCase()} (${plat}): es mantindrà si tornes a fer el menú`,
+    desfixaEtiqueta: (apat: string, dia: string, plat: string) => `Deixa de fixar el ${apat.toLowerCase()} de ${dia.toLowerCase()} (${plat})`,
     anterior: {
       setmana: 'Menú de la setmana anterior',
       boto: (titol: string) => `Mira el ${titol.charAt(0).toLowerCase()}${titol.slice(1)}`,
