@@ -15,7 +15,7 @@ export const cuinesReceptes: Record<string, Cuina> = Object.fromEntries([
     'arros-caldos-marisc', 'bacalla-llauna', 'pebrots-farcits', 'botifarra-bolets', 'empedrat', 'arros-conill-carxofes',
     'costelles-xai-allioli', 'canelons-espinacs', 'farcellets-col', 'botifarra-ceba-patates', 'escudella-barrejada',
     'samfaina-ou', 'bledes-patates', 'sopa-farigola', 'mongetes-saltejades-cansalada', 'arros-col-mongetes',
-    'pollastre-encebat', 'salsitxes-encebades', 'pa-amb-tomaquet',
+    'pollastre-encebat', 'salsitxes-encebades', 'pa-amb-tomaquet', 'pa-tomaquet-pernil-formatge',
   ]),
   ...llista('espanyola', [
     'paella', 'fideua', 'arros-cubana', 'llenties-estofades', 'truita-patates', 'cocido-cordoves', 'estofat-patates-xorico',

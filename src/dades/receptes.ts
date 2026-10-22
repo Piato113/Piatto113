@@ -14,6 +14,7 @@ import { receptesCatalanes2 } from './receptes-regio-catalana';
 import { receptesNord } from './receptes-regio-nord';
 import { receptesEconomiquesCarnPeix } from './receptes-economiques-carn-peix';
 import { receptesEconomiquesCullera } from './receptes-economiques-cullera';
+import { receptesCasolanesRapides } from './receptes-casolanes-rapides';
 import { receptesVeganes } from './receptes-veganes';
 import { receptesVegetarianes } from './receptes-vegetarianes';
 
@@ -359,6 +360,7 @@ const totes: Recepta[] = [
   ...receptesVegetarianes,
   ...receptesEconomiquesCarnPeix,
   ...receptesEconomiquesCullera,
+  ...receptesCasolanesRapides,
   ...receptesAcompanyaments,
 ];
 

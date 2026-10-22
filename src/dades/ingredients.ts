@@ -68,6 +68,7 @@ const ingredientsBase: Ingredient[] = [
   { id: 'cuixes-pollastre', nom: 'Contracuixes de pollastre sense pell', unitat: 'g', seccio: CARN },
   { id: 'ales-pollastre', nom: 'Ales de pollastre', unitat: 'g', seccio: CARN },
   { id: 'costelles-coll', nom: 'Costelles de coll de porc', unitat: 'g', seccio: CARN },
+  { id: 'croquetes-congelades', nom: 'Croquetes de cocido congelades', unitat: 'g', seccio: CARN, conversions: { u: 30 } },
   { id: 'frankfurts', nom: 'Salsitxes de Frankfurt de pollastre', unitat: 'g', seccio: CARN },
   { id: 'costelles-xai', nom: 'Costelles de xai', unitat: 'g', seccio: CARN },
   { id: 'botifarra-negra', nom: 'Botifarra negra (morcilla de ceba)', unitat: 'g', seccio: CARN },
@@ -158,6 +159,8 @@ const ingredientsBase: Ingredient[] = [
   { id: 'llet-coco', nom: 'Llet de coco per cuinar', unitat: 'ml', seccio: CONSERVES },
   { id: 'tahini', nom: 'Tahini (pasta de sèsam)', unitat: 'g', seccio: CONSERVES },
   { id: 'tomaquet-sec', nom: 'Tomàquet sec en oli', unitat: 'g', seccio: CONSERVES },
+  { id: 'maionesa', nom: 'Maionesa', unitat: 'ml', seccio: CONSERVES },
+  { id: 'ketchup', nom: 'Ketchup', unitat: 'g', seccio: CONSERVES },
   { id: 'vi-blanc', nom: 'Vi blanc per cuinar', unitat: 'ml', seccio: CONSERVES },
 
   // Forn
@@ -221,6 +224,8 @@ const ALERGENS_INGREDIENT: Record<string, Alergen[]> = {
   raviolis: ['gluten', 'ou', 'llet'],
   tortellini: ['gluten', 'ou', 'llet'],
   'pa-barra': ['gluten'],
+  // Croquetes envasades: beixamel (llet), arrebossat (gluten, ou) i brou (api), criteri prudent.
+  'croquetes-congelades': ['gluten', 'llet', 'ou', 'api'],
   'tortilla-blat': ['gluten'],
   piadina: ['gluten'],
   noodles: ['gluten'],
@@ -233,6 +238,7 @@ const ALERGENS_INGREDIENT: Record<string, Alergen[]> = {
   'xocolata-negra': ['llet', 'soja'],
   // Ous
   ou: ['ou'],
+  maionesa: ['ou'],
   'botifarra-ou': ['ou'],
   // Llet i derivats
   llet: ['llet'],
