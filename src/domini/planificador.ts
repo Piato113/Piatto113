@@ -1,5 +1,5 @@
 import { generadorAleatori } from './aleatori';
-import { acompanyamentsAdmesos, potSerAcompanyament, potSerPrincipal, type Cataleg } from './cataleg';
+import { acompanyamentsAdmesos, calBarbacoa, esSalsa, potSerAcompanyament, potSerPrincipal, type Cataleg } from './cataleg';
 import { costRecepta } from './cost';
 import { racionsApat, racionsEfectives } from './escalat';
 import type { DiaCalendari } from './calendari';
@@ -121,6 +121,9 @@ interface Forat {
   /** Data del calendari, només en els menús d'un període llarg. */
   data?: string;
 }
+
+/** Els plats de barbacoa (cal fer foc) només es posen en cap de setmana. */
+const diaAdient = (r: Recepta, dia: Dia): boolean => !calBarbacoa(r) || esCapDeSetmana(dia);
 
 interface Triada {
   principal: Recepta;
@@ -259,7 +262,8 @@ export function planificar({ cataleg, configuracio, graella, llavor, dies }: Ent
 
   const candidates = filtrarReceptes(cataleg, configuracio);
   const acompanyaments = filtrarAcompanyaments(cataleg, configuracio);
-  const aptesPer = (forat: Forat): Recepta[] => candidates.filter((r) => apta(r, acompanyaments, forat.limit));
+  const aptaPer = (r: Recepta, forat: Forat): boolean => diaAdient(r, forat.dia) && apta(r, acompanyaments, forat.limit);
+  const aptesPer = (forat: Forat): Recepta[] => candidates.filter((r) => aptaPer(r, forat));
   if (forats.some((f) => aptesPer(f).length === 0)) {
     avisos.push({ codi: 'cap-recepta-valida' });
     return buit();
@@ -299,7 +303,7 @@ export function planificar({ cataleg, configuracio, graella, llavor, dies }: Ent
 
   const aleatori = generadorAleatori(llavor);
   const sorteig = new SorteigPrincipals(candidates, pesBase, configuracio.equilibrat, aleatori);
-  const principals = forats.map((f) => sorteig.treure((r) => apta(r, acompanyaments, f.limit), f.ordre));
+  const principals = forats.map((f) => sorteig.treure((r) => aptaPer(r, f), f.ordre));
   const triaAcompanyaments = new TriaAcompanyaments(acompanyaments, aleatori);
   for (const principal of principals) triaAcompanyaments.anotar(principal.id);
   const triades: Triada[] = principals.map((principal, i) => {
@@ -430,7 +434,7 @@ export function canviarPlat(
   const grupsVeins = new Set(veins.flatMap(grups));
 
   let opcions = filtrarReceptes(cataleg, configuracio).filter(
-    (r) => r.id !== actual.receptaId && apta(r, acompanyaments, limit),
+    (r) => r.id !== actual.receptaId && diaAdient(r, actual.dia) && apta(r, acompanyaments, limit),
   );
   const preferir = (filtre: (r: Recepta) => boolean): void => {
     const restants = opcions.filter(filtre);
@@ -483,6 +487,8 @@ export interface OpcioPlat {
   actual: boolean;
   /** Índexs dels altres àpats de la setmana on ja surt (com a plat o com a acompanyament). */
   usatA: number[];
+  /** És de barbacoa i l'àpat és entre setmana (el planificador no l'hi posaria). */
+  barbacoaEntreSetmana: boolean;
 }
 
 /** Límit de temps de l'àpat indicat. */
@@ -514,6 +520,7 @@ export function opcionsDePlat(
       recepta: r,
       categoria: categoriaPlat(r),
       dinsTemps: dinsTemps(r, limit),
+      barbacoaEntreSetmana: !diaAdient(r, apat.dia),
       actual: r.id === apat.receptaId,
       usatA: apats.flatMap((a, i) => (i !== index && (a.receptaId === r.id || a.acompanyamentId === r.id) ? [i] : [])),
     }))
@@ -566,7 +573,7 @@ export function triarPlat(
 // ——— Receptari complet ———
 
 /** Grups del receptari: les categories dels plats i, al final, els acompanyaments. */
-export type GrupReceptari = CategoriaPlat | 'acompanyament';
+export type GrupReceptari = CategoriaPlat | 'acompanyament' | 'salsa';
 
 export interface SeccioReceptari {
   grup: GrupReceptari;
@@ -588,13 +595,19 @@ export function receptari(cataleg: Cataleg, configuracio: ConfiguracioFamilia): 
     receptes: permeses.filter((r) => potSerPrincipal(r) && categoriaPlat(r) === grup),
   }));
   grups.push({ grup: 'acompanyament', receptes: permeses.filter(potSerAcompanyament) });
+  grups.push({ grup: 'salsa', receptes: permeses.filter(esSalsa) });
   return grups.filter((g) => g.receptes.length > 0);
 }
 
-/** Filtre del receptari: una cuina o una dieta (vegana: cap ingredient d'origen animal; vegetariana: ni carn ni peix). */
-export type FiltreReceptari = Cuina | 'vegana' | 'vegetariana';
+/**
+ * Filtre del receptari: plats de barbacoa, una cuina o una dieta
+ * (vegana: cap ingredient d'origen animal; vegetariana: ni carn ni peix).
+ */
+export type FiltreReceptari = 'brasa' | Cuina | 'vegana' | 'vegetariana';
 
 export function compleixFiltre(cataleg: Cataleg, r: Recepta, filtre: FiltreReceptari): boolean {
+  // A la brasa: els plats i acompanyaments de barbacoa i les salses que hi van bé.
+  if (filtre === 'brasa') return calBarbacoa(r) || esSalsa(r);
   if (filtre === 'vegana' || filtre === 'vegetariana') {
     return r.ingredients.every((l) => {
       const origen = cataleg.ingredients.get(l.ingredientId)?.origen;
@@ -607,7 +620,7 @@ export function compleixFiltre(cataleg: Cataleg, r: Recepta, filtre: FiltreRecep
 /** Filtres que tenen sentit per a aquest receptari: els que deixen alguna recepta i no les deixen totes. */
 export function filtresReceptari(cataleg: Cataleg, seccions: readonly SeccioReceptari[]): FiltreReceptari[] {
   const totes = seccions.flatMap((s) => s.receptes);
-  const candidats: FiltreReceptari[] = [...CUINES, 'vegetariana', 'vegana'];
+  const candidats: FiltreReceptari[] = ['brasa', ...CUINES, 'vegetariana', 'vegana'];
   return candidats.filter((f) => {
     const n = totes.filter((r) => compleixFiltre(cataleg, r, f)).length;
     return n > 0 && n < totes.length;

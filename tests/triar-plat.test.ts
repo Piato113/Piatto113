@@ -20,7 +20,10 @@ const recepta = (id: string) => catalegInicial.receptes.get(id)!;
 describe('opcions per triar un plat', () => {
   it('surten tots els plats principals permesos, ordenats per categoria i nom', () => {
     const opcions = opcionsDePlat(catalegInicial, config(), pla.apats, 0);
-    const principals = [...catalegInicial.receptes.values()].filter((r) => r.tipus !== 'acompanyament');
+    // Amb la configuració per defecte no hi ha barbacoa: els plats de brasa no hi surten.
+    const principals = [...catalegInicial.receptes.values()].filter(
+      (r) => r.tipus !== 'acompanyament' && r.tipus !== 'salsa' && !(r.aparells ?? []).includes('barbacoa'),
+    );
     expect(opcions).toHaveLength(principals.length);
     const ordre = opcions.map((o) => CATEGORIES_PLAT.indexOf(o.categoria));
     expect(ordre).toEqual([...ordre].sort((a, b) => a - b));

@@ -108,6 +108,9 @@ const preusEstimats: Preu[] = [
   { ingredientId: 'pesto', midaPaquet: 190, preuCentims: 225 },
   { ingredientId: 'vi-blanc', midaPaquet: 1000, preuCentims: 150 },
 
+  // Verdura de temporada que no és al llistat del Mercadona
+  { ingredientId: 'calcots', midaPaquet: 25, preuCentims: 450 },
+
   // Forn
   { ingredientId: 'pa-ratllat', midaPaquet: 750, preuCentims: 120 },
   { ingredientId: 'pa-pages', midaPaquet: 500, preuCentims: 189 },

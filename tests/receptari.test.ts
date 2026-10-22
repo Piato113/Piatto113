@@ -9,11 +9,13 @@ const ids = (canvis: Partial<RespostesQuestionari> = {}) => receptari(catalegIni
 describe('receptari complet', () => {
   it('té totes les receptes que la família pot fer, sense límit de temps, i els acompanyaments al final', () => {
     const seccions = receptari(catalegInicial, config({ temps: 'rapid' }));
-    expect(seccions.at(-1)!.grup).toBe('acompanyament');
-    const principals = seccions.filter((s) => s.grup !== 'acompanyament').flatMap((s) => s.receptes);
+    expect(seccions.at(-2)!.grup).toBe('acompanyament');
+    expect(seccions.at(-1)!.grup).toBe('salsa');
+    const principals = seccions.filter((s) => s.grup !== 'acompanyament' && s.grup !== 'salsa').flatMap((s) => s.receptes);
     expect(principals.some((r) => r.tempsMinuts > 60)).toBe(true);
     expect(principals.some((r) => r.tipus === 'acompanyament')).toBe(false);
-    expect(seccions.at(-1)!.receptes.every((r) => r.tipus === 'acompanyament' || r.tipus === 'ambdos')).toBe(true);
+    expect(seccions.at(-2)!.receptes.every((r) => r.tipus === 'acompanyament' || r.tipus === 'ambdos')).toBe(true);
+    expect(seccions.at(-1)!.receptes.every((r) => r.tipus === 'salsa')).toBe(true);
     for (const s of seccions) {
       const noms = s.receptes.map((r) => r.nom);
       expect(noms).toEqual([...noms].sort((a, b) => a.localeCompare(b, 'ca')));

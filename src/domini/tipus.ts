@@ -10,7 +10,7 @@
  * 'llet' inclou la lactosa; 'fruits-secs' són els de closca (ametlles, avellanes, pinyons…).
  */
 /** Aparells de cuina que una recepta pot necessitar (els fogons es donen per suposats). */
-export const APARELLS = ['forn', 'microones', 'fregidora-aire', 'thermomix', 'batedora'] as const;
+export const APARELLS = ['forn', 'microones', 'fregidora-aire', 'thermomix', 'batedora', 'barbacoa'] as const;
 export type Aparell = (typeof APARELLS)[number];
 
 export const ALERGENS = [
@@ -85,7 +85,7 @@ export interface Pas {
   cronometre?: Cronometre;
 }
 
-export type TipusRecepta = 'principal' | 'acompanyament' | 'ambdos';
+export type TipusRecepta = 'principal' | 'acompanyament' | 'ambdos' | 'salsa';
 
 /** Cuines del receptari. «mon»: altres cuines del món (àrab, francesa, americana…). */
 export const CUINES = ['catalana', 'espanyola', 'casolana', 'italiana', 'mexicana', 'asiatica', 'mon'] as const;
@@ -103,7 +103,8 @@ export interface Recepta {
   /**
    * 'principal' (per defecte) ocupa un àpat; 'acompanyament' (arròs blanc, patates…)
    * només surt al costat d'una principal que el demana; 'ambdos' (truita de patates)
-   * pot ocupar un àpat o anar al costat d'una altra principal.
+   * pot ocupar un àpat o anar al costat d'una altra principal. 'salsa' no surt mai sola al menú:
+   * es consulta al receptari i es proposa al costat dels plats que la indiquen a `salses`.
    */
   tipus?: TipusRecepta;
   /**
@@ -125,6 +126,8 @@ export interface Recepta {
   aparells?: (Aparell | Aparell[])[];
   /** Cuina del plat, per filtrar el receptari (sense valor: casolana). */
   cuina?: Cuina;
+  /** Salses del receptari que hi van bé (identificadors de receptes de tipus 'salsa'). */
+  salses?: string[];
 }
 
 /** Preu orientatiu i editable d'un paquet de compra. */

@@ -16,8 +16,10 @@ export const cuinesReceptes: Record<string, Cuina> = Object.fromEntries([
     'costelles-xai-allioli', 'canelons-espinacs', 'farcellets-col', 'botifarra-ceba-patates', 'escudella-barrejada',
     'samfaina-ou', 'bledes-patates', 'sopa-farigola', 'mongetes-saltejades-cansalada', 'arros-col-mongetes',
     'pollastre-encebat', 'salsitxes-encebades', 'pa-amb-tomaquet', 'pa-tomaquet-pernil-formatge',
+    'botifarra-brasa-mongetes', 'calcotada', 'escalivada-brasa', 'allioli', 'romesco',
   ]),
   ...llista('espanyola', [
+    'pinxos-morunos', 'mojo-pico', 'mojo-verd',
     'paella', 'fideua', 'arros-cubana', 'llenties-estofades', 'truita-patates', 'cocido-cordoves', 'estofat-patates-xorico',
     'cigrons-espinacs', 'cigrons-xorico', 'mongetes-verdures-pernil', 'bacalla-tomaquet', 'ous-plat',
     'pop-gallega', 'caldo-gallec', 'empanada-tonyina', 'lluc-gallega', 'raxo-patates', 'musclos-marinera', 'marmitako',
@@ -40,11 +42,13 @@ export const cuinesReceptes: Record<string, Cuina> = Object.fromEntries([
     'macarrons-carbassa-cansalada',
   ]),
   ...llista('mexicana', [
+    'tacos-pastor-brasa', 'fajitas-brasa', 'guacamole', 'pico-de-gallo',
     'quesadilles-pollastre', 'fajitas-pollastre', 'tacos-carn-picada', 'nachos-forn', 'chili-sense-carn', 'fajitas-verdures',
     'wraps-pollastre',
   ]),
-  ...llista('asiatica', ['arros-saltejat-ou', 'saltejat-porc-soja', 'noodles-pollastre', 'wok-noodles-anacards', 'curri-cigrons']),
+  ...llista('asiatica', ['pollastre-teriyaki-brasa', 'salsa-teriyaki', 'arros-saltejat-ou', 'saltejat-porc-soja', 'noodles-pollastre', 'wok-noodles-anacards', 'curri-cigrons']),
   ...llista('mon', [
+    'kofta-brasa', 'chimichurri', 'provoleta-verdures',
     'falafel', 'llenties-arros-ceba', 'cuscus', 'cuscus-pollastre-verdures', 'bol-quinoa', 'coliflor-rostida-cigrons',
     'quiche-porros', 'creps-salades', 'creps-espinacs-formatge', 'sopa-ceba', 'pastis-carn', 'hamburgueses',
     'hamburgueses-formatge', 'hamburgueses-cigrons',

@@ -145,6 +145,7 @@ export const textos = {
     actual: 'Ara al menú',
     jaSurt: (llocs: string) => `Ja surt: ${llocs}`,
     passaTemps: (minuts: number) => `Passa dels ${minuts} min d’aquell dia`,
+    barbacoa: 'De barbacoa: millor en cap de setmana',
     ambAcompanyament: '+ acompanyament',
     titolAcompanyament: 'Amb què l’acompanyes?',
     plat: (nom: string) => `Per a: ${nom}`,
@@ -157,10 +158,12 @@ export const textos = {
     cercar: 'Busca una recepta',
     capResultat: 'Cap recepta no coincideix amb la cerca.',
     acompanyaments: 'Acompanyaments',
+    salses: 'Salses',
     ambAcompanyament: 'va amb acompanyament',
     filtres: 'Filtra per cuina',
     totes: 'Totes',
     filtre: {
+      brasa: '🔥 A la brasa',
       catalana: 'Catalana',
       espanyola: 'D’arreu de l’Estat',
       casolana: 'De cada dia',
@@ -208,6 +211,8 @@ export const textos = {
     compraAjuda: 'Paquets del Mercadona que cal comprar només per a aquest plat.',
     compraRebost: (ingredients: string) => `Del rebost (comprova que en tens): ${ingredients}.`,
     vaBeAmb: 'Va bé amb',
+    salses: 'Salses que hi van bé',
+    salsa: 'Salsa',
     noTrobada: 'No s’ha trobat aquesta recepta.',
   },
   cuinar: {
@@ -327,7 +332,9 @@ export const textos = {
     },
     cuina: {
       pregunta: 'Què teniu a la cuina?',
-      ajuda: 'Marca els aparells que teniu. Les receptes que en necessiten un que no teniu no sortiran.',
+      ajuda:
+        'Marca els aparells que teniu. Les receptes que en necessiten un que no teniu no sortiran. ' +
+        'Els plats de barbacoa només surten els caps de setmana (cal fer foc).',
       cap: 'Només fogons',
     },
     temps: {
@@ -390,6 +397,7 @@ export const textos = {
     'fregidora-aire': 'Fregidora d’aire (Airfryer)',
     thermomix: 'Thermomix o robot de cuina',
     batedora: 'Batedora',
+    barbacoa: 'Barbacoa o graella de brasa',
   } satisfies Record<Aparell, string>,
   alergens: {
     gluten: 'Gluten',

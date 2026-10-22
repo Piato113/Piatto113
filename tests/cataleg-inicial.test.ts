@@ -47,7 +47,7 @@ describe('catàleg inicial', () => {
   });
 
   it('el cost per ració de cada plat principal és raonable (entre 0,15 € i 6 €)', () => {
-    for (const r of receptes.filter((r) => r.tipus !== 'acompanyament')) {
+    for (const r of receptes.filter((r) => r.tipus !== 'acompanyament' && r.tipus !== 'salsa')) {
       const perRacio = costRecepta(catalegInicial, r, 400) / 4;
       expect(perRacio, r.id).toBeGreaterThan(15);
       expect(perRacio, r.id).toBeLessThan(600);

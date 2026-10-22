@@ -71,6 +71,7 @@ export function pantallaRecepta(dades: DadesRecepta, accions: AccionsRecepta): H
     { class: 'pagina recepta' },
     tornar,
     recepta.tipus === 'acompanyament' ? h('p', { class: 'apat__quan' }, tr.acompanyament) : null,
+    recepta.tipus === 'salsa' ? h('p', { class: 'apat__quan' }, tr.salsa) : null,
     h('h1', { class: 'pagina__titol', tabindex: -1 }, recepta.nom),
     h('p', { class: 'recepta__meta' }, `${tr.temps(recepta.tempsMinuts)} · ${euros(cost)}`),
     h('p', { class: 'menu__nota' }, tr.perA(dades.persones, formatNombre(dades.racionsCentesimes / 100))),
@@ -114,6 +115,19 @@ export function pantallaRecepta(dades: DadesRecepta, accions: AccionsRecepta): H
               i > 0 ? ', ' : null,
               h('button', { type: 'button', class: 'enllac', onclick: () => accions.obrir(a.id) }, a.nom.toLowerCase()),
             ];
+          }),
+        )
+      : null,
+
+    recepta.salses && recepta.salses.length > 0
+      ? h(
+          'p',
+          { class: 'recepta__acompanyament' },
+          `${tr.salses}: `,
+          ...recepta.salses.flatMap((id, i) => {
+            const s = catalegInicial.receptes.get(id);
+            if (!s) return [];
+            return [i > 0 ? ', ' : null, h('button', { type: 'button', class: 'enllac', onclick: () => accions.obrir(s.id) }, s.nom.toLowerCase())];
           }),
         )
       : null,

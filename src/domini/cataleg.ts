@@ -18,7 +18,13 @@ export function crearCataleg(ingredients: Ingredient[], receptes: Recepta[], pre
 }
 
 /** Pot ocupar un àpat: principal (per defecte) o de doble ús. */
-export const potSerPrincipal = (r: Recepta): boolean => r.tipus !== 'acompanyament';
+export const potSerPrincipal = (r: Recepta): boolean => r.tipus !== 'acompanyament' && r.tipus !== 'salsa';
+
+/** És una salsa del receptari. */
+export const esSalsa = (r: Recepta): boolean => r.tipus === 'salsa';
+
+/** Només es pot fer a la barbacoa (cap alternativa): demana fer foc i només es planifica en cap de setmana. */
+export const calBarbacoa = (r: Recepta): boolean => (r.aparells ?? []).some((a) => a === 'barbacoa');
 
 /** Pot anar al costat d'una principal: acompanyament o de doble ús. */
 export const potSerAcompanyament = (r: Recepta): boolean => r.tipus === 'acompanyament' || r.tipus === 'ambdos';
@@ -26,10 +32,15 @@ export const potSerAcompanyament = (r: Recepta): boolean => r.tipus === 'acompan
 /**
  * Dels acompanyaments donats, els que admet la principal: tots si no en limita la llista,
  * i mai ella mateixa (una recepta de doble ús no s'acompanya a si mateixa).
+ * Sense llista, els de barbacoa només van amb plats que també es fan a la barbacoa (no s'encén el foc per a un acompanyament).
  */
 export function acompanyamentsAdmesos(principal: Recepta, acompanyaments: readonly Recepta[]): Recepta[] {
   const llista = principal.acompanyaments;
-  return acompanyaments.filter((a) => a.id !== principal.id && (llista === undefined || llista.includes(a.id)));
+  return acompanyaments.filter(
+    (a) =>
+      a.id !== principal.id &&
+      (llista === undefined ? !calBarbacoa(a) || calBarbacoa(principal) : llista.includes(a.id)),
+  );
 }
 
 export function ingredient(cataleg: Cataleg, id: string): Ingredient {
@@ -90,6 +101,14 @@ export function validarCataleg(ingredients: Ingredient[], receptes: Recepta[], p
   for (const r of receptes) {
     if (r.tipus === 'acompanyament' && r.ambAcompanyament) {
       errors.push(`Recepta «${r.id}»: un acompanyament no pot demanar acompanyament`);
+    }
+    if (r.tipus === 'salsa' && (r.ambAcompanyament || r.salses)) {
+      errors.push(`Recepta «${r.id}»: una salsa no porta acompanyament ni salses`);
+    }
+    for (const id of r.salses ?? []) {
+      const s = receptaPerId.get(id);
+      if (!s) errors.push(`Recepta «${r.id}»: salsa desconeguda «${id}»`);
+      else if (s.tipus !== 'salsa') errors.push(`Recepta «${r.id}»: «${id}» no és una salsa`);
     }
     if (r.acompanyaments === undefined) continue;
     if (!r.ambAcompanyament) {

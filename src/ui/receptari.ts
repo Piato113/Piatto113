@@ -97,7 +97,7 @@ export function pantallaReceptari(dades: DadesReceptari, accions: AccionsRecepta
           h(
             'h2',
             { class: 'triar__titol-categoria', id: `receptari-${s.grup}` },
-            `${s.grup === 'acompanyament' ? tr.acompanyaments : textos.triar.categories[s.grup]} `,
+            `${s.grup === 'acompanyament' ? tr.acompanyaments : s.grup === 'salsa' ? tr.salses : textos.triar.categories[s.grup]} `,
             h('span', { class: 'triar__compte' }, `(${s.receptes.length})`),
           ),
           h('ul', { class: 'triar__plats' }, ...s.receptes.map((r) => element(r, dades.racionsCentesimes, accions.obrir))),
