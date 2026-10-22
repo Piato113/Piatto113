@@ -1,4 +1,4 @@
-/* Identitat visual de Piatto113: fons negre, blanc trencat i taronja. */
+/* Identitat visual de A Taula: fons negre, blanc trencat i taronja. */
 :root {
   /* Colors extrets de la icona i la pantalla de benvinguda */
   --fons: #070606;
@@ -32,7 +32,7 @@ body {
   color: var(--text);
 }
 
-/* Marca: "Piatto" en blanc trencat i "113" en taronja */
+/* Marca: "A" en blanc trencat i "Taula" en taronja */
 .marca {
   margin: 0;
   font-weight: 800;
