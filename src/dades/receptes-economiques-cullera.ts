@@ -1,5 +1,6 @@
 import type { Recepta } from '../domini';
 import { c, l, p } from './ajudants';
+import { ACOMPANYAMENTS_CREMA } from './receptes-hivern';
 
 // Plats econòmics d'ous, llegums, pasta, arròs i verdures (recull d'octubre de 2026).
 // Quantitats per a 4 racions normals.
@@ -158,6 +159,8 @@ export const receptesEconomiquesCullera: Recepta[] = [
     racions: 4,
     tempsMinuts: 45,
     etiquetes: ['llegums', 'sopa', 'vegetaria'],
+    ambAcompanyament: true,
+    acompanyaments: ACOMPANYAMENTS_CREMA,
     ingredients: [
       l('llenties', 300),
       l('ceba', 1, 'u'),
@@ -296,6 +299,8 @@ export const receptesEconomiquesCullera: Recepta[] = [
     racions: 4,
     tempsMinuts: 30,
     etiquetes: ['sopa', 'verdura', 'vegetaria'],
+    ambAcompanyament: true,
+    acompanyaments: ACOMPANYAMENTS_CREMA,
     ingredients: [
       l('pesols', 800),
       l('patata', 1, 'u'),
@@ -639,6 +644,8 @@ export const receptesEconomiquesCullera: Recepta[] = [
     racions: 4,
     tempsMinuts: 35,
     etiquetes: ['sopa', 'verdura', 'vegetaria'],
+    ambAcompanyament: true,
+    acompanyaments: ACOMPANYAMENTS_CREMA,
     ingredients: [
       l('pastanaga', 8, 'u'),
       l('patata', 1, 'u'),
@@ -738,6 +745,8 @@ export const receptesEconomiquesCullera: Recepta[] = [
     racions: 4,
     tempsMinuts: 35,
     etiquetes: ['sopa', 'verdura', 'vegetaria'],
+    ambAcompanyament: true,
+    acompanyaments: ACOMPANYAMENTS_CREMA,
     ingredients: [
       l('porro', 3, 'u'),
       l('patata', 3, 'u'),

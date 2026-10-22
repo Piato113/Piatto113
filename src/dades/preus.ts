@@ -118,6 +118,8 @@ const preusEstimats: Preu[] = [
   { ingredientId: 'tira-asado', midaPaquet: 100, preuCentims: 130 },
   { ingredientId: 'matambre', midaPaquet: 100, preuCentims: 130 },
   { ingredientId: 'picanya', midaPaquet: 100, preuCentims: 180 },
+  // Galtes de porc de carnisseria (unes 11 €/kg).
+  { ingredientId: 'galtes-porc', midaPaquet: 100, preuCentims: 110 },
 
   // Forn
   { ingredientId: 'pa-ratllat', midaPaquet: 750, preuCentims: 120 },

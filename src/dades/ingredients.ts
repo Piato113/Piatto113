@@ -52,6 +52,11 @@ const ingredientsBase: Ingredient[] = [
   { id: 'carxofes', nom: 'Carxofes a trossos congelades', unitat: 'g', seccio: FRUITA },
   { id: 'coliflor', nom: 'Coliflor', unitat: 'g', seccio: FRUITA, conversions: { u: 1000 } },
   { id: 'bledes', nom: 'Bledes tallades', unitat: 'g', seccio: FRUITA },
+  // Receptes d'hivern (octubre de 2026)
+  { id: 'broquil', nom: 'Bròquil', unitat: 'g', seccio: FRUITA, conversions: { u: 450 } },
+  { id: 'remolatxa', nom: 'Remolatxa cuita i pelada', unitat: 'g', seccio: FRUITA },
+  { id: 'poma', nom: 'Pomes golden', unitat: 'g', seccio: FRUITA, conversions: { u: 180 } },
+  { id: 'fruits-vermells', nom: 'Fruits vermells congelats', unitat: 'g', seccio: FRUITA },
 
   // Carn
   { id: 'carn-picada', nom: 'Carn picada mixta (vedella i porc)', unitat: 'g', seccio: CARN },
@@ -79,6 +84,13 @@ const ingredientsBase: Ingredient[] = [
   { id: 'cuixes-pollastre', nom: 'Contracuixes de pollastre sense pell', unitat: 'g', seccio: CARN },
   { id: 'ales-pollastre', nom: 'Ales de pollastre', unitat: 'g', seccio: CARN },
   { id: 'costelles-coll', nom: 'Costelles de coll de porc', unitat: 'g', seccio: CARN },
+  // Receptes d'hivern (octubre de 2026). Les galtes no són al llistat del Mercadona: carnisseria, preu estimat.
+  { id: 'gall-dindi-pit', nom: 'Pit de gall dindi a filets', unitat: 'g', seccio: CARN },
+  { id: 'gall-dindi-daus', nom: 'Gall dindi a daus (tacos)', unitat: 'g', seccio: CARN },
+  { id: 'galtes-porc', nom: 'Galtes de porc', unitat: 'g', seccio: CARN, foraDelSuper: 'a la carnisseria' },
+  { id: 'magret', nom: 'Magret d’ànec', unitat: 'u', seccio: CARN, indivisible: true },
+  { id: 'guatlles', nom: 'Guatlles', unitat: 'u', seccio: CARN, indivisible: true },
+  { id: 'xai-guisar', nom: 'Xai a trossos per guisar', unitat: 'g', seccio: CARN },
   { id: 'secret-porc', nom: 'Secret de porc', unitat: 'g', seccio: CARN },
   { id: 'presa-iberica', nom: 'Presa de porc ibèric', unitat: 'g', seccio: CARN },
   { id: 'ploma-porc', nom: 'Ploma de porc', unitat: 'g', seccio: CARN },
@@ -116,6 +128,7 @@ const ingredientsBase: Ingredient[] = [
   { id: 'calamar', nom: 'Calamar net a trossos (congelat)', unitat: 'g', seccio: PEIX },
   { id: 'pop', nom: 'Potes de pop cuit', unitat: 'g', seccio: PEIX },
   { id: 'orada', nom: 'Orades obertes a l’espatlla', unitat: 'u', seccio: PEIX, indivisible: true },
+  { id: 'orada-sencera', nom: 'Orades senceres netes (amb cap)', unitat: 'u', seccio: PEIX, indivisible: true },
   { id: 'llobarro', nom: 'Llobarros oberts a l’espatlla', unitat: 'u', seccio: PEIX, indivisible: true },
   { id: 'llagostins', nom: 'Llagostins crus (congelats)', unitat: 'g', seccio: PEIX },
   { id: 'calamarsons', nom: 'Calamars petits nets', unitat: 'g', seccio: PEIX },
@@ -197,6 +210,8 @@ const ingredientsBase: Ingredient[] = [
   { id: 'maionesa', nom: 'Maionesa', unitat: 'ml', seccio: CONSERVES },
   { id: 'ketchup', nom: 'Ketchup', unitat: 'g', seccio: CONSERVES },
   { id: 'vi-blanc', nom: 'Vi blanc per cuinar', unitat: 'ml', seccio: CONSERVES },
+  { id: 'vi-negre', nom: 'Vi negre per cuinar', unitat: 'ml', seccio: CONSERVES },
+  { id: 'sal-gruixuda', nom: 'Sal gruixuda per al forn', unitat: 'g', seccio: CONSERVES },
 
   // Forn
   { id: 'pa-torrat', nom: 'Pa torrat (llesques de paquet)', unitat: 'g', seccio: FORN },
@@ -302,6 +317,7 @@ const ALERGENS_INGREDIENT: Record<string, Alergen[]> = {
   orada: ['peix'],
   llobarro: ['peix'],
   'tonyina-fresca': ['peix'],
+  'orada-sencera': ['peix'],
   llagostins: ['crustacis'],
   calamarsons: ['molluscs'],
   seitons: ['peix'],
@@ -319,6 +335,7 @@ const ALERGENS_INGREDIENT: Record<string, Alergen[]> = {
   'salsa-soja': ['soja', 'gluten'],
   'salsa-iogurt': ['llet', 'ou'],
   'vi-blanc': ['sulfits'],
+  'vi-negre': ['sulfits'],
   vinagre: ['sulfits'],
 };
 

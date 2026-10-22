@@ -38,6 +38,13 @@ export const carnIPeixPerCongelar: ReadonlySet<string> = new Set([
   'picanya',
   'llom-vedella',
   'xoricet-criollo',
+  'gall-dindi-pit',
+  'gall-dindi-daus',
+  'galtes-porc',
+  'magret',
+  'guatlles',
+  'xai-guisar',
+  'orada-sencera',
 ]);
 
 /** Pa i masses que també es poden congelar (es descongelen en poca estona). */
@@ -45,7 +52,7 @@ const paPerCongelar: ReadonlySet<string> = new Set(['pa-pages', 'pa-barra', 'pa-
 
 /** Ingredients que en una compra mensual convé congelar en arribar a casa. */
 /** Productes que ja es compren congelats: tornen al congelador (es cuinen sense descongelar). */
-const congelats: ReadonlySet<string> = new Set(['croquetes-congelades', 'espinacs', 'pesols']);
+const congelats: ReadonlySet<string> = new Set(['croquetes-congelades', 'espinacs', 'pesols', 'fruits-vermells']);
 
 export const esPerCongelar = (ingredientId: string): boolean =>
   carnIPeixPerCongelar.has(ingredientId) || paPerCongelar.has(ingredientId) || congelats.has(ingredientId);

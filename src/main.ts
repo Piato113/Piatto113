@@ -6,6 +6,7 @@ import {
   esPeriodeNou,
   avui,
   canviarPlat,
+  mesDe,
   dillunsDe,
   diesDelMes,
   estalviCompraPeriode,
@@ -215,7 +216,7 @@ function ferMenu(
   let mesTriat = periode === 'mes' ? (mes ?? mesPerDefecte()) : undefined;
   if (mesTriat && diesDelMes(mesTriat, avui()).filter((d) => d.data >= avui()).length === 0) mesTriat = mesPerDefecte();
   const dies = mesTriat ? diesDelMes(mesTriat, avui()) : undefined;
-  const pla = planificar({ cataleg: catalegInicial, configuracio, graella, llavor, ...(dies ? { dies } : {}) });
+  const pla = planificar({ cataleg: catalegInicial, configuracio, graella, llavor, ...(dies ? { dies } : { mes: mesDe(avui()) }) });
   // Els convidats i absències d'un dia no canvien perquè es torni a fer el menú.
   const ambGent = conservarAssistencia(configuracio.persones, pla.apats, menu?.apats ?? []);
   // El que ja s'ha menjat aquesta setmana (o aquest mes) no canvia, i els plats fixats es mantenen
@@ -397,7 +398,7 @@ const accionsMenu = {
   /** Canvia el plat per un altre a l'atzar. */
   canviarPlat: (index: number, { pintar: repintar = true } = {}): void => {
     if (!menu) return;
-    const apats = canviarPlat(catalegInicial, configuracioDe(respostesActives()), menu.apats, index, llavorNova());
+    const apats = canviarPlat(catalegInicial, configuracioDe(respostesActives()), menu.apats, index, llavorNova(), mesDe(avui()));
     if (apats[index]?.receptaId === menu.apats[index]?.receptaId) {
       missatge = textos.menu.senseAlternativa;
     } else {

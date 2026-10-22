@@ -1,5 +1,6 @@
 import type { Recepta } from '../domini';
 import { c, l, p } from './ajudants';
+import { ACOMPANYAMENTS_CREMA } from './receptes-hivern';
 
 // Plats de cullera, sopes, cremes i plats senzills de casa. Quantitats per a 4 racions normals.
 
@@ -349,6 +350,8 @@ export const receptesCullera: Recepta[] = [
     racions: 4,
     tempsMinuts: 40,
     etiquetes: ['verdura', 'vegetaria'],
+    ambAcompanyament: true,
+    acompanyaments: ACOMPANYAMENTS_CREMA,
     ingredients: [
       l('carbasso', 4, 'u'),
       l('porro', 1, 'u'),

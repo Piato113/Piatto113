@@ -19,6 +19,8 @@ import { receptesBarbacoa } from './receptes-barbacoa';
 import { receptesSalses } from './receptes-salses';
 import { receptesVeganes } from './receptes-veganes';
 import { receptesVegetarianes } from './receptes-vegetarianes';
+import { receptesHivern } from './receptes-hivern';
+import { ambTemporada } from './temporades';
 
 // Catàleg inicial de receptes. Quantitats orientatives per a 4 racions normals:
 // la gana de cada persona ja s'aplica amb el factor de la família.
@@ -366,7 +368,8 @@ const totes: Recepta[] = [
   ...receptesBarbacoa,
   ...receptesSalses,
   ...receptesAcompanyaments,
+  ...receptesHivern,
 ];
 
-/** Totes les receptes, amb els aparells que necessiten (dades/aparells.ts). */
-export const receptes: Recepta[] = totes.map(ambAparells).map(ambCuina);
+/** Totes les receptes, amb els aparells que necessiten (dades/aparells.ts), la cuina i la temporada. */
+export const receptes: Recepta[] = totes.map(ambAparells).map(ambCuina).map(ambTemporada);

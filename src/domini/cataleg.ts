@@ -32,14 +32,15 @@ export const potSerAcompanyament = (r: Recepta): boolean => r.tipus === 'acompan
 /**
  * Dels acompanyaments donats, els que admet la principal: tots si no en limita la llista,
  * i mai ella mateixa (una recepta de doble ús no s'acompanya a si mateixa).
- * Sense llista, els de barbacoa només van amb plats que també es fan a la barbacoa (no s'encén el foc per a un acompanyament).
+ * Sense llista, els de barbacoa només van amb plats que també es fan a la barbacoa (no s'encén el foc per a un acompanyament),
+ * i els que són només per a llista (`nomesAmbLlista`, com els de les cremes) no hi van mai.
  */
 export function acompanyamentsAdmesos(principal: Recepta, acompanyaments: readonly Recepta[]): Recepta[] {
   const llista = principal.acompanyaments;
   return acompanyaments.filter(
     (a) =>
       a.id !== principal.id &&
-      (llista === undefined ? !calBarbacoa(a) || calBarbacoa(principal) : llista.includes(a.id)),
+      (llista === undefined ? !a.nomesAmbLlista && (!calBarbacoa(a) || calBarbacoa(principal)) : llista.includes(a.id)),
   );
 }
 
@@ -95,6 +96,9 @@ export function validarCataleg(ingredients: Ingredient[], receptes: Recepta[], p
       }
     }
     errors.push(...validarPassos(r));
+    if (r.mesos !== undefined && (r.mesos.length === 0 || r.mesos.some((m) => !Number.isInteger(m) || m < 1 || m > 12))) {
+      errors.push(`Recepta «${r.id}»: mesos de temporada no vàlids`);
+    }
   }
 
   const receptaPerId = new Map(receptes.map((r) => [r.id, r]));
@@ -120,6 +124,13 @@ export function validarCataleg(ingredients: Ingredient[], receptes: Recepta[], p
       if (!a) errors.push(`Recepta «${r.id}»: acompanyament desconegut «${id}»`);
       else if (id === r.id) errors.push(`Recepta «${r.id}»: no es pot acompanyar a si mateixa`);
       else if (!potSerAcompanyament(a)) errors.push(`Recepta «${r.id}»: «${id}» no és un acompanyament`);
+    }
+  }
+  for (const r of receptes) {
+    if (!r.nomesAmbLlista) continue;
+    if (!potSerAcompanyament(r)) errors.push(`Recepta «${r.id}»: només els acompanyaments poden ser només per a llista`);
+    else if (!receptes.some((x) => x.acompanyaments?.includes(r.id))) {
+      errors.push(`Recepta «${r.id}»: és només per a llista però cap principal no la té`);
     }
   }
   const totsElsAcompanyaments = receptes.filter(potSerAcompanyament);

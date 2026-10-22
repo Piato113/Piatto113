@@ -18,6 +18,11 @@ export interface EntradaPlanificador {
    * marca per a aquell dia de la setmana. Sense dies, es planifica una setmana (de dilluns a diumenge).
    */
   dies?: readonly DiaCalendari[];
+  /**
+   * Mes del menú (1 = gener … 12 = desembre), per als plats de temporada. Sense mes, el d'un menú
+   * d'un període llarg es treu dels dies; si tampoc n'hi ha, la temporada no compta.
+   */
+  mes?: number;
 }
 
 export interface PlaSetmanal {
@@ -35,6 +40,24 @@ const PES_PREFERIDA = 2;
 const PES_EVITADA = 0.25;
 /** Els plats amb 👍 surten el doble de sovint. */
 export const PES_AGRADA = 2;
+
+/** Els plats de temporada surten més sovint en temporada… */
+export const PES_TEMPORADA = 1.5;
+/** …i molt menys fora de temporada (però no desapareixen). */
+export const PES_FORA_TEMPORADA = 0.2;
+
+/** Mes (1-12) d'una data «AAAA-MM-DD». */
+export const mesDe = (data: string): number => Number(data.slice(5, 7));
+
+/** El plat és de temporada aquest mes (o no té temporada, o no se sap el mes). */
+export const enTemporada = (r: Recepta, mes: number | undefined): boolean =>
+  r.mesos === undefined || mes === undefined || r.mesos.includes(mes);
+
+/** Multiplicador del pes d'un plat segons la temporada. */
+export function factorTemporada(r: Recepta, mes: number | undefined): number {
+  if (r.mesos === undefined || mes === undefined) return 1;
+  return r.mesos.includes(mes) ? PES_TEMPORADA : PES_FORA_TEMPORADA;
+}
 
 /** Plat amb 👎: no es posa sol al menú (però es pot triar a mà). */
 export const noAgrada = (configuracio: ConfiguracioFamilia, receptaId: string): boolean =>
@@ -242,7 +265,8 @@ const idsDe = (triades: Triada[]): string[] =>
  * 3. si el cost del que es menja supera el pressupost, substitueix l'àpat més car
  *    per l'opció més barata disponible, fins que hi càpiga o ja no es pugui abaratir.
  */
-export function planificar({ cataleg, configuracio, graella, llavor, dies }: EntradaPlanificador): PlaSetmanal {
+export function planificar({ cataleg, configuracio, graella, llavor, dies, mes }: EntradaPlanificador): PlaSetmanal {
+  const mesMenu = mes ?? (dies?.[0] ? mesDe(dies[0].data) : undefined);
   const racionsCentesimes = racionsEfectives(configuracio.persones);
   const limitDia = (dia: Dia): number | null =>
     esCapDeSetmana(dia) ? configuracio.tempsMaximMinuts.capDeSetmana : configuracio.tempsMaximMinuts.feiners;
@@ -303,6 +327,7 @@ export function planificar({ cataleg, configuracio, graella, llavor, dies }: Ent
     let pes = 1 + PES_PREFERIDA * r.etiquetes.filter((e) => configuracio.etiquetesPreferides.includes(e)).length;
     if (r.etiquetes.some((e) => configuracio.etiquetesEvitades.includes(e))) pes *= PES_EVITADA;
     if (configuracio.valoracions?.[r.id] === 'agrada') pes *= PES_AGRADA;
+    pes *= factorTemporada(r, mesMenu);
     if (configuracio.economic) {
       const c = costosOpcio.get(r.id) ?? 0;
       const factor = c > 0 ? costMitja / c : ECONOMIC_MAX;
@@ -424,6 +449,7 @@ export function avaluarMenu(
  * Canvia el plat d'un àpat per un altre que compleixi la configuració i el temps d'aquell dia.
  * Prefereix plats que no surtin aquella setmana i, en mode equilibrat, d'un grup diferent dels àpats del costat.
  * Si la principal demana acompanyament, en tria un dels que admet, preferint els no usats.
+ * També prefereix els plats de temporada (del mes de l'àpat, si té data, o del mes indicat).
  * Retorna una còpia dels àpats; si no hi ha cap alternativa, la retorna sense canvis.
  */
 export function canviarPlat(
@@ -432,6 +458,7 @@ export function canviarPlat(
   apats: readonly ApatPlanificat[],
   index: number,
   llavor: number,
+  mes?: number,
 ): ApatPlanificat[] {
   const actual = apats[index];
   if (!actual) return [...apats];
@@ -451,6 +478,8 @@ export function canviarPlat(
     if (restants.length > 0) opcions = restants;
   };
   preferir((r) => !noAgrada(configuracio, r.id));
+  const mesApat = actual.data ? mesDe(actual.data) : mes;
+  preferir((r) => enTemporada(r, mesApat));
   preferir((r) => !usats.has(r.id));
   if (configuracio.equilibrat) preferir((r) => !grups(r).some((g) => grupsVeins.has(g)));
   if (opcions.length === 0) return [...apats];

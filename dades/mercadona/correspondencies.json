@@ -189,5 +189,17 @@
   "costelles-coll": { "producte": "4900" },
   "frankfurts": { "producte": "53056" },
   "sardines": { "producte": "81100.2" },
-  "pescadilla": { "producte": "62176" }
+  "pescadilla": { "producte": "62176" },
+  "broquil": { "producte": "69580" },
+  "remolatxa": { "producte": "69523" },
+  "poma": { "producte": "3269" },
+  "fruits-vermells": { "producte": "61089" },
+  "gall-dindi-pit": { "producte": "2794" },
+  "gall-dindi-daus": { "producte": "12874" },
+  "magret": { "producte": "25629", "peces": 1, "nota": "Un magret d'uns 380 g per safata" },
+  "guatlles": { "producte": "2796", "peces": 2, "nota": "Safata de 350 g: dues guatlles (per confirmar)" },
+  "xai-guisar": { "producte": "21814" },
+  "orada-sencera": { "producte": "81234.1", "peces": 1, "nota": "Una orada neta amb cap d'uns 450 g per paquet" },
+  "vi-negre": { "producte": "66211" },
+  "sal-gruixuda": { "producte": "19734" }
 }

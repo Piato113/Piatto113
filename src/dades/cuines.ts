@@ -17,6 +17,7 @@ export const cuinesReceptes: Record<string, Cuina> = Object.fromEntries([
     'samfaina-ou', 'bledes-patates', 'sopa-farigola', 'mongetes-saltejades-cansalada', 'arros-col-mongetes',
     'pollastre-encebat', 'salsitxes-encebades', 'pa-amb-tomaquet', 'pa-tomaquet-pernil-formatge',
     'botifarra-brasa-mongetes', 'calcotada', 'escalivada-brasa', 'allioli', 'romesco',
+    'sipia-pesols', 'galtes-vi-negre',
   ]),
   ...llista('espanyola', [
     'pinxos-morunos', 'mojo-pico', 'mojo-verd',
@@ -31,6 +32,7 @@ export const cuinesReceptes: Record<string, Cuina> = Object.fromEntries([
     'paella-verdures', 'fideua-verdures', 'patates-guisades-costella', 'migas', 'patates-revolcones', 'coliflor-ajada',
     'pescadilla-romana', 'arros-musclos', 'fideus-caldosos-musclos', 'pollastre-jardinera', 'cigrons-fregits-ou',
     'ous-tomaquet', 'patates-carn-picada',
+    'xai-txilindron', 'guatlles-escabetx', 'tonyina-encebada', 'mongetes-cloisses', 'potatge-vigilia',
   ]),
   ...llista('italiana', [
     'macarrons-bolonyesa', 'tallarins-carbonara', 'risotto-bolets', 'lasanya', 'pizza', 'penne-pesto-pollastre',
@@ -52,7 +54,7 @@ export const cuinesReceptes: Record<string, Cuina> = Object.fromEntries([
   ]),
   ...llista('asiatica', ['pollastre-teriyaki-brasa', 'salsa-teriyaki', 'arros-saltejat-ou', 'saltejat-porc-soja', 'noodles-pollastre', 'wok-noodles-anacards', 'curri-cigrons']),
   ...llista('mon', [
-    'kofta-brasa',
+    'kofta-brasa', 'magret-fruits-vermells', 'hummus-torrades',
     'falafel', 'llenties-arros-ceba', 'cuscus', 'cuscus-pollastre-verdures', 'bol-quinoa', 'coliflor-rostida-cigrons',
     'quiche-porros', 'creps-salades', 'creps-espinacs-formatge', 'sopa-ceba', 'pastis-carn', 'hamburgueses',
     'hamburgueses-formatge', 'hamburgueses-cigrons',

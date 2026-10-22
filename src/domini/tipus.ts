@@ -130,7 +130,20 @@ export interface Recepta {
   cuina?: Cuina;
   /** Salses del receptari que hi van bé (identificadors de receptes de tipus 'salsa'). */
   salses?: string[];
+  /**
+   * Acompanyament que només va amb les principals que el tenen a `acompanyaments`
+   * (p. ex. la truita a la francesa, que acompanya les cremes però no un entrecot).
+   */
+  nomesAmbLlista?: boolean;
+  /**
+   * Mesos de temporada (1 = gener … 12 = desembre). En temporada el plat surt més sovint;
+   * fora de temporada, molt menys (però no desapareix). Sense valor, surt igual tot l'any.
+   */
+  mesos?: number[];
 }
+
+/** Plats d'hivern: de novembre a març. */
+export const MESOS_HIVERN: readonly number[] = [11, 12, 1, 2, 3];
 
 /** Preu orientatiu i editable d'un paquet de compra. */
 export interface Preu {

@@ -1,5 +1,6 @@
 import type { Recepta } from '../domini';
 import { c, l, p } from './ajudants';
+import { ACOMPANYAMENTS_CREMA } from './receptes-hivern';
 
 // Plats vegans (recopilatori d'octubre de 2026): sense carn, peix, ous ni làctics.
 // Quantitats per a 4 racions normals.
@@ -475,6 +476,8 @@ export const receptesVeganes: Recepta[] = [
     racions: 4,
     tempsMinuts: 40,
     etiquetes: ['sopa', 'verdura', 'vegetaria'],
+    ambAcompanyament: true,
+    acompanyaments: ACOMPANYAMENTS_CREMA,
     ingredients: [
       l('carbassa', 1000),
       l('patata', 1, 'u'),
