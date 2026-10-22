@@ -1754,3 +1754,43 @@ h1:focus-visible {
 .menu__veure-anterior {
   align-self: flex-start;
 }
+
+/* Avís en crear un compte nou */
+.avis-registre {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  overflow-y: auto;
+  background: rgb(7 6 6 / 0.85);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.avis-registre__caixa {
+  width: min(100%, 26rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border: 2px solid var(--taronja);
+  border-radius: var(--radi);
+  background: var(--superficie);
+}
+
+.avis-registre__titol {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.avis-registre__caixa p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.avis-registre__caixa .boto {
+  margin-top: 0.5rem;
+}

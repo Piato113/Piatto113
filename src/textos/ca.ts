@@ -279,6 +279,16 @@ export const textos = {
       connexio: 'No hi ha connexió. Torna-ho a provar quan en tinguis.',
       desconegut: 'No ha funcionat. Torna-ho a provar d’aquí a una estona.',
     },
+    avis: {
+      titol: 'Abans de començar',
+      paragrafs: [
+        'Piatto113 és una aplicació personal, sense ànim de lucre i no comercial. Va néixer perquè a casa, amb adolescents, decidir i cuinar els àpats de cada dia era un caos. Aquesta eina ens ho ha solucionat, i ara la compartim.',
+        'No es basa en cap sistema nutricional ni dietètic estudiat. És una eina per ajudar-te a planificar els àpats, fer la llista de la compra i cuinar. No substitueix el consell d’un metge o d’un dietista.',
+        'Els al·lèrgens, les quantitats i els preus són orientatius. Llegeix sempre l’etiqueta dels productes que compris.',
+        'Les teves dades es desen al teu compte i no es comparteixen amb ningú. L’ús de l’app és sota la teva responsabilitat.',
+      ],
+      entesos: 'Ho entenc',
+    },
   },
   compte: {
     titol: 'Compte',

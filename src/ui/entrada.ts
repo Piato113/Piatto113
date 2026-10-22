@@ -1,5 +1,6 @@
 import { textos } from '../textos/ca';
 import { h, substituir } from './dom';
+import { avisRegistre } from './avis-registre';
 import { entrar, MIN_CONTRASENYA, registrar, type ErrorEntrada } from './nuvol';
 
 // Pantalla d'entrada: correu i contrasenya, o crear un compte nou.
@@ -47,6 +48,8 @@ export function pantallaEntrada(entrat: () => void): { element: HTMLElement; des
     if (registre) {
       const resultat = await registrar(correu, estat.contrasenya);
       error = resultat.error;
+      // Compte nou: avís d'app personal abans de continuar (només en registrar-se).
+      if (!error) await avisRegistre();
       if (!error && resultat.confirmar) {
         // Cal confirmar el correu: torna a «Entra» amb el correu escrit.
         estat.enviant = false;
