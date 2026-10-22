@@ -232,6 +232,7 @@ export const textos = {
     rebost: 'del rebost',
     compra: (total: string) => `Llista de la compra · ${total}`,
     compraAjuda: 'Paquets del Mercadona que cal comprar només per a aquest plat.',
+    titolCompartir: (plat: string, persones: number) => `${plat} (per a ${persones === 1 ? '1 persona' : `${persones} persones`})`,
     compraRebost: (ingredients: string) => `Del rebost (comprova que en tens): ${ingredients}.`,
     vaBeAmb: 'Va bé amb',
     salses: 'Salses que hi van bé',

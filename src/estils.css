@@ -1876,3 +1876,7 @@ h1:focus-visible {
   align-self: flex-start;
   margin-top: 0.5rem;
 }
+
+.compra-plat__compartir {
+  margin-top: 0.75rem;
+}

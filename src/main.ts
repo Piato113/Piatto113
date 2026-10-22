@@ -496,26 +496,25 @@ const accionsMenu = {
 /** Avís puntual de la pantalla de la compra (p. ex. «Llista copiada»). */
 let avisCompra: string | null = null;
 
-/** Comparteix el text amb el menú de compartir del mòbil; si no n'hi ha, el copia. */
-async function compartirText(text: string): Promise<void> {
+/**
+ * Comparteix el text amb el menú de compartir del mòbil; si no n'hi ha, el copia.
+ * Retorna el missatge a mostrar (`null` si s'ha compartit o s'ha tancat el menú de compartir).
+ */
+async function compartirText(text: string): Promise<string | null> {
   try {
     if (navigator.share) {
       await navigator.share({ title: textos.compra.titol, text });
-      return;
+      return null;
     }
   } catch (e) {
     // Si la persona tanca el menú de compartir, no cal fer res.
-    if ((e as { name?: string }).name === 'AbortError') return;
+    if ((e as { name?: string }).name === 'AbortError') return null;
   }
   try {
     await navigator.clipboard.writeText(text);
-    avisCompra = textos.compra.copiada;
+    return textos.compra.copiada;
   } catch {
-    avisCompra = textos.compra.noCopiada;
-  }
-  if (pantalla.tipus === 'compra') {
-    pintar();
-    arrel!.querySelector<HTMLElement>('[data-compartir]')?.focus();
+    return textos.compra.noCopiada;
   }
 }
 
@@ -545,7 +544,13 @@ function accionsCompra(signatura: string, estat: EstatCompra) {
       pintar();
       enfocarTitol();
     },
-    compartir: (text: string): void => void compartirText(text),
+    compartir: (text: string): void =>
+      void compartirText(text).then((avis) => {
+        if (!avis || pantalla.tipus !== 'compra') return;
+        avisCompra = avis;
+        pintar();
+        arrel!.querySelector<HTMLElement>('[data-compartir]')?.focus();
+      }),
   };
 }
 
@@ -734,6 +739,7 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
                 : { tipus: 'recepta', receptaId, apat: seccio.apat, ...(seccio.anterior ? { anterior: true } : {}) },
             ),
           cuinar: () => anar({ ...seccio, tipus: 'cuinar', pas: 0 }),
+          compartir: compartirText,
         },
       );
     }

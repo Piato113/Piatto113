@@ -2,7 +2,7 @@ import { catalegInicial } from '../dades';
 import { costRecepta, formatNombre, generarLlista, prepararRecepta, textQuantitat } from '../domini';
 import { textos } from '../textos/ca';
 import { h } from './dom';
-import { detallCompra, quantitatCompra } from './compra';
+import { detallCompra, quantitatCompra, textLlista } from './compra';
 import { iconaAparell } from './icones';
 import { durada, euros } from './format';
 
@@ -22,13 +22,17 @@ export interface AccionsRecepta {
   tornar: () => void;
   obrir: (receptaId: string) => void;
   cuinar: () => void;
+  /** Comparteix (o copia) un text; retorna el missatge a mostrar, si n'hi ha. */
+  compartir: (text: string) => Promise<string | null>;
 }
 
 /** Què cal comprar per fer només aquest plat: paquets, preu i el que ha de ser al rebost. */
-function compraDelPlat(receptaId: string, racionsCentesimes: number): HTMLElement {
+function compraDelPlat(receptaId: string, racionsCentesimes: number, persones: number, compartir: AccionsRecepta['compartir']): HTMLElement {
   const llista = generarLlista(catalegInicial, [receptaId], racionsCentesimes);
   const aComprar = llista.elements.filter((e) => !e.rebost);
   const rebost = llista.elements.filter((e) => e.rebost);
+  const nom = catalegInicial.receptes.get(receptaId)?.nom ?? receptaId;
+  const estat = h('p', { class: 'menu__nota', role: 'status' });
   return h(
     'details',
     { class: 'compra-plat' },
@@ -52,6 +56,20 @@ function compraDelPlat(receptaId: string, racionsCentesimes: number): HTMLElemen
       ),
     ),
     rebost.length > 0 ? h('p', { class: 'menu__nota' }, tr.compraRebost(rebost.map((e) => e.nom.toLowerCase()).join(', '))) : null,
+    h(
+      'button',
+      {
+        type: 'button',
+        class: 'boto boto--secundari compra-plat__compartir',
+        'data-compartir': true,
+        onclick: () =>
+          void compartir(textLlista(llista, new Set(), new Set(), tr.titolCompartir(nom, persones))).then((avis) => {
+            estat.textContent = avis ?? '';
+          }),
+      },
+      `📤 ${textos.compra.compartir}`,
+    ),
+    estat,
   );
 }
 
@@ -152,7 +170,7 @@ export function pantallaRecepta(dades: DadesRecepta, accions: AccionsRecepta): H
       }),
     ),
 
-    compraDelPlat(recepta.id, dades.racionsCentesimes),
+    compraDelPlat(recepta.id, dades.racionsCentesimes, dades.persones, accions.compartir),
 
     h('h2', { class: 'recepta__seccio' }, tr.preparacio),
     h(
