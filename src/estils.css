@@ -1849,3 +1849,30 @@ h1:focus-visible {
 .menu__desfer p {
   margin: 0;
 }
+
+/* «Ja ho tinc» i compartir la llista */
+.producte__accions {
+  padding: 0 1rem 0.6rem 3.25rem;
+  margin-top: -0.5rem;
+}
+
+.producte__tinc {
+  min-height: 2.25rem;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.producte--tinc .producte__etiqueta {
+  align-items: center;
+  cursor: default;
+}
+
+.producte--tinc .producte__nom,
+.producte--tinc .producte__quantitat {
+  color: var(--text-suau);
+}
+
+.compra__compartir {
+  align-self: flex-start;
+  margin-top: 0.5rem;
+}

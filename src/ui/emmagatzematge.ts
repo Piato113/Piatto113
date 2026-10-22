@@ -203,19 +203,27 @@ export function desarMenu(menu: MenuDesat): void {
 
 // ——— Productes marcats a la llista de la compra ———
 
-/** Productes marcats, si són de la mateixa llista (`signatura`); si la llista ha canviat, cap. */
-export function carregarMarcats(signatura: string): Set<string> {
+/** Estat de la llista de la compra: què ja és al carro i què ja es té a casa. */
+export interface EstatCompra {
+  marcats: Set<string>;
+  tinc: Set<string>;
+}
+
+const textos_ = (v: unknown): Set<string> => new Set(Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+
+/** Estat de la llista, si és de la mateixa llista (`signatura`); si la llista ha canviat, buit. */
+export function carregarCompra(signatura: string): EstatCompra {
   try {
     const text = window.localStorage.getItem(CLAU_COMPRA);
-    if (!text) return new Set();
-    const v = JSON.parse(text) as { signatura?: unknown; marcats?: unknown };
-    if (v.signatura !== signatura || !Array.isArray(v.marcats)) return new Set();
-    return new Set(v.marcats.filter((x): x is string => typeof x === 'string'));
+    if (!text) return { marcats: new Set(), tinc: new Set() };
+    const v = JSON.parse(text) as { signatura?: unknown; marcats?: unknown; tinc?: unknown };
+    if (v.signatura !== signatura) return { marcats: new Set(), tinc: new Set() };
+    return { marcats: textos_(v.marcats), tinc: textos_(v.tinc) };
   } catch {
-    return new Set();
+    return { marcats: new Set(), tinc: new Set() };
   }
 }
 
-export function desarMarcats(signatura: string, marcats: ReadonlySet<string>): void {
-  desar('compra', { signatura, marcats: [...marcats] });
+export function desarCompra(signatura: string, estat: EstatCompra): void {
+  desar('compra', { signatura, marcats: [...estat.marcats], tinc: [...estat.tinc] });
 }

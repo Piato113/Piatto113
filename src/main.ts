@@ -32,15 +32,16 @@ import { pantallaCompra } from './ui/compra';
 import { h, substituir } from './ui/dom';
 import {
   carregarGraella,
-  carregarMarcats,
+  carregarCompra,
   carregarMenu,
   carregarRespostes,
   desarGraella,
-  desarMarcats,
+  desarCompra,
   desarMenu,
   desarRespostes,
   type MenuAnterior,
   type MenuDesat,
+  type EstatCompra,
   type PeriodeMenu,
 } from './ui/emmagatzematge';
 import { pantallaMenu } from './ui/menu';
@@ -492,20 +493,59 @@ const accionsMenu = {
   },
 };
 
-function accionsCompra(signatura: string, marcats: Set<string>) {
+/** Avís puntual de la pantalla de la compra (p. ex. «Llista copiada»). */
+let avisCompra: string | null = null;
+
+/** Comparteix el text amb el menú de compartir del mòbil; si no n'hi ha, el copia. */
+async function compartirText(text: string): Promise<void> {
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: textos.compra.titol, text });
+      return;
+    }
+  } catch (e) {
+    // Si la persona tanca el menú de compartir, no cal fer res.
+    if ((e as { name?: string }).name === 'AbortError') return;
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    avisCompra = textos.compra.copiada;
+  } catch {
+    avisCompra = textos.compra.noCopiada;
+  }
+  if (pantalla.tipus === 'compra') {
+    pintar();
+    arrel!.querySelector<HTMLElement>('[data-compartir]')?.focus();
+  }
+}
+
+function accionsCompra(signatura: string, estat: EstatCompra) {
+  const desarIPintar = (enfocar?: string): void => {
+    desarCompra(signatura, estat);
+    const y = window.scrollY;
+    pintar();
+    window.scrollTo(0, y);
+    if (enfocar) arrel!.querySelector<HTMLElement>(enfocar)?.focus({ preventScroll: true });
+  };
   return {
     commutar: (ingredientId: string, marcat: boolean): void => {
-      if (marcat) marcats.add(ingredientId);
-      else marcats.delete(ingredientId);
-      desarMarcats(signatura, marcats);
-      pintar();
-      arrel!.querySelector<HTMLElement>(`[data-ingredient="${ingredientId}"]`)?.focus({ preventScroll: true });
+      if (marcat) estat.marcats.add(ingredientId);
+      else estat.marcats.delete(ingredientId);
+      desarIPintar(`[data-ingredient="${CSS.escape(ingredientId)}"]`);
+    },
+    tenir: (ingredientId: string, tinc: boolean): void => {
+      if (tinc) {
+        estat.tinc.add(ingredientId);
+        estat.marcats.delete(ingredientId);
+      } else estat.tinc.delete(ingredientId);
+      desarIPintar(`[data-tinc="${CSS.escape(ingredientId)}"]`);
     },
     desmarcar: (): void => {
-      desarMarcats(signatura, new Set());
+      desarCompra(signatura, { marcats: new Set(), tinc: new Set() });
       pintar();
       enfocarTitol();
     },
+    compartir: (text: string): void => void compartirText(text),
   };
 }
 
@@ -648,11 +688,13 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
     }
     case 'compra': {
       const signatura = signaturaCompra(actual);
-      const marcats = carregarMarcats(signatura);
+      const estat = carregarCompra(signatura);
+      const avis = avisCompra;
+      avisCompra = null;
       const { llista } = avaluarMenu(catalegInicial, configuracio, actual.apats);
       const mensual = actual.periode === 'mes' && actual.mes ? actual.mes : undefined;
       const estalviCentims = mensual ? estalviCompraPeriode(catalegInicial, configuracio, actual.apats).estalviCentims : 0;
-      return pantallaCompra(llista, marcats, accionsCompra(signatura, marcats), mensual ? { mes: mensual, estalviCentims } : undefined);
+      return pantallaCompra(llista, estat.marcats, estat.tinc, accionsCompra(signatura, estat), mensual ? { mes: mensual, estalviCentims } : undefined, avis);
     }
     case 'receptari':
       return pantallaReceptari(

@@ -13,7 +13,11 @@ const tc = textos.compra;
 
 export interface AccionsCompra {
   commutar: (ingredientId: string, marcat: boolean) => void;
+  /** Marca o desmarca un producte com a «ja ho tinc» (surt de la compra i del total). */
+  tenir: (ingredientId: string, tinc: boolean) => void;
   desmarcar: () => void;
+  /** Comparteix (o copia) el text de la llista. */
+  compartir: (text: string) => void;
 }
 
 const majuscula = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
@@ -41,9 +45,39 @@ export function detallCompra(e: ElementLlista): string | null {
     : `${tc.paquets(e.cost.paquets, formatQuantitat(e.cost.midaPaquet, e.unitat))} · ${tc.estimat}`;
 }
 
-function element(e: ElementLlista, marcat: boolean, accions: AccionsCompra, mensual: boolean): HTMLElement {
+function element(e: ElementLlista, marcat: boolean, accions: AccionsCompra, mensual: boolean, tinc = false): HTMLElement {
   const plats = e.receptes.map((id) => catalegInicial.receptes.get(id)?.nom ?? id).join(', ');
   const detall = detallCompra(e);
+  const botoTinc = e.rebost
+    ? null
+    : h(
+        'button',
+        {
+          type: 'button',
+          class: 'boto boto--petit boto--fantasma producte__tinc',
+          'data-tinc': e.ingredientId,
+          'aria-label': tinc ? tc.tornarALlistaEtiqueta(e.nom) : tc.tincEtiqueta(e.nom),
+          onclick: () => accions.tenir(e.ingredientId, !tinc),
+        },
+        tinc ? `↩ ${tc.tornarALlista}` : `🏠 ${tc.tinc}`,
+      );
+  if (tinc) {
+    return h(
+      'li',
+      { class: 'producte producte--tinc' },
+      h(
+        'div',
+        { class: 'producte__etiqueta' },
+        h(
+          'span',
+          { class: 'producte__text' },
+          h('span', { class: 'producte__nom' }, e.nom),
+          h('span', { class: 'producte__quantitat' }, quantitatCompra(e)),
+        ),
+        botoTinc,
+      ),
+    );
+  }
   return h(
     'li',
     { class: `producte${marcat ? ' producte--fet' : ''}` },
@@ -69,7 +103,30 @@ function element(e: ElementLlista, marcat: boolean, accions: AccionsCompra, mens
         ? null
         : h('span', { class: 'producte__preu' }, e.cost ? euros(e.cost.costCompraCentims) : tc.senseCost),
     ),
+    botoTinc ? h('div', { class: 'producte__accions' }, botoTinc) : null,
   );
+}
+
+/**
+ * Text de la llista per compartir: el que encara cal comprar (sense el que ja és al carro ni el que ja es té),
+ * per seccions, i al final el que cal comprovar del rebost.
+ */
+export function textLlista(llista: LlistaCompra, marcats: ReadonlySet<string>, tinc: ReadonlySet<string>, titol: string): string {
+  const pendents = llista.elements.filter((e) => !e.rebost && !marcats.has(e.ingredientId) && !tinc.has(e.ingredientId));
+  const linies: string[] = [`🛒 ${titol}`];
+  for (const s of agruparPerSeccio(pendents)) {
+    linies.push('', majuscula(s.seccio).toUpperCase());
+    for (const e of s.elements) {
+      const producte = catalegInicial.preus.get(e.ingredientId)?.producte;
+      const paquets =
+        e.cost && producte ? ` → ${tc.paquetsProducte(e.cost.paquets, producte.nom, formatQuantitat(e.cost.midaPaquet, e.unitat))}` : '';
+      linies.push(`- ${e.nom}: ${quantitatCompra(e)}${paquets}`);
+    }
+  }
+  const rebost = llista.elements.filter((e) => e.rebost).map((e) => e.nom.toLowerCase());
+  if (rebost.length > 0) linies.push('', tc.textRebost(rebost.join(', ')));
+  if (pendents.length === 0) linies.push('', tc.resRes);
+  return linies.join('\n');
 }
 
 /** Compra d'un menú mensual: el mes i quant s'estalvia comprant-ho tot d'un cop. */
@@ -81,27 +138,45 @@ export interface CompraMensual {
 export function pantallaCompra(
   llista: LlistaCompra,
   marcats: ReadonlySet<string>,
+  tinc: ReadonlySet<string>,
   accions: AccionsCompra,
   mensual?: CompraMensual,
+  avis?: string | null,
 ): HTMLElement {
-  const seccions = agruparPerSeccio(llista.elements);
-  const aComprar = llista.elements.filter((e) => !e.rebost);
+  const queden = llista.elements.filter((e) => !tinc.has(e.ingredientId));
+  const jaHoTinc = llista.elements.filter((e) => tinc.has(e.ingredientId));
+  const seccions = agruparPerSeccio(queden);
+  const aComprar = queden.filter((e) => !e.rebost);
   const fets = aComprar.filter((e) => marcats.has(e.ingredientId)).length;
+  const total = aComprar.reduce((suma, e) => suma + (e.cost?.costCompraCentims ?? 0), 0);
+  const titol = mensual ? tc.titolMes(mensual.mes) : tc.titol;
 
   return h(
     'main',
     { class: 'pagina compra' },
-    h('h1', { class: 'pagina__titol', tabindex: -1 }, mensual ? tc.titolMes(mensual.mes) : tc.titol),
+    h('h1', { class: 'pagina__titol', tabindex: -1 }, titol),
     llista.elements.length === 0
       ? h('p', { class: 'avis' }, tc.buida)
       : h(
           'section',
           { class: 'menu__resum' },
-          h('p', { class: 'menu__cost' }, tc.resum(aComprar.length, euros(llista.totalCompraCentims))),
+          h('p', { class: 'menu__cost' }, tc.resum(aComprar.length, euros(total))),
+          jaHoTinc.length > 0 ? h('p', { class: 'menu__nota' }, tc.resumTinc(jaHoTinc.length)) : null,
           h('p', { class: 'menu__nota', role: 'status' }, tc.fet(fets, aComprar.length)),
           mensual && mensual.estalviCentims > 0 ? h('p', { class: 'menu__nota' }, textos.menu.estalviMes(euros(mensual.estalviCentims))) : null,
           mensual && aComprar.some((e) => esPerCongelar(e.ingredientId)) ? h('p', { class: 'menu__nota' }, tc.ajudaCongelar) : null,
           h('p', { class: 'menu__nota' }, tc.preus(dataCurta(DATA_PREUS))),
+          h(
+            'button',
+            {
+              type: 'button',
+              class: 'boto boto--principal compra__compartir',
+              'data-compartir': true,
+              onclick: () => accions.compartir(textLlista(llista, marcats, tinc, titol)),
+            },
+            `📤 ${tc.compartir}`,
+          ),
+          avis ? h('p', { class: 'menu__nota', role: 'status' }, avis) : null,
         ),
     ...seccions.map((s) =>
       h(
@@ -112,7 +187,16 @@ export function pantallaCompra(
         h('ul', { class: 'productes' }, ...s.elements.map((e) => element(e, marcats.has(e.ingredientId), accions, mensual !== undefined))),
       ),
     ),
-    marcats.size > 0
+    jaHoTinc.length > 0
+      ? h(
+          'section',
+          { class: 'seccio-compra' },
+          h('h2', { class: 'dia__nom' }, `🏠 ${tc.jaHoTeniu}`),
+          h('p', { class: 'menu__nota' }, tc.ajudaTinc),
+          h('ul', { class: 'productes' }, ...jaHoTinc.map((e) => element(e, false, accions, false, true))),
+        )
+      : null,
+    marcats.size > 0 || tinc.size > 0
       ? h('button', { type: 'button', class: 'boto boto--secundari menu__refer', onclick: accions.desmarcar }, tc.desmarcar)
       : null,
   );
