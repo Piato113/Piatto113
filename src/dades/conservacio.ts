@@ -31,6 +31,13 @@ export const carnIPeixPerCongelar: ReadonlySet<string> = new Set([
   'costelles-coll',
   'sardines',
   'pescadilla',
+  'vacio',
+  'entranya',
+  'tira-asado',
+  'matambre',
+  'picanya',
+  'llom-vedella',
+  'xoricet-criollo',
 ]);
 
 /** Pa i masses que també es poden congelar (es descongelen en poca estona). */

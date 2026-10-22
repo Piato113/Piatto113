@@ -249,4 +249,24 @@ export const receptesSalses: Recepta[] = [
       p('Deixa-la refredar. Serveix per pintar pollastre, salmó o tonyina a la brasa, i per sucar.'),
     ],
   }),
+  salsa({
+    id: 'salsa-criolla',
+    nom: 'Salsa criolla',
+    tempsMinuts: 10,
+    ingredients: [
+      l('ceba', 150),
+      l('pebrot-vermell', 100),
+      l('pebrot-verd', 100),
+      l('tomaquet', 2, 'u'),
+      l('orenga', 1),
+      l('sal', 3),
+      l('vinagre', 30),
+      l('oli-oliva', 60),
+    ],
+    passos: [
+      p('Pica a daus molt petits la ceba ({ceba}), els pebrots ({pebrot-vermell}, {pebrot-verd}) i els tomàquets ({tomaquet}) sense llavors.'),
+      p('Barreja-ho en un bol amb l’orenga ({orenga}), la sal ({sal}), el vinagre ({vinagre}) i l’oli ({oli-oliva}).'),
+      p('Deixa-la reposar mitja hora a la nevera. És la salsa de l’asado argentí, al costat del chimichurri: va bé amb tota la carn a la brasa i amb el choripán.'),
+    ],
+  }),
 ];

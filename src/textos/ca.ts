@@ -190,6 +190,7 @@ export const textos = {
       casolana: 'De cada dia',
       italiana: 'Italiana',
       mexicana: 'Mexicana',
+      argentina: 'Argentina',
       asiatica: 'Asiàtica',
       mon: 'Del món',
       vegetariana: 'Vegetariana',
@@ -215,6 +216,9 @@ export const textos = {
     fet: (n: number, total: number) => `${n} de ${total} al carro`,
     buida: 'La llista és buida: no hi ha cap àpat al menú.',
     perA: (plats: string) => `Per a: ${plats}`,
+    foraDelSuper: (on: string) => `⚠ No és al Mercadona: compra-ho ${on}`,
+    resumForaDelSuper: (n: number) =>
+      `${n === 1 ? '1 producte no és' : `${n} productes no són`} al Mercadona (marcats amb ⚠): el preu és estimat.`,
     tinc: 'Ja ho tinc',
     tincEtiqueta: (nom: string) => `${nom}: ja ho tinc (treu-ho de la compra)`,
     tornarALlista: 'Torna-ho a la llista',

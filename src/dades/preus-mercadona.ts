@@ -88,6 +88,8 @@ export const preusMercadona: (Preu & { unitat: Unitat })[] = [
   { ingredientId: "tonyina", midaPaquet: 240, preuCentims: 270, unitat: 'g', producte: { id: "18092", nom: "Atún claro en aceite de girasol Hacendado" } },
   { ingredientId: "maionesa", midaPaquet: 500, preuCentims: 120, unitat: 'ml', producte: { id: "13406", nom: "Mayonesa Hacendado" } },
   { ingredientId: "secret-porc", midaPaquet: 690, preuCentims: 428, unitat: 'g', producte: { id: "13046", nom: "Secreto de cerdo" } },
+  { ingredientId: "llom-vedella", midaPaquet: 337, preuCentims: 809, unitat: 'g', producte: { id: "8934", nom: "Lomo de vacuno añojo" } },
+  { ingredientId: "xoricet-criollo", midaPaquet: 380, preuCentims: 334, unitat: 'g', producte: { id: "6045", nom: "Longaniza fresca estilo criollo" } },
   { ingredientId: "presa-iberica", midaPaquet: 330, preuCentims: 957, unitat: 'g', producte: { id: "4915", nom: "Presa de cerdo ibérico" } },
   { ingredientId: "ploma-porc", midaPaquet: 300, preuCentims: 405, unitat: 'g', producte: { id: "13330", nom: "Pluma de cerdo" } },
   { ingredientId: "xistorra", midaPaquet: 220, preuCentims: 135, unitat: 'g', producte: { id: "2864", nom: "Chistorra" } },

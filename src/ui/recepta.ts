@@ -2,7 +2,7 @@ import { catalegInicial } from '../dades';
 import { costRecepta, formatNombre, generarLlista, prepararRecepta, textQuantitat } from '../domini';
 import { textos } from '../textos/ca';
 import { h } from './dom';
-import { detallCompra, quantitatCompra, textLlista } from './compra';
+import { avisForaDelSuper, detallCompra, quantitatCompra, textLlista } from './compra';
 import { iconaAparell } from './icones';
 import { durada, euros } from './format';
 
@@ -50,6 +50,7 @@ function compraDelPlat(receptaId: string, racionsCentesimes: number, persones: n
             { class: 'producte__text' },
             h('span', { class: 'producte__nom' }, e.nom),
             h('span', { class: 'producte__quantitat' }, [quantitatCompra(e), detallCompra(e)].filter(Boolean).join(' · ')),
+            avisForaDelSuper(e),
           ),
           h('span', { class: 'producte__preu' }, e.cost ? euros(e.cost.costCompraCentims) : textos.compra.senseCost),
         ),

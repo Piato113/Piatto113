@@ -39,11 +39,21 @@ export function quantitatCompra(e: ElementLlista): string {
 /** Paquets a comprar: «2 × Llet semidesnatada Hacendado (1 l)»; `null` per al rebost o sense preu. */
 export function detallCompra(e: ElementLlista): string | null {
   if (e.rebost || !e.cost) return null;
+  // Al pes (carnisseria, mercat): no hi ha paquets, només el preu orientatiu.
+  if (catalegInicial.ingredients.get(e.ingredientId)?.foraDelSuper && e.unitat !== 'u') return tc.estimat;
   const producte = catalegInicial.preus.get(e.ingredientId)?.producte;
   return producte
     ? tc.paquetsProducte(e.cost.paquets, producte.nom, formatQuantitat(e.cost.midaPaquet, e.unitat))
     : `${tc.paquets(e.cost.paquets, formatQuantitat(e.cost.midaPaquet, e.unitat))} · ${tc.estimat}`;
 }
+
+/** Avís per als productes que no són al Mercadona («⚠ No és al Mercadona: compra-ho a la carnisseria»). */
+export function avisForaDelSuper(e: ElementLlista): HTMLElement | null {
+  const on = catalegInicial.ingredients.get(e.ingredientId)?.foraDelSuper;
+  return on && !e.rebost ? h('span', { class: 'producte__fora' }, tc.foraDelSuper(on)) : null;
+}
+
+const esForaDelSuper = (e: ElementLlista): boolean => !e.rebost && Boolean(catalegInicial.ingredients.get(e.ingredientId)?.foraDelSuper);
 
 function element(e: ElementLlista, marcat: boolean, accions: AccionsCompra, mensual: boolean, tinc = false): HTMLElement {
   const plats = e.receptes.map((id) => catalegInicial.receptes.get(id)?.nom ?? id).join(', ');
@@ -97,6 +107,7 @@ function element(e: ElementLlista, marcat: boolean, accions: AccionsCompra, mens
         h('span', { class: 'producte__nom' }, e.nom),
         mensual && esPerCongelar(e.ingredientId) ? h('span', { class: 'producte__congelar' }, tc.congelar) : null,
         h('span', { class: 'producte__quantitat' }, [quantitatCompra(e), detall].filter(Boolean).join(' · ')),
+        avisForaDelSuper(e),
         h('span', { class: 'producte__plats' }, tc.perA(plats)),
       ),
       e.rebost
@@ -120,7 +131,8 @@ export function textLlista(llista: LlistaCompra, marcats: ReadonlySet<string>, t
       const producte = catalegInicial.preus.get(e.ingredientId)?.producte;
       const paquets =
         e.cost && producte ? ` → ${tc.paquetsProducte(e.cost.paquets, producte.nom, formatQuantitat(e.cost.midaPaquet, e.unitat))}` : '';
-      linies.push(`- ${e.nom}: ${quantitatCompra(e)}${paquets}`);
+      const on = catalegInicial.ingredients.get(e.ingredientId)?.foraDelSuper;
+      linies.push(`- ${e.nom}: ${quantitatCompra(e)}${paquets}${on ? ` (⚠ ${on})` : ''}`);
     }
   }
   const rebost = llista.elements.filter((e) => e.rebost).map((e) => e.nom.toLowerCase());
@@ -166,6 +178,7 @@ export function pantallaCompra(
           mensual && mensual.estalviCentims > 0 ? h('p', { class: 'menu__nota' }, textos.menu.estalviMes(euros(mensual.estalviCentims))) : null,
           mensual && aComprar.some((e) => esPerCongelar(e.ingredientId)) ? h('p', { class: 'menu__nota' }, tc.ajudaCongelar) : null,
           h('p', { class: 'menu__nota' }, tc.preus(dataCurta(DATA_PREUS))),
+          aComprar.some(esForaDelSuper) ? h('p', { class: 'avis' }, tc.resumForaDelSuper(aComprar.filter(esForaDelSuper).length)) : null,
           h(
             'button',
             {

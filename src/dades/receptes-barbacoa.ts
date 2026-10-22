@@ -41,6 +41,8 @@ interface Brasa {
 
 /** Acompanyaments per a la carn a la brasa. */
 const AMB_CARN = ['patates-caliu', 'escalivada-brasa', 'verdures-brasa', 'panotxes-brasa', 'amanida', 'amanida-ceba-tomaquet', 'pa-amb-tomaquet', 'patates-fregides'];
+/** Acompanyaments per a l’asado argentí. */
+const AMB_ARGENTINA = ['papes-provencal', 'amanida', 'amanida-ceba-tomaquet', 'patates-caliu', 'verdures-brasa', 'escalivada-brasa'];
 /** Acompanyaments per al peix i el marisc a la brasa. */
 const AMB_PEIX = ['patates-caliu', 'escalivada-brasa', 'verdures-brasa', 'esparrecs-brasa', 'amanida', 'amanida-ceba-tomaquet'];
 
@@ -1061,4 +1063,185 @@ export const receptesBarbacoa: Recepta[] = [
       p('Posa-hi la sal ({sal}) en treure’ls.'),
     ],
   }),
+
+  // ——— Asado argentí ———
+  // Els talls de vedella argentins (vacío, entranya, tira d’asado, matambre, picanya) no són al Mercadona:
+  // es demanen a la carnisseria i la llista de la compra ho avisa.
+  brasa({
+    id: 'vacio-brasa',
+    nom: 'Vacío a la brasa',
+    minuts: 95,
+    etiquetes: ['carn'],
+    foc: 'suau',
+    acompanyaments: AMB_ARGENTINA,
+    salses: ['chimichurri', 'salsa-criolla'],
+    ingredients: [l('vacio', 1200), l('sal', 8)],
+    passos: [
+      p('Demana el vacío ({vacio}) a la carnisseria en una sola peça, amb el greix i la membrana. Treu-lo de la nevera una hora abans.'),
+      c(
+        'Posa’l a la graella amb la banda del greix i la membrana cap avall, a foc suau (la brasa ha d’estar repartida i no ha de fer flama). ' +
+          'No el sal encara. Deixa’l fer a poc a poc: el greix s’ha de daurar i fondre sense cremar-se.',
+        55,
+        'Banda del greix',
+      ),
+      c('Gira’l, posa-hi la sal ({sal}) per la banda cuita i deixa’l fer per la banda de la carn fins que, en prémer-lo, sigui ferm però sucós.', 30, 'Banda de la carn'),
+      reposar(8),
+      p('Talla’l a tires gruixudes, de través a la fibra.'),
+    ],
+  }),
+  brasa({
+    id: 'entranya-brasa',
+    nom: 'Entranya a la brasa',
+    minuts: 20,
+    etiquetes: ['carn'],
+    foc: 'fort',
+    acompanyaments: AMB_ARGENTINA,
+    salses: ['chimichurri', 'salsa-criolla'],
+    ingredients: [l('entranya', 800), l('sal', 6)],
+    passos: [
+      p('Demana l’entranya ({entranya}) a la carnisseria (que te la netegin de la membrana dura, o treu-la tu amb un ganivet). Asseca-la amb paper de cuina.'),
+      c('Cou-la a foc fort, sense moure-la, fins que sigui ben marcada; gira-la una sola vegada. És un tall per menjar al punt, rosat al mig. El cronòmetre és per a cada banda.', 5, 'Coure cada banda'),
+      reposar(3),
+      p('Posa-hi la sal ({sal}) i talla-la a tires de través a la fibra (si no, queda dura).'),
+    ],
+  }),
+  brasa({
+    id: 'tira-asado-brasa',
+    nom: 'Tira d’asado a la brasa',
+    minuts: 50,
+    etiquetes: ['carn'],
+    foc: 'suau',
+    acompanyaments: AMB_ARGENTINA,
+    salses: ['chimichurri', 'salsa-criolla'],
+    ingredients: [l('tira-asado', 1500), l('sal', 8)],
+    passos: [
+      p('Demana a la carnisseria costella de vedella tallada de través en tires de 3-4 dits d’amplada (tira d’asado, {tira-asado}).'),
+      c('Posa les tires a la graella amb els ossos cap avall, a foc suau, i deixa-les fer a poc a poc: l’os fa de protecció i la carn es fa sense assecar-se.', 30, 'Banda dels ossos'),
+      c('Gira-les, posa-hi la sal ({sal}) i acaba-les fins que la carn sigui daurada i es desenganxi una mica de l’os.', 15, 'Banda de la carn'),
+      p('Talla-les entre os i os i serveix-les de seguida.'),
+    ],
+  }),
+  brasa({
+    id: 'matambre-pizza',
+    nom: 'Matambre a la pizza',
+    minuts: 65,
+    etiquetes: ['carn'],
+    foc: 'suau',
+    acompanyaments: AMB_ARGENTINA,
+    ingredients: [l('matambre', 1000), l('sal', 6), l('tomaquet-fregit', 200), l('mozzarella', 150), l('orenga', 2)],
+    passos: [
+      p('Demana el matambre ({matambre}) a la carnisseria, sencer. Si és molt gruixut, que te l’obrin en llibret.'),
+      c('Cou-lo a foc suau amb la banda del greix cap avall fins que el greix sigui daurat i la carn comenci a ser tendra.', 40, 'Banda del greix'),
+      c('Gira’l, sala’l amb la sal ({sal}) i deixa’l fer per l’altra banda.', 15, 'Banda de la carn'),
+      c(
+        'Estén-hi per sobre el tomàquet fregit ({tomaquet-fregit}), la mozzarella ({mozzarella}) i l’orenga ({orenga}), com una pizza. ' +
+          'Tapa la barbacoa (o posa-hi una safata d’alumini a sobre) fins que el formatge sigui fos.',
+        6,
+        'Fondre el formatge',
+      ),
+      p('Talla’l a quadrats i serveix-lo.'),
+    ],
+  }),
+  brasa({
+    id: 'picanya-brasa',
+    nom: 'Picanya a la brasa',
+    minuts: 50,
+    etiquetes: ['carn'],
+    foc: 'suau',
+    acompanyaments: AMB_ARGENTINA,
+    salses: ['chimichurri', 'salsa-criolla'],
+    ingredients: [l('picanya', 1000), l('sal', 8)],
+    passos: [
+      p('Demana la picanya ({picanya}) a la carnisseria en una peça, amb la capa de greix. Fes uns talls en reixa al greix sense arribar a la carn.'),
+      c('Posa-la a la graella amb el greix cap avall, a foc suau, perquè es fongui i es dauri. Si fa flama, aparta-la un moment.', 25, 'Banda del greix'),
+      c('Gira-la, posa-hi la sal ({sal}) i deixa-la fer per la banda de la carn fins que al mig sigui rosada (com més gruixuda, més estona).', 15, 'Banda de la carn'),
+      reposar(8),
+      p('Talla-la a llesques d’un dit, de través a la fibra.'),
+    ],
+  }),
+  brasa({
+    id: 'bife-chorizo-brasa',
+    nom: 'Bife de chorizo a la brasa',
+    minuts: 20,
+    etiquetes: ['carn'],
+    foc: 'fort',
+    acompanyaments: AMB_ARGENTINA,
+    salses: ['chimichurri', 'salsa-criolla', 'salsa-pebre'],
+    ingredients: [l('llom-vedella', 900), l('sal', 6)],
+    passos: [
+      p('Treu el llom de vedella ({llom-vedella}) de la nevera mitja hora abans. El bife de chorizo és aquest tall, en filets gruixuts de dos dits.'),
+      c('Cou-lo a foc fort fins que sigui ben marcat per fora; per dins, al punt o al gust. Gira’l una sola vegada. El cronòmetre és per a cada banda.', 5, 'Coure cada banda'),
+      reposar(4),
+      p('Posa-hi la sal ({sal}) just abans de servir-lo.'),
+    ],
+  }),
+  brasa({
+    id: 'choripan',
+    nom: 'Choripán amb chimichurri',
+    minuts: 25,
+    etiquetes: ['carn'],
+    foc: 'suau',
+    sol: true,
+    salses: ['salsa-criolla'],
+    ingredients: [
+      l('julivert', 10),
+      l('all', 1),
+      l('orenga', 2),
+      l('vinagre', 15),
+      l('oli-oliva', 50),
+      l('xoricet-criollo', 760),
+      l('pa-barra', 500),
+    ],
+    passos: [
+      p(
+        'Chimichurri ràpid: pica molt fins el julivert ({julivert}) i l’all ({all}) i barreja’ls amb l’orenga ({orenga}), el vinagre ({vinagre}) i l’oli ({oli-oliva}). ' +
+          'Deixa’l reposar mentre es fan les brases.',
+      ),
+      c(
+        'Cou els xoriços criollos ({xoricet-criollo}) a foc suau, sencers i sense punxar-los, girant-los, fins que siguin daurats i fets per dins.',
+        18,
+        'Coure els xoriços',
+      ),
+      p('Talla el pa ({pa-barra}) en trossos de la llargada dels xoriços, obre’ls i torra’ls per dins a la graella.'),
+      p('Obre els xoriços per la meitat de llarg («a la mariposa»), posa’ls dins del pa i tira-hi el chimichurri per sobre.'),
+    ],
+  }),
+  brasa({
+    id: 'parrillada-argentina',
+    nom: 'Parrillada argentina',
+    minuts: 50,
+    etiquetes: ['carn'],
+    foc: 'suau',
+    acompanyaments: AMB_ARGENTINA,
+    salses: ['chimichurri', 'salsa-criolla'],
+    ingredients: [l('tira-asado', 600), l('xoricet-criollo', 380), l('botifarra-negra', 280), l('entranya', 400), l('sal', 8)],
+    passos: [
+      p('Demana a la carnisseria la tira d’asado ({tira-asado}) i l’entranya ({entranya}). L’asado es fa per ordre: primer el que triga més.'),
+      c('Posa la tira d’asado amb els ossos cap avall a la banda de foc suau.', 20, 'Tira d’asado'),
+      c('Afegeix-hi els xoriços criollos ({xoricet-criollo}) sencers i gira la tira d’asado. Gira els xoriços de tant en tant.', 15, 'Xoriços'),
+      c('Afegeix-hi la botifarra negra ({botifarra-negra}) i, a la banda de més brasa, l’entranya, girant-la una vegada.', 10, 'Entranya i botifarra negra'),
+      p('Posa la sal ({sal}) a la carn. Es serveix per tandes: primer els xoriços i la botifarra negra (com a entrant, amb pa), després la carn tallada.'),
+    ],
+  }),
+
+  // Acompanyament argentí (es fa a la cuina)
+  {
+    id: 'papes-provencal',
+    nom: 'Patates a la provençal',
+    racions: 4,
+    tempsMinuts: 40,
+    etiquetes: [],
+    tipus: 'acompanyament',
+    ingredients: [l('patata', 1000), l('oli-girasol', 150), l('all', 3), l('julivert', 10), l('sal', 4)],
+    passos: [
+      p('Pela les patates ({patata}), talla-les a bastons i deixa-les 10 minuts en aigua freda. Escorre-les i asseca-les molt bé.'),
+      c(
+        'Fregeix-les en tandes en una paella fonda amb oli de gira-sol ({oli-girasol}) a foc mitjà fins que siguin toves, i després a foc fort fins que siguin daurades. ' +
+          'El cronòmetre és per a cada tanda.',
+        8,
+        'Fregir les patates',
+      ),
+      p('Pica molt fins els alls ({all}) i el julivert ({julivert}). Barreja’ls amb les patates calentes i la sal ({sal}): la calor cou una mica l’all.'),
+    ],
+  },
 ];

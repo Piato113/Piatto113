@@ -111,6 +111,14 @@ const preusEstimats: Preu[] = [
   // Verdura de temporada que no és al llistat del Mercadona
   { ingredientId: 'calcots', midaPaquet: 25, preuCentims: 450 },
 
+  // Talls argentins de carnisseria: es compren al pes, preu orientatiu per 100 g
+  // (vacío 14 €/kg, entranya 22 €/kg, tira d’asado 13 €/kg, matambre 13 €/kg, picanya 18 €/kg).
+  { ingredientId: 'vacio', midaPaquet: 100, preuCentims: 140 },
+  { ingredientId: 'entranya', midaPaquet: 100, preuCentims: 220 },
+  { ingredientId: 'tira-asado', midaPaquet: 100, preuCentims: 130 },
+  { ingredientId: 'matambre', midaPaquet: 100, preuCentims: 130 },
+  { ingredientId: 'picanya', midaPaquet: 100, preuCentims: 180 },
+
   // Forn
   { ingredientId: 'pa-ratllat', midaPaquet: 750, preuCentims: 120 },
   { ingredientId: 'pa-pages', midaPaquet: 500, preuCentims: 189 },

@@ -30,10 +30,10 @@ const totsElsDies = (): Graella => {
 };
 
 describe('barbacoa', () => {
-  it('hi ha entre 40 i 50 receptes de barbacoa i 14 salses', () => {
+  it('hi ha entre 40 i 60 receptes de barbacoa i 15 salses', () => {
     expect(deBarbacoa.length).toBeGreaterThanOrEqual(40);
-    expect(deBarbacoa.length).toBeLessThanOrEqual(50);
-    expect(receptes.filter((r) => r.tipus === 'salsa')).toHaveLength(14);
+    expect(deBarbacoa.length).toBeLessThanOrEqual(60);
+    expect(receptes.filter((r) => r.tipus === 'salsa')).toHaveLength(15);
   });
 
   it('sense barbacoa (per defecte) no en surt cap', () => {

@@ -1940,3 +1940,10 @@ h1:focus-visible {
   gap: 0.75rem;
   padding: 0.6rem 1rem;
 }
+
+/* Producte que no és al Mercadona */
+.producte__fora {
+  color: var(--taronja-clar);
+  font-size: 0.85rem;
+  font-weight: 700;
+}

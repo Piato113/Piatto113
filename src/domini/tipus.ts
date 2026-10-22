@@ -58,6 +58,8 @@ export interface Ingredient {
    * Sense conversió declarada, no es converteix mai entre dimensions.
    */
   conversions?: Partial<Record<Unitat, number>>;
+  /** No és al Mercadona: on es compra (p. ex. «a la carnisseria»). El preu és estimat i la llista de la compra ho avisa. */
+  foraDelSuper?: string;
 }
 
 export interface LiniaRecepta {
@@ -88,7 +90,7 @@ export interface Pas {
 export type TipusRecepta = 'principal' | 'acompanyament' | 'ambdos' | 'salsa';
 
 /** Cuines del receptari. «mon»: altres cuines del món (àrab, francesa, americana…). */
-export const CUINES = ['catalana', 'espanyola', 'casolana', 'italiana', 'mexicana', 'asiatica', 'mon'] as const;
+export const CUINES = ['catalana', 'espanyola', 'casolana', 'italiana', 'mexicana', 'argentina', 'asiatica', 'mon'] as const;
 export type Cuina = (typeof CUINES)[number];
 
 export interface Recepta {
