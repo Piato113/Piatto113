@@ -14,7 +14,7 @@ import {
   comensals,
   configuracioDesDeRespostes,
   conservarAssistencia,
-  conservarFixats,
+  mantenirMenu,
   normalitzarAssistencia,
   racionsApat,
   acompanyamentsDePlat,
@@ -218,8 +218,10 @@ function ferMenu(
   const pla = planificar({ cataleg: catalegInicial, configuracio, graella, llavor, ...(dies ? { dies } : {}) });
   // Els convidats i absències d'un dia no canvien perquè es torni a fer el menú.
   const ambGent = conservarAssistencia(configuracio.persones, pla.apats, menu?.apats ?? []);
-  // Els plats fixats es mantenen quan es torna a fer el menú amb les mateixes respostes.
-  const apats = mantenirFixats && menu ? conservarFixats(catalegInicial, configuracio, ambGent, menu.apats, llavor) : ambGent;
+  // El que ja s'ha menjat aquesta setmana (o aquest mes) no canvia, i els plats fixats es mantenen
+  // quan es torna a fer el menú amb les mateixes respostes.
+  const identitat = mesTriat ? { periode: 'mes' as const, mes: mesTriat, creat: avui() } : { creat: avui() };
+  const apats = mantenirMenu(catalegInicial, configuracio, ambGent, identitat, menu, avui(), llavor, mantenirFixats);
   const nou: MenuDesat = { signatura: JSON.stringify(respostes), llavor, graella, apats, avisos: pla.avisos, creat: avui() };
   if (mesTriat) Object.assign(nou, { periode: 'mes', mes: mesTriat });
   // El menú d'un altre període passa a ser l'anterior (per seguir-lo mentre s'acaba); si és el mateix, es conserva el d'abans.
