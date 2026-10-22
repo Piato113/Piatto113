@@ -164,6 +164,7 @@ const ingredientsBase: Ingredient[] = [
   { id: 'vi-blanc', nom: 'Vi blanc per cuinar', unitat: 'ml', seccio: CONSERVES },
 
   // Forn
+  { id: 'pa-torrat', nom: 'Pa torrat (llesques de paquet)', unitat: 'g', seccio: FORN },
   { id: 'pa-ratllat', nom: 'Pa ratllat', unitat: 'g', seccio: FORN },
   { id: 'pa-pages', nom: 'Pa de pagès', unitat: 'g', seccio: FORN },
   { id: 'pa-hamburguesa', nom: 'Panets d’hamburguesa', unitat: 'u', seccio: FORN, indivisible: true },
@@ -206,6 +207,7 @@ const ALERGENS_INGREDIENT: Record<string, Alergen[]> = {
   farina: ['gluten'],
   'farina-forca': ['gluten'],
   'pa-ratllat': ['gluten'],
+  'pa-torrat': ['gluten'],
   'pa-pages': ['gluten'],
   'pa-hamburguesa': ['gluten', 'sesam', 'llet'],
   macarrons: ['gluten'],

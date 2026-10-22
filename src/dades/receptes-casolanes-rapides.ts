@@ -180,6 +180,55 @@ export const receptesCasolanesRapides: Recepta[] = [
     ],
   },
   {
+    id: 'hamburgueses-roger',
+    nom: 'Hamburgueses d’en Roger',
+    racions: 4,
+    tempsMinuts: 30,
+    etiquetes: ['carn'],
+    ambAcompanyament: true,
+    acompanyaments: ['patates-fregides', 'patates-adobades', 'arros-blanc', 'pure-patata', 'amanida', 'amanida-ceba-tomaquet'],
+    ingredients: [
+      l('carn-picada', 500),
+      l('all', 1),
+      l('julivert', 5),
+      l('pebre-negre', 1),
+      l('sal', 5),
+      l('ou', 1),
+      l('pa-torrat', 30),
+      l('pernil-serra', 60),
+    ],
+    passos: [
+      p('Pela l’all ({all}) i tritura’l (amb un trinxador, ratllat o xafat al morter fins que sigui una pasta). Pica el julivert ({julivert}) ben fi.'),
+      p(
+        'Posa la carn picada ({carn-picada}) en un bol gran amb l’all, el julivert, la sal ({sal}) i el pebre molt ({pebre-negre}). Amassa-ho amb les mans ' +
+          'fins que estigui tot ben repartit.',
+      ),
+      p('Bat l’ou ({ou}) en un plat, afegeix-lo a la carn i torna-la a amassar fins que l’ou quedi ben barrejat.'),
+      p(
+        'Esmicola el pa torrat ({pa-torrat}) amb les mans o amb un corró, dins d’una bossa, i afegeix-lo a poc a poc a la carn mentre l’amasses: ' +
+          'en tens prou quan la massa deixa d’enganxar-se a les mans i aguanta la forma.',
+      ),
+      p(
+        'Divideix la carn en 4 boles iguals i aixafa-les entre les mans fins a fer hamburgueses d’uns 2 cm de gruix. Fes-hi un petit clot al mig amb el polze: ' +
+          'així no s’inflen en coure’s.',
+      ),
+      p(
+        'Escalfa la planxa, la paella o la barbacoa amb un fil d’oli. A foc baix si les vols ben fetes (es couen per dins sense cremar-se per fora) ' +
+          'o a foc mitjà si les vols més crues per dins. Com més gruixudes, més temps necessiten.',
+      ),
+      c(
+        'Posa-hi les hamburgueses i no les toquis fins que siguin daurades per sota; llavors gira-les una sola vegada amb la paleta. Són uns 6-8 minuts per banda: ' +
+          'el cronòmetre és per a cada banda.',
+        7,
+        'Coure cada banda',
+      ),
+      p(
+        'Si vols, l’últim minut posa una llesca de pernil ({pernil-serra}) sobre cada hamburguesa perquè se’n fongui el greix a sobre. ' +
+          'Serveix-les amb l’acompanyament: patates fregides, adobades, arròs, puré o amanida.',
+      ),
+    ],
+  },
+  {
     id: 'macarrons-xorico',
     nom: 'Macarrons amb xoriço i tomàquet',
     racions: 4,

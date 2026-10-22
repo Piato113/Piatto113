@@ -87,6 +87,7 @@ export const preusMercadona: (Preu & { unitat: Unitat })[] = [
   { ingredientId: "fumet", midaPaquet: 1000, preuCentims: 95, unitat: 'ml', producte: { id: "7325", nom: "Caldo de pescado Hacendado" } },
   { ingredientId: "tonyina", midaPaquet: 240, preuCentims: 270, unitat: 'g', producte: { id: "18092", nom: "Atún claro en aceite de girasol Hacendado" } },
   { ingredientId: "maionesa", midaPaquet: 500, preuCentims: 120, unitat: 'ml', producte: { id: "13406", nom: "Mayonesa Hacendado" } },
+  { ingredientId: "pa-torrat", midaPaquet: 550, preuCentims: 170, unitat: 'g', producte: { id: "82287", nom: "Pan tostado classic Hacendado" } },
   { ingredientId: "ketchup", midaPaquet: 600, preuCentims: 105, unitat: 'g', producte: { id: "23579", nom: "Ketchup Hacendado" } },
   { ingredientId: "croquetes-congelades", midaPaquet: 350, preuCentims: 195, unitat: 'g', producte: { id: "13496", nom: "Croquetas de cocido Hacendado ultracongeladas" } },
   { ingredientId: "anxoves", midaPaquet: 42, preuCentims: 130, unitat: 'g', producte: { id: "18433", nom: "Filetes de anchoa en aceite de oliva Hacendado" } },

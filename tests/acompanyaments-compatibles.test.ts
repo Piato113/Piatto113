@@ -134,7 +134,7 @@ describe('acompanyaments compatibles', () => {
 });
 
 describe('catàleg inicial: acompanyaments', () => {
-  const apats = Array.from({ length: 60 }, (_, llavor) =>
+  const apats = Array.from({ length: 200 }, (_, llavor) =>
     planificar({
       cataleg: catalegInicial,
       configuracio: configuracio({
