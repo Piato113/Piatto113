@@ -45,8 +45,6 @@ export interface DadesMenu {
   periode: PeriodeMenu;
   /** Mes del menú mensual («AAAA-MM»). */
   mes?: string;
-  /** Mesos que es poden triar: el que corre (la resta) i el següent. */
-  mesos: { mes: string; resta: boolean }[];
   /** Setmanes que es mostren (àpats per data, del menú actual i, si cal, de l'anterior): vegeu `agendaMenu`. */
   agenda: SetmanaAgenda[];
   /** Àpats del menú anterior (els de l'agenda amb origen «anterior»). */
@@ -62,8 +60,8 @@ export interface DadesMenu {
 export interface AccionsMenu {
   /** Obre el llistat de plats per triar el d'aquest àpat. */
   obrirTriar: (index: number) => void;
-  canviarGraella: (graella: Graella, clau: string) => void;
-  tornarAFer: () => void;
+  /** Obre el full «Fes un menú nou». */
+  obrirMenuNou: () => void;
   /** Torna al menú d'abans de l'últim «Fes un altre menú» o canvi de graella. */
   desfer: () => void;
   /** Fixa o deixa de fixar el plat d'un àpat. */
@@ -74,14 +72,10 @@ export interface AccionsMenu {
   obrirAssistencia: (index: number) => void;
   /** `enfocar`: selector de l'element que ha de tenir el focus després de tornar a pintar. */
   canviarAssistencia: (index: number, assistencia: Assistencia, enfocar: string) => void;
-  /** Canvia entre menú setmanal i mensual (i de quin mes). */
-  canviarPeriode: (periode: PeriodeMenu, mes?: string) => void;
   veureSetmana: (index: number) => void;
   /** Obre el menú anterior, o torna a l'actual des de l'anterior. */
   veureAnterior: () => void;
   tornarAlActual: () => void;
-  /** Obre el full «Ajusta el menú» (període i graella). */
-  obrirAjustos: () => void;
   obrirCompra: () => void;
   /** Obre el mode cuinar del plat d'un àpat. */
   cuinar: (index: number) => void;
@@ -232,39 +226,6 @@ function notaDescongelar(receptes: (ReturnType<typeof recepta> | undefined)[]): 
     ),
   ];
   return noms.length > 0 ? h('p', { class: 'apat__descongelar' }, tm.descongelar(noms.join(', '))) : null;
-}
-
-/** Selector «Una setmana / Un mes sencer» i, si és mensual, de quin mes. */
-function selectorPeriode(dades: Pick<DadesMenu, 'periode' | 'mes' | 'mesos'>, accions: Pick<AccionsMenu, 'canviarPeriode'>): HTMLElement {
-  const tp = tm.periode;
-  const xip = (actiu: boolean, text: string, clau: string, accio: () => void): HTMLElement =>
-    h(
-      'button',
-      { type: 'button', class: `xip${actiu ? ' xip--actiu' : ''}`, 'aria-pressed': actiu ? 'true' : 'false', 'data-periode': clau, onclick: accio },
-      text,
-    );
-  const mensual = dades.periode === 'mes';
-  return h(
-    'section',
-    { class: 'periode', 'aria-labelledby': 'periode-titol' },
-    h('h2', { class: 'periode__titol', id: 'periode-titol' }, tp.titol),
-    h(
-      'div',
-      { class: 'xips' },
-      xip(!mensual, tp.setmana, 'setmana', () => accions.canviarPeriode('setmana')),
-      xip(mensual, tp.mes, 'mes', () => accions.canviarPeriode('mes')),
-    ),
-    mensual
-      ? h(
-          'div',
-          { class: 'xips' },
-          ...dades.mesos.map(({ mes, resta }) =>
-            xip(dades.mes === mes, resta ? tp.restaDe(mes) : tp.mesSencer(mes), mes, () => accions.canviarPeriode('mes', mes)),
-          ),
-        )
-      : null,
-    h('p', { class: 'grup__ajuda' }, tp.ajuda),
-  );
 }
 
 /** Calendari del mes amb un punt de color per àpat (segons la categoria del plat). */
@@ -586,13 +547,6 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
         'div',
         { class: 'menu__capcalera' },
         h('p', { class: 'menu__titol', 'aria-hidden': 'true' }, titol),
-        lectura
-          ? null
-          : h(
-              'button',
-              { type: 'button', class: 'boto boto--petit boto--secundari', 'aria-label': tm.ajustaEtiqueta, 'data-ajustos': true, onclick: accions.obrirAjustos },
-              `⚙ ${tm.ajusta}`,
-            ),
       ),
       textResum
         ? lectura
@@ -621,8 +575,8 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
         : null,
     ),
     apats.length === 0 ? h('p', { class: 'avis' }, tm.capApat) : null,
-    apats.length > 0 && !lectura
-      ? h('button', { type: 'button', class: 'boto boto--secundari menu__refer', onclick: accions.tornarAFer }, `🔄 ${tm.tornarAFer}`)
+    !lectura
+      ? h('button', { type: 'button', class: 'boto boto--secundari menu__refer', 'data-menu-nou': true, onclick: accions.obrirMenuNou }, `🔄 ${tm.nou.boto}`)
       : null,
     !lectura && dades.desfer ? avisDesfer(dades.desfer, accions.desfer) : null,
   );
@@ -637,23 +591,61 @@ function avisDesfer(text: string, desfer: () => void): HTMLElement {
   );
 }
 
-export interface DadesAjustos extends Pick<DadesMenu, 'periode' | 'mes' | 'mesos' | 'graella'> {
-  desfer?: string | null;
+/** Per a quan es fa el menú nou. */
+export type OpcioMenuNou = 'setmana' | 'setmana-seguent' | 'resta-mes' | 'mes-seguent';
+
+export interface DadesMenuNou {
+  opcions: { opcio: OpcioMenuNou; titol: string; inici: string; fi: string; refer: boolean }[];
+  triada: OpcioMenuNou;
+  graella: Graella;
 }
 
-/** Full «Ajusta el menú»: per a quant de temps i quins àpats es fan a casa. */
-export function pantallaAjustos(
-  dades: DadesAjustos,
-  accions: Pick<AccionsMenu, 'canviarPeriode' | 'canviarGraella' | 'desfer'> & { tornar: () => void },
-): HTMLElement {
+export interface AccionsMenuNou {
+  triar: (opcio: OpcioMenuNou) => void;
+  canviarGraella: (graella: Graella, clau: string) => void;
+  fer: () => void;
+  tornar: () => void;
+}
+
+/** Full «Fes un menú nou»: per a quan i quins àpats; res no canvia fins a «Fes el menú». */
+export function pantallaMenuNou(dades: DadesMenuNou, accions: AccionsMenuNou): HTMLElement {
+  const tn = tm.nou;
+  const triada = dades.opcions.find((o) => o.opcio === dades.triada);
+  const mensual = dades.triada === 'resta-mes' || dades.triada === 'mes-seguent';
   return h(
     'main',
-    { class: 'menu ajustos' },
-    h('button', { type: 'button', class: 'boto boto--petit boto--fantasma ajustos__tornar', onclick: accions.tornar }, `← ${tm.ajustos.tornar}`),
-    h('h1', { class: 'menu__titol', tabindex: -1 }, tm.ajustos.titol),
-    h('p', { class: 'menu__nota' }, tm.ajustos.ajuda),
-    selectorPeriode(dades, accions),
+    { class: 'menu menu-nou' },
+    h('button', { type: 'button', class: 'boto boto--petit boto--fantasma ajustos__tornar', onclick: accions.tornar }, `← ${tn.tornar}`),
+    h('h1', { class: 'menu__titol', tabindex: -1 }, tn.titol),
+    h('p', { class: 'menu__nota' }, tn.ajuda),
+    h(
+      'section',
+      { class: 'menu-nou__quan', 'aria-labelledby': 'menu-nou-quan' },
+      h('h2', { class: 'graella__titol', id: 'menu-nou-quan' }, tn.perQuan),
+      h(
+        'div',
+        { class: 'menu-nou__opcions', role: 'radiogroup', 'aria-labelledby': 'menu-nou-quan' },
+        ...dades.opcions.map((o) => {
+          const actiu = o.opcio === dades.triada;
+          return h(
+            'button',
+            {
+              type: 'button',
+              role: 'radio',
+              class: `menu-nou__opcio${actiu ? ' menu-nou__opcio--activa' : ''}`,
+              'aria-checked': actiu ? 'true' : 'false',
+              'data-opcio': o.opcio,
+              onclick: () => accions.triar(o.opcio),
+            },
+            h('span', { class: 'menu-nou__nom' }, o.titol),
+            h('span', { class: 'menu-nou__dates' }, tn.dates(o.inici, o.fi)),
+          );
+        }),
+      ),
+      triada?.refer ? h('p', { class: 'menu__nota' }, tn.refer) : null,
+      mensual ? h('p', { class: 'menu__nota' }, tn.ajudaMes) : null,
+    ),
     graellaEditable(dades.graella, accions.canviarGraella),
-    dades.desfer ? avisDesfer(dades.desfer, accions.desfer) : null,
+    h('button', { type: 'button', class: 'boto boto--principal menu-nou__fer', 'data-fer-menu': true, onclick: accions.fer }, `🔄 ${tn.fer}`),
   );
 }

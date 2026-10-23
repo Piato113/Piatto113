@@ -2187,3 +2187,63 @@ h1:focus-visible {
 .ajustos__tornar {
   align-self: flex-start;
 }
+
+/* Full «Fes un menú nou» */
+.menu-nou__quan {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0 1rem 1rem;
+  border: 1px solid var(--vora);
+  border-radius: var(--radi);
+  background: var(--superficie);
+}
+
+.menu-nou__quan .graella__titol {
+  padding: 1rem 0 0;
+}
+
+.menu-nou__opcions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.menu-nou__opcio {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  min-height: 4rem;
+  padding: 0.6rem 0.75rem;
+  border: 2px solid var(--vora);
+  border-radius: 0.75rem;
+  background: var(--fons);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu-nou__opcio--activa {
+  border-color: var(--taronja);
+  background: color-mix(in srgb, var(--taronja) 14%, var(--fons));
+}
+
+.menu-nou__nom {
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.menu-nou__dates {
+  color: var(--text-suau);
+  font-size: 0.85rem;
+}
+
+.menu-nou__quan .menu__nota {
+  margin: 0;
+}
+
+.menu-nou__fer {
+  width: 100%;
+}
