@@ -6,6 +6,7 @@ import type { Novetat } from '../domini';
 // Text curt (es llegeix mentre passa): sense punt final.
 
 export const NOVETATS: readonly Novetat[] = [
+  { data: '2026-10-23', text: 'Avui i aquesta setmana sempre a dalt, encara que ja tingueu fet el menú del mes que ve' },
   { data: '2026-10-23', text: 'Menú més endreçat: el plat d’avui a dalt i els ajustos a «⚙ Ajusta»' },
   { data: '2026-10-22', text: 'Aquest rètol, amb les xifres i les novetats de l’app' },
   { data: '2026-10-22', text: '28 receptes d’hivern: cremes, plats de cullera, galtes al vi negre, xai al txilindron…' },

@@ -17,7 +17,10 @@ import {
   diesDelMes,
   estalviCompraPeriode,
   mesSeguent,
-  setmanesDelMenu,
+  agendaMenu,
+  setmanaAgendaInicial,
+  sumarDies,
+  type SetmanaAgenda,
   comensals,
   configuracioDesDeRespostes,
   conservarAssistencia,
@@ -288,14 +291,20 @@ function senseAnterior(m: MenuDesat): MenuAnterior {
 
 /** Com es diu un menú guardat com a anterior. */
 const titolAnterior = (m: MenuAnterior): string =>
-  m.periode === 'mes' && m.mes ? textos.menu.titolMes(m.mes) : textos.menu.anterior.setmana;
+  m.periode === 'mes' && m.mes
+    ? textos.menu.titolMes(m.mes)
+    : m.creat
+      ? textos.menu.titolDates(dillunsDe(m.creat), sumarDies(dillunsDe(m.creat), 6))
+      : textos.menu.anterior.setmana;
 
-/** Setmana a mostrar del menú mensual: la triada o, si no, la que conté avui. */
-function setmanaAMostrar(m: MenuAnterior, triada: number | null = setmanaVisible): number {
-  if (triada !== null) return triada;
-  const dilluns = dillunsDe(avui());
-  const index = setmanesDelMenu(m.apats).findIndex((s) => s.dilluns === dilluns);
-  return Math.max(0, index);
+/** Setmanes que es veuen al menú: les de l'actual i, si l'actual encara no ha començat, les que queden de l'anterior. */
+function agendaDe(m: MenuDesat | MenuAnterior, ambAnterior: boolean): SetmanaAgenda[] {
+  const anterior = ambAnterior && 'anterior' in m ? m.anterior : undefined;
+  return agendaMenu(m, anterior, avui());
+}
+
+function setmanaAMostrar(agenda: readonly SetmanaAgenda[], triada: number | null = setmanaVisible): number {
+  return triada ?? setmanaAgendaInicial(agenda, avui());
 }
 
 /** El menú actual; si les respostes han canviat des que es va fer, se'n fa un de nou. */
@@ -522,7 +531,7 @@ const accionsMenu = {
     arrel!.querySelector<HTMLElement>(`[data-periode="${mesNou ?? periode}"]`)?.focus();
   },
   veureSetmana: (index: number): void => {
-    if (!menu || index < 0 || index >= setmanesDelMenu(menu.apats).length) return;
+    if (!menu || index < 0 || index >= agendaDe(menu, true).length) return;
     const boto = (document.activeElement as HTMLElement | null)?.dataset['setmana'];
     setmanaVisible = index;
     pintar();
@@ -541,6 +550,20 @@ const accionsMenu = {
     anar({ tipus: 'ajustos' });
   },
   obrirCompra: (): void => anar({ tipus: 'compra' }),
+  obrirReceptaAnterior: (index: number): void => obrirReceptaDe(menu?.anterior, index, true),
+  cuinarAnterior: (index: number): void => {
+    const apat = menu?.anterior?.apats[index];
+    if (!apat) return;
+    enfocarEnTornar = null;
+    anar({
+      tipus: 'cuinar',
+      receptaId: apat.receptaId,
+      pas: 0,
+      apat: index,
+      anterior: true,
+      ...(apat.acompanyamentId ? { acompanyamentId: apat.acompanyamentId } : {}),
+    });
+  },
   cuinar: (index: number): void => {
     const apat = menu?.apats[index];
     if (!apat) return;
@@ -1011,7 +1034,9 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
           periode: actual.periode ?? 'setmana',
           ...(actual.mes ? { mes: actual.mes } : {}),
           mesos: mesosTriables(),
-          setmanaVisible: setmanaAMostrar(actual),
+          agenda: agendaDe(actual, true),
+          ...(actual.anterior ? { apatsAnterior: actual.anterior.apats } : {}),
+          setmanaVisible: setmanaAMostrar(agendaDe(actual, true)),
           ...(actual.anterior
             ? { anterior: { titol: titolAnterior(actual.anterior), queden: diesQueQueden(actual.anterior.apats, avui()) } }
             : {}),
@@ -1048,14 +1073,15 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
           periode: ant.periode ?? 'setmana',
           ...(ant.mes ? { mes: ant.mes } : {}),
           mesos: [],
-          setmanaVisible: setmanaAMostrar(ant, setmanaVisibleAnterior),
+          agenda: agendaDe(ant, false),
+          setmanaVisible: setmanaAMostrar(agendaDe(ant, false), setmanaVisibleAnterior),
           lectura: { titol: titolAnterior(ant) },
         },
         {
           ...accionsMenu,
           obrirRecepta: (index) => obrirReceptaDe(ant, index, true),
           veureSetmana: (index) => {
-            if (index < 0 || index >= setmanesDelMenu(ant.apats).length) return;
+            if (index < 0 || index >= agendaDe(ant, false).length) return;
             const boto = (document.activeElement as HTMLElement | null)?.dataset['setmana'];
             setmanaVisibleAnterior = index;
             pintar();

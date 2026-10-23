@@ -4,7 +4,7 @@ import {
   avaluarMenu,
   categoriaPlat,
   diesDelMes,
-  setmanesDelMenu,
+  dillunsDe,
   sumarDies,
   comensals,
   costRecepta,
@@ -17,6 +17,7 @@ import {
   type Avis,
   type ConfiguracioFamilia,
   type Graella,
+  type SetmanaAgenda,
   type Valoracio,
 } from '../domini';
 import type { PeriodeMenu } from './emmagatzematge';
@@ -46,7 +47,11 @@ export interface DadesMenu {
   mes?: string;
   /** Mesos que es poden triar: el que corre (la resta) i el següent. */
   mesos: { mes: string; resta: boolean }[];
-  /** Setmana del menú mensual que es mostra (índex). */
+  /** Setmanes que es mostren (àpats per data, del menú actual i, si cal, de l'anterior): vegeu `agendaMenu`. */
+  agenda: SetmanaAgenda[];
+  /** Àpats del menú anterior (els de l'agenda amb origen «anterior»). */
+  apatsAnterior?: ApatPlanificat[];
+  /** Setmana de l'agenda que es mostra (índex). */
   setmanaVisible: number;
   /** Menú anterior guardat: com es diu i quants dies li queden (0 si ja ha passat). */
   anterior?: { titol: string; queden: number };
@@ -80,6 +85,9 @@ export interface AccionsMenu {
   obrirCompra: () => void;
   /** Obre el mode cuinar del plat d'un àpat. */
   cuinar: (index: number) => void;
+  /** Recepta i mode cuinar d'un àpat del menú anterior (els que encara surten a l'agenda). */
+  obrirReceptaAnterior: (index: number) => void;
+  cuinarAnterior: (index: number) => void;
 }
 
 const tt = tm.taula;
@@ -260,10 +268,10 @@ function selectorPeriode(dades: Pick<DadesMenu, 'periode' | 'mes' | 'mesos'>, ac
 }
 
 /** Calendari del mes amb un punt de color per àpat (segons la categoria del plat). */
-function calendariMes(mes: string, apats: readonly ApatPlanificat[], setmanes: { dilluns: string; indexs: number[] }[], visible: number, accions: AccionsMenu): HTMLElement {
+function calendariMes(mes: string, apats: readonly ApatPlanificat[], agenda: readonly SetmanaAgenda[], visible: number, accions: AccionsMenu): HTMLElement {
   const dies = diesDelMes(mes);
   const buits = DIES.indexOf(dies[0]!.dia);
-  const setmanaDe = (data: string): number => setmanes.findIndex((s) => s.indexs.some((i) => apats[i]!.data === data));
+  const setmanaDe = (data: string): number => agenda.findIndex((s) => s.dilluns === dillunsDe(data));
   return h(
     'section',
     { class: 'calendari', 'aria-label': tm.calendari },
@@ -430,20 +438,35 @@ function valoracioApat(receptaId: string, nomPlat: string, index: number, config
 }
 
 
-/** Data de l'àpat: la seva (menú mensual) o, al setmanal, comptant des del dilluns del menú. */
-function dataDe(a: ApatPlanificat, dilluns: string | undefined): string | undefined {
-  return a.data ?? (dilluns ? sumarDies(dilluns, DIES.indexOf(a.dia)) : undefined);
+/** Un àpat de l'agenda amb el seu plat i les accions del menú del qual és. */
+interface ApatVist {
+  a: ApatPlanificat;
+  index: number;
+  data?: string;
+  anterior: boolean;
 }
 
+function apatsVistos(dades: DadesMenu, setmana: SetmanaAgenda | undefined): ApatVist[] {
+  return (setmana?.apats ?? []).flatMap((x) => {
+    const anterior = x.origen === 'anterior';
+    const a = anterior ? dades.apatsAnterior?.[x.index] : dades.apats[x.index];
+    if (!a) return [];
+    return [{ a, index: x.index, anterior, ...(x.data ? { data: x.data } : {}) }];
+  });
+}
+
+/** Accions per als àpats del menú anterior que surten a l'agenda: només consultar, cuinar i valorar. */
+const accionsDe = (accions: AccionsMenu, anterior: boolean): AccionsMenu =>
+  anterior ? { ...accions, obrirRecepta: accions.obrirReceptaAnterior, cuinar: accions.cuinarAnterior } : accions;
+
 /** Targeta «Avui»: els àpats d'avui, amb accés directe a la recepta i al mode cuinar. */
-function targetaAvui(dades: DadesMenu, indexs: number[], accions: AccionsMenu): HTMLElement {
-  const primer = dades.apats[indexs[0]!]!;
+function targetaAvui(avui: string, apats: ApatVist[], accions: AccionsMenu): HTMLElement {
   return h(
     'section',
     { class: 'avui', 'aria-labelledby': 'avui-titol' },
-    h('h2', { class: 'avui__titol', id: 'avui-titol' }, tm.avui.titol(tm.diaAmbData(textos.dies[primer.dia], dades.avui))),
-    ...indexs.map((index) => {
-      const a = dades.apats[index]!;
+    h('h2', { class: 'avui__titol', id: 'avui-titol' }, tm.avui.titol(tm.diaAmbData(textos.dies[apats[0]!.a.dia], avui))),
+    ...apats.map(({ a, index, anterior }) => {
+      const acc = accionsDe(accions, anterior);
       const principal = recepta(a.receptaId);
       const acompanyament = a.acompanyamentId ? recepta(a.acompanyamentId) : undefined;
       const nomPlat = principal?.nom ?? a.receptaId;
@@ -457,14 +480,14 @@ function targetaAvui(dades: DadesMenu, indexs: number[], accions: AccionsMenu): 
           h(
             'p',
             { class: 'avui__plat' },
-            h('button', { type: 'button', class: 'enllac', 'aria-label': tm.veureRecepta(nomPlat), 'data-avui': index, onclick: () => accions.obrirRecepta(index) }, nomPlat),
+            h('button', { type: 'button', class: 'enllac', 'aria-label': tm.veureRecepta(nomPlat), onclick: () => acc.obrirRecepta(index) }, nomPlat),
           ),
           acompanyament ? h('p', { class: 'apat__acompanyament' }, tm.amb(acompanyament.nom)) : null,
           principal ? h('p', { class: 'apat__meta' }, tm.minuts(principal.tempsMinuts)) : null,
         ),
         h(
           'button',
-          { type: 'button', class: 'boto boto--petit boto--principal', 'aria-label': tm.avui.cuinaEtiqueta(nomPlat), onclick: () => accions.cuinar(index) },
+          { type: 'button', class: 'boto boto--petit boto--principal', 'data-cuinar': index, 'aria-label': tm.avui.cuinaEtiqueta(nomPlat), onclick: () => acc.cuinar(index) },
           `🍳 ${tm.avui.cuina}`,
         ),
       );
@@ -473,7 +496,7 @@ function targetaAvui(dades: DadesMenu, indexs: number[], accions: AccionsMenu): 
 }
 
 export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElement {
-  const { configuracio, apats, avisos, lectura } = dades;
+  const { configuracio, apats, avisos, lectura, agenda } = dades;
   const { llista, costConsumitCentims, racionsMenuCentesimes } = avaluarMenu(catalegInicial, configuracio, apats);
   const perApat = apats.length > 0 ? Math.round(costConsumitCentims / apats.length) : 0;
   // Amb convidats el menú costa més: es compara amb el pressupost per ració de totes les racions de la setmana.
@@ -491,22 +514,19 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
     .filter((x): x is string => Boolean(x));
 
   mensual = dades.periode === 'mes' && dades.mes !== undefined;
-  const setmanes = setmanesDelMenu(apats);
-  const visible = Math.min(Math.max(0, dades.setmanaVisible), Math.max(0, setmanes.length - 1));
-  const indexsVisibles = mensual ? (setmanes[visible]?.indexs ?? []) : apats.map((_, i) => i);
-  // Dies a mostrar: en el menú mensual, cada data de la setmana visible; en el setmanal, cada dia de la setmana.
-  const claus = mensual
-    ? [...new Set(indexsVisibles.map((i) => apats[i]!.data!))]
-    : DIES.filter((dia) => apats.some((a) => a.dia === dia));
+  const visible = Math.min(Math.max(0, dades.setmanaVisible), Math.max(0, agenda.length - 1));
+  const setmanaActual = agenda[visible];
+  const vistos = apatsVistos(dades, setmanaActual);
+  // Dies de la setmana visible: per data; als menús antics sense dates, per dia de la setmana.
+  const claus = [...new Set(vistos.map((v) => v.data ?? v.a.dia))];
   const dies = claus.map((clau) => {
-    const delDia = indexsVisibles.map((index) => ({ a: apats[index]!, index })).filter(({ a }) => (mensual ? a.data === clau : a.dia === clau));
-    const dia = delDia[0]!.a.dia;
-    const data = mensual ? clau : dades.dilluns ? sumarDies(dades.dilluns, DIES.indexOf(dia)) : undefined;
-    return { clau, data, nom: data ? tm.diaAmbData(textos.dies[dia], data) : textos.dies[dia], apats: delDia };
+    const delDia = vistos.filter((v) => (v.data ?? v.a.dia) === clau);
+    const { a, data } = delDia[0]!;
+    return { clau, data, nom: data ? tm.diaAmbData(textos.dies[a.dia], data) : textos.dies[a.dia], apats: delDia };
   });
-  const setmanaActual = setmanes[visible];
+  const datesSetmana = vistos.flatMap((v) => (v.data ? [v.data] : []));
   const navegacioSetmanes =
-    mensual && setmanaActual
+    agenda.length > 1 && setmanaActual
       ? h(
           'div',
           { class: 'setmanes' },
@@ -514,17 +534,18 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
           h(
             'p',
             { class: 'setmanes__text', 'aria-live': 'polite' },
-            h('strong', {}, tm.setmana(visible + 1, setmanes.length)),
-            h('span', { class: 'setmanes__rang' }, tm.rang(apats[setmanaActual.indexs[0]!]!.data!, apats[setmanaActual.indexs.at(-1)!]!.data!)),
+            h('strong', {}, tm.setmana(visible + 1, agenda.length)),
+            datesSetmana.length > 0 ? h('span', { class: 'setmanes__rang' }, tm.rang(datesSetmana[0]!, datesSetmana.at(-1)!)) : null,
           ),
-          h('button', { type: 'button', class: 'boto boto--petit boto--secundari', 'aria-label': tm.setmanaSeguent, 'data-setmana': 'seguent', disabled: visible >= setmanes.length - 1, onclick: () => accions.veureSetmana(visible + 1) }, '›'),
+          h('button', { type: 'button', class: 'boto boto--petit boto--secundari', 'aria-label': tm.setmanaSeguent, 'data-setmana': 'seguent', disabled: visible >= agenda.length - 1, onclick: () => accions.veureSetmana(visible + 1) }, '›'),
         )
       : null;
 
   // Títol: el mes, les dates de la setmana o, als menús antics sense data, «Menú de la setmana».
-  const datesSetmana = !mensual && dades.dilluns ? [dades.dilluns, sumarDies(dades.dilluns, 6)] as const : null;
-  const titol = lectura ? lectura.titol : mensual ? tm.titolMes(dades.mes!) : datesSetmana ? tm.titolDates(...datesSetmana) : tm.titol;
-  const indexsAvui = lectura ? [] : apats.map((a, i) => (dataDe(a, dades.dilluns) === dades.avui ? i : -1)).filter((i) => i >= 0);
+  const datesMenu = !mensual && dades.dilluns ? ([dades.dilluns, sumarDies(dades.dilluns, 6)] as const) : null;
+  const titol = lectura ? lectura.titol : mensual ? tm.titolMes(dades.mes!) : datesMenu ? tm.titolDates(...datesMenu) : tm.titol;
+  // Avui: de l'agenda sencera (pot ser d'una altra setmana de la que es veu, i del menú anterior).
+  const apatsAvui = lectura ? [] : agenda.flatMap((s) => apatsVistos(dades, s)).filter((v) => v.data === dades.avui);
   const textResum =
     apats.length > 0 ? (mensual ? tm.resumLiniaMes : tm.resumLinia)(formatEuros(perApat), formatEuros(llista.totalCompraCentims)) : null;
 
@@ -542,7 +563,7 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
         )
       : null,
     !lectura && dades.missatge ? h('p', { class: 'avis', role: 'status' }, dades.missatge) : null,
-    indexsAvui.length > 0 ? targetaAvui(dades, indexsAvui, accions) : null,
+    apatsAvui.length > 0 ? targetaAvui(dades.avui, apatsAvui, accions) : null,
     navegacioSetmanes,
     ...dies.map(({ clau, data, nom, apats: delDia }) => {
       const esAvui = !lectura && data === dades.avui;
@@ -550,14 +571,14 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
         'section',
         { class: `dia${esAvui ? ' dia--avui' : ''}`, 'aria-labelledby': `dia-${clau}` },
         h('h2', { class: 'dia__nom', id: `dia-${clau}` }, nom, esAvui ? h('span', { class: 'dia__avui' }, tm.avui.marca) : null),
-        ...delDia.map(({ a, index }) => {
-          const dataApat = dataDe(a, dades.dilluns);
+        ...delDia.map(({ a, index, data: dataApat, anterior }) => {
           const passat = dataApat !== undefined && dataApat < dades.avui;
-          return targetaApat(a, index, configuracio, dades.assistenciaOberta === index, accions, lectura !== undefined, passat);
+          const sola = lectura !== undefined || anterior;
+          return targetaApat(a, index, configuracio, !sola && dades.assistenciaOberta === index, accionsDe(accions, anterior), sola, passat);
         }),
       );
     }),
-    mensual && apats.length > 0 ? calendariMes(dades.mes!, apats, setmanes, visible, accions) : null,
+    mensual && apats.length > 0 ? calendariMes(dades.mes!, apats, agenda, visible, accions) : null,
     h(
       'section',
       { class: 'menu__peu', 'aria-label': titol },

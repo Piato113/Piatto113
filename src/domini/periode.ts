@@ -1,6 +1,6 @@
 import { dillunsDe, sumarDies } from './calendari';
 import type { Cataleg } from './cataleg';
-import { DIES } from './graella';
+import { APATS, DIES } from './graella';
 import { avaluarMenu, conservarFixats } from './planificador';
 import type { ApatPlanificat, ConfiguracioFamilia } from './tipus';
 
@@ -121,4 +121,75 @@ export function mantenirMenu(
     const { fixat: _treta, ...sense } = a;
     return sense;
   });
+}
+
+/** Un àpat a l'agenda de la pantalla del menú: de quin menú és, el seu índex en aquell menú i la data. */
+export interface ApatAgenda {
+  origen: 'actual' | 'anterior';
+  index: number;
+  data?: string;
+}
+
+/** Una setmana de l'agenda (de dilluns a diumenge); `dilluns` buit als menús antics sense dates. */
+export interface SetmanaAgenda {
+  dilluns: string;
+  apats: ApatAgenda[];
+}
+
+type MenuAmbApats = IdentitatMenu & { apats: readonly ApatPlanificat[] };
+
+/** Dies que cobreix un menú amb dates: la setmana del setmanal o, al mensual, del primer àpat (o el dia 1) a final de mes. */
+function cobertura(m: MenuAmbApats): { inici: string; fi: string } | null {
+  if (m.periode === 'mes') {
+    if (!m.mes) return null;
+    const dates = m.apats.flatMap((a) => (a.data ? [a.data] : [])).sort();
+    const primer = `${m.mes}-01`;
+    const fi = sumarDies(sumarDies(primer, 31).slice(0, 7) + '-01', -1);
+    return { inici: dates[0] ?? primer, fi };
+  }
+  if (!m.creat) return null;
+  const dilluns = dillunsDe(m.creat);
+  return { inici: dilluns, fi: sumarDies(dilluns, 6) };
+}
+
+/**
+ * Agenda de la pantalla del menú, independent de si el menú és d'una setmana o d'un mes: els àpats per data i per setmanes,
+ * del menú actual i, per als dies que l'actual no cobreix, del menú anterior des de la setmana d'avui.
+ * Així, si s'ha fet el menú del mes que ve, avui i aquesta setmana continuen sortint (del menú anterior).
+ */
+export function agendaMenu(actual: MenuAmbApats, anterior: MenuAmbApats | undefined, avui: string): SetmanaAgenda[] {
+  const delActual = actual.apats.map((a, index): ApatAgenda => {
+    const data = dataApat(a, actual);
+    return data ? { origen: 'actual', index, data } : { origen: 'actual', index };
+  });
+  // Menús antics sense dates: una sola setmana, com sempre.
+  if (delActual.some((a) => !a.data)) return delActual.length > 0 ? [{ dilluns: '', apats: delActual }] : [];
+  const cob = cobertura(actual);
+  const setmanaAvui = dillunsDe(avui);
+  const delAnterior: ApatAgenda[] = [];
+  anterior?.apats.forEach((a, index) => {
+    const data = dataApat(a, anterior);
+    if (!data || dillunsDe(data) < setmanaAvui) return;
+    if (cob && data >= cob.inici && data <= cob.fi) return;
+    delAnterior.push({ origen: 'anterior', index, data });
+  });
+  const apatDe = (x: ApatAgenda): ApatPlanificat => (x.origen === 'actual' ? actual.apats[x.index]! : anterior!.apats[x.index]!);
+  const tots = [...delAnterior, ...delActual].sort(
+    (x, y) => x.data!.localeCompare(y.data!) || APATS.indexOf(apatDe(x).apat) - APATS.indexOf(apatDe(y).apat),
+  );
+  const setmanes: SetmanaAgenda[] = [];
+  for (const x of tots) {
+    const dilluns = dillunsDe(x.data!);
+    const ultima = setmanes.at(-1);
+    if (ultima && ultima.dilluns === dilluns) ultima.apats.push(x);
+    else setmanes.push({ dilluns, apats: [x] });
+  }
+  return setmanes;
+}
+
+/** Setmana de l'agenda que s'ha de veure en obrir el menú: la d'avui si hi és; si no, la primera que ve (o la primera). */
+export function setmanaAgendaInicial(agenda: readonly SetmanaAgenda[], avui: string): number {
+  const dilluns = dillunsDe(avui);
+  const index = agenda.findIndex((s) => s.dilluns >= dilluns);
+  return Math.max(0, index);
 }
