@@ -54,7 +54,7 @@ import {
   type EstatCompra,
   type PeriodeMenu,
 } from './ui/emmagatzematge';
-import { pantallaMenu } from './ui/menu';
+import { pantallaAjustos, pantallaMenu } from './ui/menu';
 import { pantallaPas, pantallaResum, PASSOS, type Pas } from './ui/questionari';
 import { pantallaCuinar, sortirDelModeCuinar } from './ui/cuinar';
 import { pantallaRecepta } from './ui/recepta';
@@ -82,6 +82,7 @@ if (!arrel) throw new Error("No s'ha trobat l'element #app");
 type Seccio =
   | { tipus: 'menu' }
   | { tipus: 'anterior' }
+  | { tipus: 'ajustos' }
   | { tipus: 'compra' }
   | { tipus: 'receptari' }
   | { tipus: 'resum' }
@@ -174,6 +175,8 @@ function adrecaDe(p: Pantalla): string | null {
       return '#/menu';
     case 'anterior':
       return '#/menu/anterior';
+    case 'ajustos':
+      return '#/menu/ajustos';
     case 'compra':
       return '#/compra';
     case 'receptari':
@@ -201,6 +204,7 @@ function seccioDe(adreca: string): Seccio | null {
   const [cami = '', consulta = ''] = adreca.replace(/^#/, '').split('?');
   if (cami === '/menu') return { tipus: 'menu' };
   if (cami === '/menu/anterior') return { tipus: 'anterior' };
+  if (cami === '/menu/ajustos') return { tipus: 'ajustos' };
   if (cami === '/compra') return { tipus: 'compra' };
   if (cami === '/receptari') return { tipus: 'receptari' };
   if (cami === '/configuracio') return { tipus: 'resum' };
@@ -532,6 +536,17 @@ const accionsMenu = {
     anar({ tipus: 'anterior' });
   },
   tornarAlActual: (): void => anar({ tipus: 'menu' }),
+  obrirAjustos: (): void => {
+    enfocarEnTornar = '[data-ajustos]';
+    anar({ tipus: 'ajustos' });
+  },
+  obrirCompra: (): void => anar({ tipus: 'compra' }),
+  cuinar: (index: number): void => {
+    const apat = menu?.apats[index];
+    if (!apat) return;
+    enfocarEnTornar = null;
+    anar({ tipus: 'cuinar', receptaId: apat.receptaId, pas: 0, apat: index, ...(apat.acompanyamentId ? { acompanyamentId: apat.acompanyamentId } : {}) });
+  },
   /** Obre o tanca el quadre «Qui hi ha a taula?» d'un àpat. */
   obrirAssistencia: (index: number): void => {
     assistenciaOberta = assistenciaOberta === index ? null : index;
@@ -754,7 +769,7 @@ function seccioValorats(): HTMLElement {
 function navegacio(): HTMLElement {
   // Una recepta oberta des d'un àpat és del menú; sense àpat, del receptari.
   const actiu =
-    pantalla.tipus === 'recepta' ? (pantalla.apat === undefined ? 'receptari' : 'menu') : pantalla.tipus === 'triar' || pantalla.tipus === 'anterior' ? 'menu' : pantalla.tipus;
+    pantalla.tipus === 'recepta' ? (pantalla.apat === undefined ? 'receptari' : 'menu') : pantalla.tipus === 'triar' || pantalla.tipus === 'anterior' || pantalla.tipus === 'ajustos' ? 'menu' : pantalla.tipus;
   const pestanya = (tipus: 'menu' | 'compra' | 'receptari' | 'resum', icona: string, text: string): HTMLElement =>
     h(
       'button',
@@ -888,10 +903,18 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
       const estat = carregarCompra(signatura);
       const avis = avisCompra;
       avisCompra = null;
-      const { llista } = avaluarMenu(catalegInicial, configuracio, actual.apats);
+      const { llista, costConsumitCentims, racionsCentesimes, racionsMenuCentesimes } = avaluarMenu(catalegInicial, configuracio, actual.apats);
+      const pressupost = configuracio.pressupostRacioCentims;
+      const cost = {
+        apats: actual.apats.length,
+        costConsumitCentims,
+        pressupostApatCentims: pressupost === null ? null : Math.round((pressupost * racionsCentesimes) / 100),
+        // Amb convidats el menú costa més: es compara amb el pressupost de totes les racions del menú.
+        sobrePressupost: pressupost !== null && actual.apats.length > 0 && costConsumitCentims > Math.round((pressupost * racionsMenuCentesimes) / 100),
+      };
       const mensual = actual.periode === 'mes' && actual.mes ? actual.mes : undefined;
       const estalviCentims = mensual ? estalviCompraPeriode(catalegInicial, configuracio, actual.apats).estalviCentims : 0;
-      return pantallaCompra(llista, estat.marcats, estat.tinc, accionsCompra(signatura, estat), mensual ? { mes: mensual, estalviCentims } : undefined, avis);
+      return pantallaCompra(llista, estat.marcats, estat.tinc, accionsCompra(signatura, estat), mensual ? { mes: mensual, estalviCentims } : undefined, avis, cost);
     }
     case 'receptari':
       return pantallaReceptari(
@@ -996,6 +1019,17 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
         accionsMenu,
       );
     }
+    case 'ajustos':
+      return pantallaAjustos(
+        {
+          graella: actual.graella,
+          periode: actual.periode ?? 'setmana',
+          ...(actual.mes ? { mes: actual.mes } : {}),
+          mesos: mesosTriables(),
+          desfer: menuDesfer?.text ?? null,
+        },
+        { ...accionsMenu, tornar },
+      );
     case 'anterior': {
       const ant = actual.anterior;
       if (!ant) {

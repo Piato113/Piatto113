@@ -2094,3 +2094,96 @@ h1:focus-visible {
   font-size: 0.8rem;
   font-weight: 700;
 }
+
+/* Menú: targeta «Avui», bloc de sota el calendari i full «Ajusta el menú» */
+.avui {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 2px solid var(--taronja);
+  border-radius: var(--radi);
+  background: var(--superficie);
+}
+
+.avui__titol {
+  margin: 0;
+  color: var(--taronja-clar);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.avui__apat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.avui__apat + .avui__apat {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--vora);
+}
+
+.avui__text {
+  min-width: 0;
+}
+
+.avui__plat {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.dia--avui .dia__nom {
+  color: var(--taronja-clar);
+}
+
+.dia__avui {
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--taronja);
+  color: var(--fons);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  vertical-align: 0.1em;
+}
+
+.menu__peu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--vora);
+  border-radius: var(--radi);
+  background: var(--superficie);
+}
+
+.menu__capcalera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.menu__peu .menu__titol {
+  font-size: 1.2rem;
+}
+
+.menu__peu .menu__cost {
+  margin: 0;
+  text-decoration: none;
+}
+
+.menu__peu .avis {
+  margin: 0;
+}
+
+.ajustos__tornar {
+  align-self: flex-start;
+}

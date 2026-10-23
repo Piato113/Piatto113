@@ -28,6 +28,13 @@ const rangDates = (inici: string, fi: string): string =>
       : `${Number(inici.slice(8, 10))}–${dataLlarga(fi)}`
     : `${dataLlarga(inici)} – ${dataLlarga(fi)}`;
 
+/** «del 20 al 26 d’octubre», «de l’1 al 7 de desembre», «del 27 d’octubre al 2 de novembre». */
+const delAl = (inici: string, fi: string): string => {
+  const dia = Number(inici.slice(8, 10));
+  const de = dia === 1 || dia === 11 ? 'de l’' : 'del ';
+  return inici.slice(0, 7) === fi.slice(0, 7) ? `${de}${dia} al ${dataLlarga(fi)}` : `${de}${dataLlarga(inici)} al ${dataLlarga(fi)}`;
+};
+
 export const textos = {
   app: {
     nom: 'A Taula',
@@ -66,6 +73,23 @@ export const textos = {
   menu: {
     titol: 'Menú de la setmana',
     titolMes: (mes: string) => `Menú ${deMes(mes)}`,
+    titolDates: (inici: string, fi: string) => `Menú ${delAl(inici, fi)}`,
+    ajusta: 'Ajusta',
+    ajustaEtiqueta: 'Ajusta el menú: per a quant de temps i quins àpats feu a casa',
+    resumLinia: (perApat: string, compra: string) => `${perApat} per àpat · compra ~${compra}`,
+    resumLiniaMes: (perApat: string, compra: string) => `${perApat} per àpat · compra del mes ~${compra}`,
+    resumEtiqueta: (text: string) => `${text}. Mira la llista de la compra`,
+    avui: {
+      titol: (dia: string) => `Avui · ${dia}`,
+      marca: 'Avui',
+      cuina: 'Cuina-ho',
+      cuinaEtiqueta: (plat: string) => `Cuina ${plat}`,
+    },
+    ajustos: {
+      titol: 'Ajusta el menú',
+      tornar: 'Torna al menú',
+      ajuda: 'Cada canvi torna a fer el menú.',
+    },
     periode: {
       titol: 'Per a quant de temps?',
       setmana: 'Una setmana',
@@ -132,7 +156,7 @@ export const textos = {
     },
     amb: (nom: string) => `amb ${nom.charAt(0).toLowerCase()}${nom.slice(1)}`,
     minuts: (n: number) => `${n} min`,
-    capApat: 'No hi ha cap àpat marcat. Marca’n algun a «Quins àpats feu a casa?».',
+    capApat: 'No hi ha cap àpat marcat. Marca’n algun a «⚙ Ajusta».',
     taula: {
       persones: (n: number) => (n === 1 ? '1 persona' : `${n} persones`),
       sense: (noms: string) => `sense ${noms}`,
@@ -143,7 +167,7 @@ export const textos = {
       convidatsTitol: 'Convidats',
       menys: 'Un convidat menys',
       mes: 'Un convidat més',
-      ajuda: 'Les quantitats de la recepta i de la compra s’ajusten soles. Si no menja ningú a casa, desmarca l’àpat a «Quins àpats feu a casa?».',
+      ajuda: 'Les quantitats de la recepta i de la compra s’ajusten soles. Si no menja ningú a casa, desmarca l’àpat a «⚙ Ajusta».',
       tothom: 'Torna a tota la família',
     },
   },
@@ -231,6 +255,7 @@ export const textos = {
     noCopiada: 'No s’ha pogut compartir ni copiar la llista en aquest mòbil.',
     textRebost: (productes: string) => `Comprova que en tens: ${productes}.`,
     resRes: 'Ja ho tenim tot!',
+    menjat: (apats: string, total: string, perApat: string) => `Menú: ${apats}, ${total} del que es menja (${perApat} per àpat).`,
   },
   recepta: {
     tornar: 'Torna',

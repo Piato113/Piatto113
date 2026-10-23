@@ -147,6 +147,15 @@ export interface CompraMensual {
   estalviCentims: number;
 }
 
+/** Cost del menú (el que es menja) i pressupost, que abans sortien a la pantalla del menú. */
+export interface CostMenu {
+  apats: number;
+  costConsumitCentims: number;
+  /** Pressupost per àpat de tota la família; `null` si no n'hi ha. */
+  pressupostApatCentims: number | null;
+  sobrePressupost: boolean;
+}
+
 export function pantallaCompra(
   llista: LlistaCompra,
   marcats: ReadonlySet<string>,
@@ -154,6 +163,7 @@ export function pantallaCompra(
   accions: AccionsCompra,
   mensual?: CompraMensual,
   avis?: string | null,
+  cost?: CostMenu,
 ): HTMLElement {
   const queden = llista.elements.filter((e) => !tinc.has(e.ingredientId));
   const jaHoTinc = llista.elements.filter((e) => tinc.has(e.ingredientId));
@@ -173,6 +183,16 @@ export function pantallaCompra(
           'section',
           { class: 'menu__resum' },
           h('p', { class: 'menu__cost' }, tc.resum(aComprar.length, euros(total))),
+          cost && cost.apats > 0
+            ? h(
+                'p',
+                { class: 'menu__nota' },
+                tc.menjat(textos.menu.apats(cost.apats), euros(cost.costConsumitCentims), euros(Math.round(cost.costConsumitCentims / cost.apats))),
+              )
+            : null,
+          cost && cost.pressupostApatCentims !== null ? h('p', { class: 'menu__nota' }, textos.menu.pressupost(euros(cost.pressupostApatCentims))) : null,
+          cost?.sobrePressupost ? h('p', { class: 'avis' }, textos.menu.sobrePressupost) : null,
+          mensual ? null : h('p', { class: 'menu__nota' }, textos.menu.explicacioCompra),
           jaHoTinc.length > 0 ? h('p', { class: 'menu__nota' }, tc.resumTinc(jaHoTinc.length)) : null,
           h('p', { class: 'menu__nota', role: 'status' }, tc.fet(fets, aComprar.length)),
           mensual && mensual.estalviCentims > 0 ? h('p', { class: 'menu__nota' }, textos.menu.estalviMes(euros(mensual.estalviCentims))) : null,

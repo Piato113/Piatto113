@@ -4,7 +4,6 @@ import {
   avaluarMenu,
   categoriaPlat,
   diesDelMes,
-  estalviCompraPeriode,
   setmanesDelMenu,
   sumarDies,
   comensals,
@@ -76,6 +75,11 @@ export interface AccionsMenu {
   /** Obre el menú anterior, o torna a l'actual des de l'anterior. */
   veureAnterior: () => void;
   tornarAlActual: () => void;
+  /** Obre el full «Ajusta el menú» (període i graella). */
+  obrirAjustos: () => void;
+  obrirCompra: () => void;
+  /** Obre el mode cuinar del plat d'un àpat. */
+  cuinar: (index: number) => void;
 }
 
 const tt = tm.taula;
@@ -223,7 +227,7 @@ function notaDescongelar(receptes: (ReturnType<typeof recepta> | undefined)[]): 
 }
 
 /** Selector «Una setmana / Un mes sencer» i, si és mensual, de quin mes. */
-function selectorPeriode(dades: DadesMenu, accions: AccionsMenu): HTMLElement {
+function selectorPeriode(dades: Pick<DadesMenu, 'periode' | 'mes' | 'mesos'>, accions: Pick<AccionsMenu, 'canviarPeriode'>): HTMLElement {
   const tp = tm.periode;
   const xip = (actiu: boolean, text: string, clau: string, accio: () => void): HTMLElement =>
     h(
@@ -425,14 +429,53 @@ function valoracioApat(receptaId: string, nomPlat: string, index: number, config
   );
 }
 
+
+/** Data de l'àpat: la seva (menú mensual) o, al setmanal, comptant des del dilluns del menú. */
+function dataDe(a: ApatPlanificat, dilluns: string | undefined): string | undefined {
+  return a.data ?? (dilluns ? sumarDies(dilluns, DIES.indexOf(a.dia)) : undefined);
+}
+
+/** Targeta «Avui»: els àpats d'avui, amb accés directe a la recepta i al mode cuinar. */
+function targetaAvui(dades: DadesMenu, indexs: number[], accions: AccionsMenu): HTMLElement {
+  const primer = dades.apats[indexs[0]!]!;
+  return h(
+    'section',
+    { class: 'avui', 'aria-labelledby': 'avui-titol' },
+    h('h2', { class: 'avui__titol', id: 'avui-titol' }, tm.avui.titol(tm.diaAmbData(textos.dies[primer.dia], dades.avui))),
+    ...indexs.map((index) => {
+      const a = dades.apats[index]!;
+      const principal = recepta(a.receptaId);
+      const acompanyament = a.acompanyamentId ? recepta(a.acompanyamentId) : undefined;
+      const nomPlat = principal?.nom ?? a.receptaId;
+      return h(
+        'div',
+        { class: 'avui__apat' },
+        h(
+          'div',
+          { class: 'avui__text' },
+          h('p', { class: 'apat__quan' }, textos.apats[a.apat]),
+          h(
+            'p',
+            { class: 'avui__plat' },
+            h('button', { type: 'button', class: 'enllac', 'aria-label': tm.veureRecepta(nomPlat), 'data-avui': index, onclick: () => accions.obrirRecepta(index) }, nomPlat),
+          ),
+          acompanyament ? h('p', { class: 'apat__acompanyament' }, tm.amb(acompanyament.nom)) : null,
+          principal ? h('p', { class: 'apat__meta' }, tm.minuts(principal.tempsMinuts)) : null,
+        ),
+        h(
+          'button',
+          { type: 'button', class: 'boto boto--petit boto--principal', 'aria-label': tm.avui.cuinaEtiqueta(nomPlat), onclick: () => accions.cuinar(index) },
+          `🍳 ${tm.avui.cuina}`,
+        ),
+      );
+    }),
+  );
+}
+
 export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElement {
-  const { configuracio, graella, apats, avisos, lectura } = dades;
-  const { llista, costConsumitCentims, racionsCentesimes, racionsMenuCentesimes } = avaluarMenu(catalegInicial, configuracio, apats);
+  const { configuracio, apats, avisos, lectura } = dades;
+  const { llista, costConsumitCentims, racionsMenuCentesimes } = avaluarMenu(catalegInicial, configuracio, apats);
   const perApat = apats.length > 0 ? Math.round(costConsumitCentims / apats.length) : 0;
-  const pressupostApat =
-    configuracio.pressupostRacioCentims === null
-      ? null
-      : Math.round((configuracio.pressupostRacioCentims * racionsCentesimes) / 100);
   // Amb convidats el menú costa més: es compara amb el pressupost per ració de totes les racions de la setmana.
   const sobrePressupost =
     configuracio.pressupostRacioCentims !== null &&
@@ -459,9 +502,8 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
     const delDia = indexsVisibles.map((index) => ({ a: apats[index]!, index })).filter(({ a }) => (mensual ? a.data === clau : a.dia === clau));
     const dia = delDia[0]!.a.dia;
     const data = mensual ? clau : dades.dilluns ? sumarDies(dades.dilluns, DIES.indexOf(dia)) : undefined;
-    return { clau, nom: data ? tm.diaAmbData(textos.dies[dia], data) : textos.dies[dia], apats: delDia };
+    return { clau, data, nom: data ? tm.diaAmbData(textos.dies[dia], data) : textos.dies[dia], apats: delDia };
   });
-  const estalvi = mensual && apats.length > 0 ? estalviCompraPeriode(catalegInicial, configuracio, apats).estalviCentims : 0;
   const setmanaActual = setmanes[visible];
   const navegacioSetmanes =
     mensual && setmanaActual
@@ -479,9 +521,18 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
         )
       : null;
 
+  // Títol: el mes, les dates de la setmana o, als menús antics sense data, «Menú de la setmana».
+  const datesSetmana = !mensual && dades.dilluns ? [dades.dilluns, sumarDies(dades.dilluns, 6)] as const : null;
+  const titol = lectura ? lectura.titol : mensual ? tm.titolMes(dades.mes!) : datesSetmana ? tm.titolDates(...datesSetmana) : tm.titol;
+  const indexsAvui = lectura ? [] : apats.map((a, i) => (dataDe(a, dades.dilluns) === dades.avui ? i : -1)).filter((i) => i >= 0);
+  const textResum =
+    apats.length > 0 ? (mensual ? tm.resumLiniaMes : tm.resumLinia)(formatEuros(perApat), formatEuros(llista.totalCompraCentims)) : null;
+
   return h(
     'main',
     { class: 'menu' },
+    // El títol es llegeix primer (lectors de pantalla); a la vista surt sota el calendari.
+    h('h1', { class: 'visualment-amagat', tabindex: -1 }, titol),
     lectura
       ? h(
           'div',
@@ -490,70 +541,98 @@ export function pantallaMenu(dades: DadesMenu, accions: AccionsMenu): HTMLElemen
           h('button', { type: 'button', class: 'boto boto--petit boto--secundari', 'data-anterior': 'tornar', onclick: accions.tornarAlActual }, `← ${tm.anterior.tornar}`),
         )
       : null,
-    h('h1', { class: 'menu__titol', tabindex: -1 }, lectura ? lectura.titol : mensual ? tm.titolMes(dades.mes!) : tm.titol),
-    !lectura && dades.anterior
-      ? dades.anterior.queden > 0
-        ? h(
-            'div',
-            { class: 'avis menu__anterior', role: 'status' },
-            h('p', {}, tm.anterior.queden(dades.anterior.queden, dades.anterior.titol)),
-            h('button', { type: 'button', class: 'boto boto--petit boto--secundari', 'data-anterior': 'veure', onclick: accions.veureAnterior }, tm.anterior.veure),
-          )
-        : h(
-            'button',
-            { type: 'button', class: 'boto boto--petit boto--fantasma menu__veure-anterior', 'data-anterior': 'veure', onclick: accions.veureAnterior },
-            `← ${tm.anterior.boto(dades.anterior.titol)}`,
-          )
-      : null,
-    apats.length > 0
-      ? h(
-          'section',
-          { class: 'menu__resum', 'aria-label': tm.titol },
-          h(
-            'p',
-            { class: 'menu__cost' },
-            `${tm.apats(apats.length)} · ${tm.costSetmana(formatEuros(costConsumitCentims), formatEuros(perApat))}`,
-          ),
-          pressupostApat !== null ? h('p', { class: 'menu__nota' }, tm.pressupost(formatEuros(pressupostApat))) : null,
-          mensual
-            ? h(
-                'p',
-                { class: 'menu__nota' },
-                [tm.compraMes(formatEuros(llista.totalCompraCentims)), estalvi > 0 ? tm.estalviMes(formatEuros(estalvi)) : ''].filter(Boolean).join(' '),
-              )
-            : h('p', { class: 'menu__nota' }, `${tm.compra(formatEuros(llista.totalCompraCentims))} ${tm.explicacioCompra}`),
-        )
-      : null,
     !lectura && dades.missatge ? h('p', { class: 'avis', role: 'status' }, dades.missatge) : null,
-    !lectura && sobrePressupost ? h('p', { class: 'avis', role: 'status' }, tm.sobrePressupost) : null,
-    ...(lectura ? [] : textosAvisos).map((text) => h('p', { class: 'avis', role: 'status' }, text)),
-    lectura ? null : selectorPeriode(dades, accions),
-    lectura ? null : graellaEditable(graella, accions.canviarGraella),
+    indexsAvui.length > 0 ? targetaAvui(dades, indexsAvui, accions) : null,
+    navegacioSetmanes,
+    ...dies.map(({ clau, data, nom, apats: delDia }) => {
+      const esAvui = !lectura && data === dades.avui;
+      return h(
+        'section',
+        { class: `dia${esAvui ? ' dia--avui' : ''}`, 'aria-labelledby': `dia-${clau}` },
+        h('h2', { class: 'dia__nom', id: `dia-${clau}` }, nom, esAvui ? h('span', { class: 'dia__avui' }, tm.avui.marca) : null),
+        ...delDia.map(({ a, index }) => {
+          const dataApat = dataDe(a, dades.dilluns);
+          const passat = dataApat !== undefined && dataApat < dades.avui;
+          return targetaApat(a, index, configuracio, dades.assistenciaOberta === index, accions, lectura !== undefined, passat);
+        }),
+      );
+    }),
+    mensual && apats.length > 0 ? calendariMes(dades.mes!, apats, setmanes, visible, accions) : null,
+    h(
+      'section',
+      { class: 'menu__peu', 'aria-label': titol },
+      h(
+        'div',
+        { class: 'menu__capcalera' },
+        h('p', { class: 'menu__titol', 'aria-hidden': 'true' }, titol),
+        lectura
+          ? null
+          : h(
+              'button',
+              { type: 'button', class: 'boto boto--petit boto--secundari', 'aria-label': tm.ajustaEtiqueta, 'data-ajustos': true, onclick: accions.obrirAjustos },
+              `⚙ ${tm.ajusta}`,
+            ),
+      ),
+      textResum
+        ? lectura
+          ? h('p', { class: 'menu__cost' }, textResum)
+          : h(
+              'button',
+              { type: 'button', class: 'enllac menu__cost', 'aria-label': tm.resumEtiqueta(textResum), onclick: accions.obrirCompra },
+              `${textResum} ›`,
+            )
+        : null,
+      !lectura && sobrePressupost ? h('p', { class: 'avis', role: 'status' }, tm.sobrePressupost) : null,
+      ...(lectura ? [] : textosAvisos).map((text) => h('p', { class: 'avis', role: 'status' }, text)),
+      !lectura && dades.anterior
+        ? dades.anterior.queden > 0
+          ? h(
+              'div',
+              { class: 'avis menu__anterior', role: 'status' },
+              h('p', {}, tm.anterior.queden(dades.anterior.queden, dades.anterior.titol)),
+              h('button', { type: 'button', class: 'boto boto--petit boto--secundari', 'data-anterior': 'veure', onclick: accions.veureAnterior }, tm.anterior.veure),
+            )
+          : h(
+              'button',
+              { type: 'button', class: 'boto boto--petit boto--fantasma menu__veure-anterior', 'data-anterior': 'veure', onclick: accions.veureAnterior },
+              `← ${tm.anterior.boto(dades.anterior.titol)}`,
+            )
+        : null,
+    ),
     apats.length === 0 ? h('p', { class: 'avis' }, tm.capApat) : null,
-    !lectura && dades.desfer
-      ? h(
-          'div',
-          { class: 'avis menu__desfer', role: 'status' },
-          h('p', {}, dades.desfer),
-          h('button', { type: 'button', class: 'boto boto--petit boto--secundari', 'data-desfer': true, onclick: accions.desfer }, `↩ ${tm.desfer}`),
-        )
-      : null,
     apats.length > 0 && !lectura
       ? h('button', { type: 'button', class: 'boto boto--secundari menu__refer', onclick: accions.tornarAFer }, `🔄 ${tm.tornarAFer}`)
       : null,
-    mensual && apats.length > 0 ? calendariMes(dades.mes!, apats, setmanes, visible, accions) : null,
-    navegacioSetmanes,
-    ...dies.map(({ clau, nom, apats: delDia }) =>
-      h(
-        'section',
-        { class: 'dia', 'aria-labelledby': `dia-${clau}` },
-        h('h2', { class: 'dia__nom', id: `dia-${clau}` }, nom),
-        ...delDia.map(({ a, index }) => {
-          const data = a.data ?? (dades.dilluns ? sumarDies(dades.dilluns, DIES.indexOf(a.dia)) : undefined);
-          const passat = data !== undefined && data < dades.avui;
-          return targetaApat(a, index, configuracio, dades.assistenciaOberta === index, accions, lectura !== undefined, passat);
-        }),
-      ),
-    ),
+    !lectura && dades.desfer ? avisDesfer(dades.desfer, accions.desfer) : null,
+  );
+}
+
+function avisDesfer(text: string, desfer: () => void): HTMLElement {
+  return h(
+    'div',
+    { class: 'avis menu__desfer', role: 'status' },
+    h('p', {}, text),
+    h('button', { type: 'button', class: 'boto boto--petit boto--secundari', 'data-desfer': true, onclick: desfer }, `↩ ${tm.desfer}`),
+  );
+}
+
+export interface DadesAjustos extends Pick<DadesMenu, 'periode' | 'mes' | 'mesos' | 'graella'> {
+  desfer?: string | null;
+}
+
+/** Full «Ajusta el menú»: per a quant de temps i quins àpats es fan a casa. */
+export function pantallaAjustos(
+  dades: DadesAjustos,
+  accions: Pick<AccionsMenu, 'canviarPeriode' | 'canviarGraella' | 'desfer'> & { tornar: () => void },
+): HTMLElement {
+  return h(
+    'main',
+    { class: 'menu ajustos' },
+    h('button', { type: 'button', class: 'boto boto--petit boto--fantasma ajustos__tornar', onclick: accions.tornar }, `← ${tm.ajustos.tornar}`),
+    h('h1', { class: 'menu__titol', tabindex: -1 }, tm.ajustos.titol),
+    h('p', { class: 'menu__nota' }, tm.ajustos.ajuda),
+    selectorPeriode(dades, accions),
+    graellaEditable(dades.graella, accions.canviarGraella),
+    dades.desfer ? avisDesfer(dades.desfer, accions.desfer) : null,
   );
 }
