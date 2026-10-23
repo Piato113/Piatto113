@@ -146,8 +146,10 @@ export const textos = {
     },
     confirmarTornarAFer: (fixats: number) =>
       fixats > 0
-        ? `Vols fer un menú nou? Es mantindran ${fixats === 1 ? 'el plat fixat' : `els ${fixats} plats fixats`} (📌).`
-        : 'Vols fer un menú nou? Si vols conservar algun plat, fixa’l abans amb 📌.',
+        ? `Es tornarà a fer el menú que ja teniu. Els àpats que ja han passat i ${fixats === 1 ? 'el plat fixat' : `els ${fixats} plats fixats`} (📌) es mantenen.`
+        : 'Es tornarà a fer el menú que ja teniu. Els àpats que ja han passat es mantenen; si vols conservar algun altre plat, fixa’l abans amb 📌.',
+    confirmarTornarAFerTitol: 'Tornar a fer el menú?',
+    confirmarTornarAFerSi: 'Fes-lo de nou',
     menuNou: 'Menú nou fet.',
     graellaCanviada: 'Menú refet amb els àpats nous.',
     desfer: 'Desfés',
@@ -387,13 +389,17 @@ export const textos = {
     treu: 'Treu',
     treuEtiqueta: (plat: string) => `Treu la valoració de ${plat}`,
   },
+  dialeg: {
+    cancellar: 'Cancel·la',
+  },
   compte: {
     titol: 'Compte',
     entratCom: (correu: string) => `Has entrat com a ${correu}.`,
     desat: 'Tot desat al compte.',
     pendent: 'Hi ha canvis sense desar al compte: s’enviaran quan hi hagi connexió.',
     tancar: 'Tanca la sessió',
-    confirmarTancar: 'Vols tancar la sessió en aquest mòbil? Les dades continuaran al compte.',
+    confirmarTancar: 'Les dades continuaran al compte i les tornaràs a veure quan hi entris.',
+    confirmarTancarTitol: 'Tancar la sessió en aquest mòbil?',
   },
   questionari: {
     pas: (n: number, total: number) => `Pas ${n} de ${total}`,

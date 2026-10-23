@@ -6,6 +6,7 @@ import type { Novetat } from '../domini';
 // Text curt (es llegeix mentre passa): sense punt final.
 
 export const NOVETATS: readonly Novetat[] = [
+  { data: '2026-10-23', text: 'El menú nou ja no repeteix els plats dels últims dies del menú d’abans' },
   { data: '2026-10-23', text: '«Fes un menú nou»: aquesta setmana, la que ve, la resta del mes o el mes que ve' },
   { data: '2026-10-23', text: 'Avui i aquesta setmana sempre a dalt, encara que ja tingueu fet el menú del mes que ve' },
   { data: '2026-10-23', text: 'Menú més endreçat: el plat d’avui a dalt i els ajustos a «⚙ Ajusta»' },

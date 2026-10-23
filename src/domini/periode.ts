@@ -1,7 +1,7 @@
-import { dillunsDe, sumarDies } from './calendari';
+import { diesEntre, dillunsDe, sumarDies } from './calendari';
 import type { Cataleg } from './cataleg';
 import { APATS, DIES } from './graella';
-import { avaluarMenu, conservarFixats } from './planificador';
+import { avaluarMenu, canviarPlat, conservarFixats, DIES_SENSE_REPETIR } from './planificador';
 import type { ApatPlanificat, ConfiguracioFamilia } from './tipus';
 
 /** Una setmana d'un menú llarg: el dilluns i els índexs dels seus àpats (en ordre). */
@@ -192,4 +192,55 @@ export function setmanaAgendaInicial(agenda: readonly SetmanaAgenda[], avui: str
   const dilluns = dillunsDe(avui);
   const index = agenda.findIndex((s) => s.dilluns >= dilluns);
   return Math.max(0, index);
+}
+
+/** Un plat d'un altre menú amb la seva data (per no repetir-lo a prop des del menú nou). */
+export interface PlatVei {
+  receptaId: string;
+  data: string;
+}
+
+/** Plats amb data d'un menú (els que no se'n pot saber la data no compten). */
+export function platsAmbData(m: MenuAmbApats | undefined): PlatVei[] {
+  return (m?.apats ?? []).flatMap((a) => {
+    const data = dataApat(a, m!);
+    return data ? [{ receptaId: a.receptaId, data }] : [];
+  });
+}
+
+/** El plat d'aquest àpat ja surt en un altre menú a menys de tres dies. */
+export function repeteixVei(receptaId: string, data: string | undefined, veins: readonly PlatVei[]): boolean {
+  return data !== undefined && veins.some((v) => v.receptaId === receptaId && Math.abs(diesEntre(v.data, data)) <= DIES_SENSE_REPETIR);
+}
+
+/**
+ * Els menús es planifiquen d'un en un: el menú nou no sap què hi ha al del costat (el que es continua veient).
+ * Canvia els àpats (no fixats) del menú nou que repetirien a menys de tres dies un plat de l'altre menú,
+ * p. ex. el mateix dinar el dissabte 31 (menú d'octubre) i el diumenge 1 (menú de novembre).
+ */
+export function evitarRepetirVeins(
+  cataleg: Cataleg,
+  configuracio: ConfiguracioFamilia,
+  apats: readonly ApatPlanificat[],
+  menu: IdentitatMenu,
+  veins: readonly PlatVei[],
+  llavor: number,
+): ApatPlanificat[] {
+  let resultat = [...apats];
+  if (veins.length === 0) return resultat;
+  resultat.forEach((a, i) => {
+    const data = dataApat(a, menu);
+    if (a.fixat || !repeteixVei(a.receptaId, data, veins)) return;
+    const mes = data ? Number(data.slice(5, 7)) : undefined;
+    for (let intent = 0; intent < 12; intent++) {
+      const nous = canviarPlat(cataleg, configuracio, resultat, i, llavor + i * 97 + intent, mes);
+      const triat = nous[i]!.receptaId;
+      if (triat === a.receptaId) return; // No hi ha cap altre plat possible.
+      if (!repeteixVei(triat, data, veins)) {
+        resultat = nous;
+        return;
+      }
+    }
+  });
+  return resultat;
 }

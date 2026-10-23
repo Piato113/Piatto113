@@ -2247,3 +2247,15 @@ h1:focus-visible {
 .menu-nou__fer {
   width: 100%;
 }
+
+/* Diàlegs de confirmació de l'app */
+.dialeg__botons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.dialeg .avis-registre__caixa .boto {
+  margin-top: 0;
+}

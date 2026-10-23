@@ -18,6 +18,10 @@ import {
   estalviCompraPeriode,
   mesSeguent,
   agendaMenu,
+  dataApat,
+  evitarRepetirVeins,
+  platsAmbData,
+  repeteixVei,
   clauPeriode,
   setmanaAgendaInicial,
   sumarDies,
@@ -59,6 +63,7 @@ import {
   type PeriodeMenu,
 } from './ui/emmagatzematge';
 import { pantallaMenu, pantallaMenuNou, type OpcioMenuNou } from './ui/menu';
+import { confirmar } from './ui/dialeg';
 import { pantallaPas, pantallaResum, PASSOS, type Pas } from './ui/questionari';
 import { pantallaCuinar, sortirDelModeCuinar } from './ui/cuinar';
 import { pantallaRecepta } from './ui/recepta';
@@ -270,12 +275,14 @@ function ferMenu(
   // El que ja s'ha menjat aquesta setmana (o aquest mes) no canvia, i els plats fixats es mantenen
   // quan es torna a fer el menú amb les mateixes respostes.
   const identitat = mesTriat ? { periode: 'mes' as const, mes: mesTriat, creat: avui() } : { creat };
-  const apats = mantenirMenu(catalegInicial, configuracio, ambGent, identitat, menu, avui(), llavor, mantenirFixats);
-  const nou: MenuDesat = { signatura: JSON.stringify(respostes), llavor, graella, apats, avisos: pla.avisos, creat: mesTriat ? avui() : creat };
+  const mantinguts = mantenirMenu(catalegInicial, configuracio, ambGent, identitat, menu, avui(), llavor, mantenirFixats);
+  const nou: MenuDesat = { signatura: JSON.stringify(respostes), llavor, graella, apats: mantinguts, avisos: pla.avisos, creat: mesTriat ? avui() : creat };
   if (mesTriat) Object.assign(nou, { periode: 'mes', mes: mesTriat });
   // El menú d'un altre període passa a ser l'anterior (per seguir-lo mentre s'acaba); si és el mateix, es conserva el d'abans.
   const anterior = menu && esPeriodeNou(menu, nou) ? senseAnterior(menu) : menu?.anterior;
   if (anterior) nou.anterior = anterior;
+  // El menú anterior es continua veient al costat: el nou no en repeteix cap plat a menys de tres dies.
+  nou.apats = evitarRepetirVeins(catalegInicial, configuracio, nou.apats, nou, platsAmbData(anterior), llavor);
   desarMenu(nou);
   void comptarMenu();
   return nou;
@@ -483,11 +490,12 @@ function opcionsMenuNou(actual: MenuDesat): OpcioNou[] {
 }
 
 /** «Fes el menú»: fa el menú del període triat amb la graella triada i torna al menú amb «Desfés». */
-function ferMenuNou(o: OpcioNou, graella: Graella): void {
+async function ferMenuNou(o: OpcioNou, graella: Graella): Promise<void> {
   const abans = menu;
   if (o.refer && abans) {
     const fixats = abans.apats.filter((a) => a.fixat).length;
-    if (!window.confirm(textos.menu.confirmarTornarAFer(fixats))) return;
+    const tm = textos.menu;
+    if (!(await confirmar({ titol: tm.confirmarTornarAFerTitol, text: tm.confirmarTornarAFer(fixats), acceptar: tm.confirmarTornarAFerSi }))) return;
   }
   desarGraella(graella);
   menu = ferMenu(respostesActives(), graella, llavorNova(), o.periode, o.mes, o.refer, o.periode === 'setmana' ? (o.opcio === 'setmana' ? avui() : o.inici) : undefined);
@@ -512,7 +520,14 @@ const accionsMenu = {
   /** Canvia el plat per un altre a l'atzar. */
   canviarPlat: (index: number, { pintar: repintar = true } = {}): void => {
     if (!menu) return;
-    const apats = canviarPlat(catalegInicial, configuracioDe(respostesActives()), menu.apats, index, llavorNova(), mesDe(avui()));
+    // A l'atzar, tampoc un plat que el menú anterior té a menys de tres dies.
+    const veins = platsAmbData(menu.anterior);
+    const data = dataApat(menu.apats[index]!, menu);
+    let apats = menu.apats;
+    for (let intent = 0; intent < 12; intent++) {
+      apats = canviarPlat(catalegInicial, configuracioDe(respostesActives()), menu.apats, index, llavorNova(), mesDe(data ?? avui()));
+      if (!repeteixVei(apats[index]!.receptaId, data, veins)) break;
+    }
     if (apats[index]?.receptaId === menu.apats[index]?.receptaId) {
       missatge = textos.menu.senseAlternativa;
     } else {
@@ -735,7 +750,8 @@ async function quanEntri(): Promise<void> {
 }
 
 async function sortirDelCompte(): Promise<void> {
-  if (!window.confirm(textos.compte.confirmarTancar)) return;
+  const tc = textos.compte;
+  if (!(await confirmar({ titol: tc.confirmarTancarTitol, text: tc.confirmarTancar, acceptar: tc.tancar }))) return;
   aturarSincronitzacio();
   await tancarSessio();
   usuari = null;
@@ -1093,7 +1109,7 @@ function contingutSeccio(respostes: RespostesQuestionari, seccio: Seccio): HTMLE
             window.scrollTo(0, y);
             arrel!.querySelector<HTMLElement>(`[data-graella="${clau}"]`)?.focus({ preventScroll: true });
           },
-          fer: () => ferMenuNou(opcions.find((o) => o.opcio === esborrany.opcio)!, esborrany.graella),
+          fer: () => void ferMenuNou(opcions.find((o) => o.opcio === esborrany.opcio)!, esborrany.graella),
           tornar,
         },
       );
